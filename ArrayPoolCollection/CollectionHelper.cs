@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 #if NET5_0_OR_GREATER
@@ -51,6 +53,50 @@ namespace ArrayPoolCollection
                     span = default;
                     return false;
             }
+        }
+
+        internal static bool TryGetNonEnumeratedCount<T>(IEnumerable<T> source, out int count)
+        {
+#if NET6_0_OR_GREATER
+            return source.TryGetNonEnumeratedCount(out count);
+#else
+            if (source is ICollection<T> genericCollection)
+            {
+                count = genericCollection.Count;
+                return true;
+            }
+            if (source is ICollection collection)
+            {
+                count = collection.Count;
+                return true;
+            }
+            count = default;
+            return false;
+#endif
+        }
+
+        internal static T[] AllocateUninitializedArray<T>(int length)
+        {
+#if NET5_0_OR_GREATER
+            return GC.AllocateUninitializedArray<T>(length);
+#else
+            return new T[length];
+#endif
+        }
+
+        internal static int RoundUpToPowerOf2(int value)
+        {
+#if NET6_0_OR_GREATER
+            return (int)BitOperations.RoundUpToPowerOf2((uint)value);
+#else
+            uint x = (uint)(value - 1);
+            x |= x >> 1;
+            x |= x >> 2;
+            x |= x >> 4;
+            x |= x >> 8;
+            x |= x >> 16;
+            return (int)(x + 1);
+#endif
         }
     }
 }

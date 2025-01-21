@@ -86,7 +86,7 @@ namespace ArrayPoolCollection
             }
         }
 
-        public void WriteToSpan(Span<T> destination)
+        public void CopyTo(Span<T> destination)
         {
             if (destination.Length < GetTotalLength())
             {
@@ -126,7 +126,7 @@ namespace ArrayPoolCollection
         {
             int totalLength = GetTotalLength();
             var result = ArrayPool<T>.Shared.Rent(totalLength);
-            WriteToSpan(result);
+            CopyTo(result);
             span = result.AsSpan(..totalLength);
             return result;
         }
@@ -135,12 +135,8 @@ namespace ArrayPoolCollection
         {
             int totalLength = GetTotalLength();
 
-#if NET5_0_OR_GREATER
-            var result = GC.AllocateUninitializedArray<T>(totalLength);
-#else
-            var result = new T[totalLength];
-#endif
-            WriteToSpan(result);
+            var result = CollectionHelper.AllocateUninitializedArray<T>(totalLength);
+            CopyTo(result);
             return result;
         }
 
@@ -150,7 +146,7 @@ namespace ArrayPoolCollection
             var list = new List<T>(totalLength);
 
             CollectionHelper.SetListCount(list, totalLength);
-            WriteToSpan(CollectionHelper.ListToSpan(list));
+            CopyTo(CollectionHelper.ListToSpan(list));
 
             return list;
         }

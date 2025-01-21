@@ -63,14 +63,14 @@ public class SegmentedArrayTests
         segmentedArray.AddRange(Enumerable.Range(0, 49));
 
         var result = new int[64];
-        segmentedArray.WriteToSpan(result);
+        segmentedArray.CopyTo(result);
         CollectionAssert.AreEqual(Enumerable.Range(0, 49).ToArray(), result[..49]);
         Assert.AreEqual(0, result[49]);
 
         result = new int[64];
         try
         {
-            segmentedArray.WriteToSpan(result.AsSpan(..32));
+            segmentedArray.CopyTo(result.AsSpan(..32));
             Assert.Fail();
         }
         catch (ArgumentException) { }

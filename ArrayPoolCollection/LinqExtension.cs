@@ -9,7 +9,7 @@ namespace ArrayPoolCollection
             segmentedArray.AddRange(source);
 
             var result = new ArrayPoolWrapper<T>(segmentedArray.GetTotalLength(), false);
-            segmentedArray.WriteToSpan(result.AsSpan());
+            segmentedArray.CopyTo(result.AsSpan());
 
             return result;
         }
