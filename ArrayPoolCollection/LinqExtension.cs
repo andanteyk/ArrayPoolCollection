@@ -1,5 +1,3 @@
-using System.Net.Http.Headers;
-
 namespace ArrayPoolCollection
 {
     public static class LinqExtension

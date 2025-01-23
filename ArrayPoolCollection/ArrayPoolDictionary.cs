@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace ArrayPoolCollection
@@ -365,7 +364,7 @@ namespace ArrayPoolCollection
             {
                 values[valueIndex] = values[m_Size - 1];
 
-                int movingHashCode = values[valueIndex].Key.GetHashCode();
+                int movingHashCode = GetHashCode(values[valueIndex].Key, m_Comparer);
                 int movingMetadataIndex = HashCodeToMetadataIndex(movingHashCode, m_Shifts);
 
                 int valueIndexBack = m_Size - 1;
@@ -373,7 +372,7 @@ namespace ArrayPoolCollection
                 {
                     movingMetadataIndex = IncrementMetadataIndex(movingMetadataIndex);
                 }
-                m_Metadata[movingMetadataIndex] = new Metadata(metadata[movingMetadataIndex].Fingerprint, valueIndex);
+                metadata[movingMetadataIndex] = new Metadata(metadata[movingMetadataIndex].Fingerprint, valueIndex);
             }
 
             m_Size--;
@@ -1760,7 +1759,7 @@ namespace ArrayPoolCollection
         {
             if (m_Values != null)
             {
-                ArrayPool<KeyValuePair<TKey, TValue>>.Shared.Return(m_Values, true);
+                ArrayPool<KeyValuePair<TKey, TValue>>.Shared.Return(m_Values, RuntimeHelpers.IsReferenceOrContainsReferences<KeyValuePair<TKey, TValue>>());
                 m_Values = null;
             }
             if (m_Metadata != null)
