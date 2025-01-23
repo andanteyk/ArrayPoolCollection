@@ -98,5 +98,22 @@ namespace ArrayPoolCollection
             return (int)(x + 1);
 #endif
         }
+
+        internal static int TrailingZeroCount(ulong x)
+        {
+#if NETCOREAPP3_0_OR_GREATER
+            return BitOperations.TrailingZeroCount(x);
+#else
+            int c = 63;
+            x &= ~x + 1;
+            if ((x & 0x00000000ffffffff) != 0) c -= 32;
+            if ((x & 0x0000ffff0000ffff) != 0) c -= 16;
+            if ((x & 0x00ff00ff00ff00ff) != 0) c -= 8;
+            if ((x & 0x0f0f0f0f0f0f0f0f) != 0) c -= 4;
+            if ((x & 0x3333333333333333) != 0) c -= 2;
+            if ((x & 0x5555555555555555) != 0) c -= 1;
+            return c;
+#endif
+        }
     }
 }

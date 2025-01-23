@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace ArrayPoolCollection
 {
-    public class ArrayPoolList<T> : IList<T>, IReadOnlyList<T>, IList, IDisposable
+    public sealed class ArrayPoolList<T> : IList<T>, IReadOnlyList<T>, IList, IDisposable
     {
         private T[]? Array;
         private int Length;

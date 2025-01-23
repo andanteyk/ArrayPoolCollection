@@ -57,5 +57,23 @@ namespace ArrayPoolCollection
         {
             throw new InvalidOperationException("The state of the enumerator is undefined");
         }
+
+        [DoesNotReturn]
+        internal static void ThrowKeyNotFound<TKey>(TKey key)
+        {
+            throw new KeyNotFoundException($"key {key} not found");
+        }
+
+        [DoesNotReturn]
+        internal static void ThrowKeyIsAlreadyExists<TKey>(TKey key)
+        {
+            throw new ArgumentException($"key {key} is already exists");
+        }
+
+        [DoesNotReturn]
+        internal static void ThrowNotAlternateComparer()
+        {
+            throw new InvalidOperationException("Comparer is not IAlternateEqualityComparer<TAlternate, TKey>");
+        }
     }
 }

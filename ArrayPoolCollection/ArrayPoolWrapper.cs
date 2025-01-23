@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace ArrayPoolCollection
 {
-    public class ArrayPoolWrapper<T> : IList<T>, IReadOnlyList<T>, IDisposable
+    public sealed class ArrayPoolWrapper<T> : IList<T>, IReadOnlyList<T>, IList, IDisposable
     {
         private T[]? Array;
         private int Length;
@@ -69,6 +69,18 @@ namespace ArrayPoolCollection
         public int Count => Length;
 
         public bool IsReadOnly => false;
+
+        bool IList.IsFixedSize => throw new NotImplementedException();
+
+        bool IList.IsReadOnly => throw new NotImplementedException();
+
+        int ICollection.Count => throw new NotImplementedException();
+
+        bool ICollection.IsSynchronized => throw new NotImplementedException();
+
+        object ICollection.SyncRoot => throw new NotImplementedException();
+
+        object? IList.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public void Add(T item)
         {
@@ -136,6 +148,77 @@ namespace ArrayPoolCollection
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        int IList.Add(object? value)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IList.Clear()
+        {
+            throw new NotSupportedException();
+        }
+
+        bool IList.Contains(object? value)
+        {
+            if (value is T typedValue)
+            {
+                return Contains(typedValue);
+            }
+            else if (value is null && default(T) == null)
+            {
+                return Contains(default!);
+            }
+
+            return false;
+        }
+
+        int IList.IndexOf(object? value)
+        {
+            if (value is T typedValue)
+            {
+                return IndexOf(typedValue);
+            }
+            else if (value is null && default(T) == null)
+            {
+                return IndexOf(default!);
+            }
+
+            return -1;
+        }
+
+        void IList.Insert(int index, object? value)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IList.Remove(object? value)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IList.RemoveAt(int index)
+        {
+            throw new NotSupportedException();
+        }
+
+        void ICollection.CopyTo(Array array, int index)
+        {
+            if (Array == null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+            }
+            if (array.Rank > 1)
+            {
+                ThrowHelper.ThrowArgumentTypeMismatch(nameof(array));
+            }
+            if (array.GetType() != Array.GetType())
+            {
+                ThrowHelper.ThrowArgumentTypeMismatch(nameof(array));
+            }
+
+            System.Array.Copy(Array, 0, array, index, Length);
+        }
 
         public struct Enumerator : IEnumerator<T>
         {

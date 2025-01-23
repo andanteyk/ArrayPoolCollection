@@ -7,12 +7,13 @@ public class LinqExtensionTests
     public void ToArrayPool()
     {
         using var array = Enumerable.Range(0, 6).ToArrayPool();
+        CollectionAssert.AreEqual(new int[] { 0, 1, 2, 3, 4, 5 }, array);
+    }
 
-        int i = 0;
-        foreach (var value in array)
-        {
-            Assert.AreEqual(i, value);
-            i++;
-        }
+    [TestMethod]
+    public void ToArrayPoolList()
+    {
+        using var list = Enumerable.Range(0, 6).ToArrayPoolList();
+        CollectionAssert.AreEqual(new int[] { 0, 1, 2, 3, 4, 5 }, list);
     }
 }
