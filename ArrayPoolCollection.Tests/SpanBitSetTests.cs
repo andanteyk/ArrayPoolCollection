@@ -68,23 +68,20 @@ public class SpanBitSetTests
     [TestMethod]
     public void Ctor()
     {
-        using var fromSpan = new SpanBitSet(stackalloc nuint[16]);
-        Assert.AreEqual(0, fromSpan.Count);
-
-        using var fromCapacity = new SpanBitSet(1024);
-        Assert.AreEqual(0, fromCapacity.Count);
-
         using var fromSpanLength = new SpanBitSet(stackalloc nuint[16], 150);
         Assert.AreEqual(150, fromSpanLength.Count);
 
         using var fromCapacityLength = new SpanBitSet(1024, 150);
         Assert.AreEqual(150, fromCapacityLength.Count);
+
+        using var fromSpanOverLength = new SpanBitSet(stackalloc nuint[16], 32 * 16);
+        Assert.AreEqual(32 * 16, fromSpanOverLength.Count);
     }
 
     [TestMethod]
     public void Add()
     {
-        var bits = new SpanBitSet(stackalloc nuint[1]);
+        var bits = new SpanBitSet(stackalloc nuint[1], 0);
 
         for (int i = 0; i < 1024; i++)
         {
@@ -208,9 +205,9 @@ public class SpanBitSetTests
     [TestMethod]
     public void Dispose()
     {
-        using var fromSpan = new SpanBitSet(stackalloc nuint[16]);
+        using var fromSpan = new SpanBitSet(stackalloc nuint[16], 0);
 
-        using var fromArray = new SpanBitSet(1024);
+        using var fromArray = new SpanBitSet(1024, 0);
     }
 
     [TestMethod]

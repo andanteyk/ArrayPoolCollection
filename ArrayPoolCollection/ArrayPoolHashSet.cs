@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace ArrayPoolCollection
@@ -488,6 +489,162 @@ namespace ArrayPoolCollection
 
             public ArrayPoolHashSet<T> Set => m_Parent;
 
+
+            private int GetEntryIndex(TAlternate key)
+            {
+                if (m_Parent.m_Metadata == null)
+                {
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
+                }
+                if (m_Parent.m_Values == null)
+                {
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
+                }
+
+                var metadata = m_Parent.m_Metadata;
+                var values = m_Parent.m_Values;
+                var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternate, T>;
+
+                if (comparer is null)
+                {
+                    ThrowHelper.ThrowNotAlternateComparer();
+                }
+
+                int hashCode = comparer.GetHashCode(key);
+                uint fingerprint = HashCodeToFingerprint(hashCode);
+                int metadataIndex = HashCodeToMetadataIndex(hashCode, m_Parent.m_Shifts);
+
+                var current = metadata[metadataIndex];
+
+
+                // unrolled loop #1
+                if (fingerprint == current.Fingerprint && comparer.Equals(key, values[current.ValueIndex]))
+                {
+                    return current.ValueIndex;
+                }
+                fingerprint += DistanceUnit;
+                metadataIndex = IncrementMetadataIndex(metadataIndex, metadata.Length);
+                current = metadata[metadataIndex];
+
+                // unrolled loop #2
+                if (fingerprint == current.Fingerprint && comparer.Equals(key, values[current.ValueIndex]))
+                {
+                    return current.ValueIndex;
+                }
+                fingerprint += DistanceUnit;
+                metadataIndex = IncrementMetadataIndex(metadataIndex, metadata.Length);
+
+
+                return GetEntryIndexFallback(key, fingerprint, metadataIndex);
+            }
+
+            private int GetEntryIndexFallback(TAlternate key, uint fingerprint, int metadataIndex)
+            {
+                if (m_Parent.m_Metadata == null)
+                {
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
+                }
+                if (m_Parent.m_Values == null)
+                {
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
+                }
+
+                var metadata = m_Parent.m_Metadata;
+                var values = m_Parent.m_Values;
+                var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternate, T>;
+
+                if (comparer is null)
+                {
+                    ThrowHelper.ThrowNotAlternateComparer();
+                }
+
+                var current = metadata[metadataIndex];
+
+                while (true)
+                {
+                    if (fingerprint == current.Fingerprint)
+                    {
+                        if (comparer.Equals(key, values[current.ValueIndex]))
+                        {
+                            return current.ValueIndex;
+                        }
+                    }
+                    else if (fingerprint > current.Fingerprint)
+                    {
+                        return -1;
+                    }
+
+                    fingerprint += DistanceUnit;
+                    metadataIndex = IncrementMetadataIndex(metadataIndex, m_Parent.m_Metadata.Length);
+                    current = metadata[metadataIndex];
+                }
+            }
+
+            private bool RemoveEntry(TAlternate key)
+            {
+                if (m_Parent.m_Metadata == null)
+                {
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
+                }
+                if (m_Parent.m_Values == null)
+                {
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
+                }
+
+                var metadata = m_Parent.m_Metadata;
+                var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternate, T>;
+                if (comparer is null)
+                {
+                    ThrowHelper.ThrowNotAlternateComparer();
+                }
+
+
+                (uint fingerprint, int metadataIndex) = NextWhileLess(key);
+
+                while (fingerprint == metadata[metadataIndex].Fingerprint &&
+                    !comparer.Equals(key, m_Parent.m_Values[metadata[metadataIndex].ValueIndex]))
+                {
+                    fingerprint += DistanceUnit;
+                    metadataIndex = IncrementMetadataIndex(metadataIndex, metadata.Length);
+                }
+
+                if (fingerprint != metadata[metadataIndex].Fingerprint)
+                {
+                    return false;
+                }
+
+                m_Parent.RemoveAt(metadataIndex);
+                return true;
+            }
+
+            private (uint fingerprint, int metadataIndex) NextWhileLess(TAlternate key)
+            {
+                if (m_Parent.m_Metadata == null)
+                {
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
+                }
+
+                var metadata = m_Parent.m_Metadata;
+                var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternate, T>;
+                if (comparer is null)
+                {
+                    ThrowHelper.ThrowNotAlternateComparer();
+                }
+
+                int hashCode = comparer.GetHashCode(key);
+                uint fingerprint = HashCodeToFingerprint(hashCode);
+                int metadataIndex = HashCodeToMetadataIndex(hashCode, m_Parent.m_Shifts);
+
+                while (fingerprint < metadata[metadataIndex].Fingerprint)
+                {
+                    fingerprint += DistanceUnit;
+                    metadataIndex = IncrementMetadataIndex(metadataIndex, metadata.Length);
+                }
+
+                return (fingerprint, metadataIndex);
+            }
+
+
             public bool Add(TAlternate item)
             {
                 if (m_Parent.m_Values is null)
@@ -501,9 +658,8 @@ namespace ArrayPoolCollection
                     ThrowHelper.ThrowNotAlternateComparer();
                 }
 
-                // TODO: opt.
                 var key = comparer.Create(item);
-                return m_Parent.Add(key);
+                return m_Parent.AddEntry(key, false);
             }
 
             public bool Contains(TAlternate item)
@@ -512,16 +668,12 @@ namespace ArrayPoolCollection
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                 }
-
-                var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternate, T>;
-                if (comparer == null)
+                if (m_Parent.m_Comparer is not IAlternateEqualityComparer<TAlternate, T>)
                 {
                     ThrowHelper.ThrowNotAlternateComparer();
                 }
 
-                // TODO: opt.
-                var key = comparer.Create(item);
-                return m_Parent.Contains(key);
+                return GetEntryIndex(item) >= 0;
             }
 
             public bool Remove(TAlternate item)
@@ -530,16 +682,12 @@ namespace ArrayPoolCollection
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                 }
-
-                var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternate, T>;
-                if (comparer == null)
+                if (m_Parent.m_Comparer is not IAlternateEqualityComparer<TAlternate, T>)
                 {
                     ThrowHelper.ThrowNotAlternateComparer();
                 }
 
-                // TODO: opt.
-                var key = comparer.Create(item);
-                return m_Parent.Remove(key);
+                return RemoveEntry(item);
             }
 
             public bool TryGetValue(TAlternate equalValue, out T actualValue)
@@ -548,25 +696,21 @@ namespace ArrayPoolCollection
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                 }
-
-                var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternate, T>;
-                if (comparer == null)
+                if (m_Parent.m_Comparer is not IAlternateEqualityComparer<TAlternate, T>)
                 {
                     ThrowHelper.ThrowNotAlternateComparer();
                 }
 
-                // TODO: opt. we should not Create() if it is avoidable
-                var key = comparer.Create(equalValue);
-                return m_Parent.TryGetValue(key, out actualValue);
+                if (GetEntryIndex(equalValue) is int index && index >= 0)
+                {
+                    actualValue = m_Parent.m_Values[index];
+                    return true;
+                }
+
+                actualValue = default!;
+                return false;
             }
         }
-
-
-
-
-
-
-
 
 
         public int Count
@@ -731,6 +875,10 @@ namespace ArrayPoolCollection
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
+            if (arrayIndex < 0)
+            {
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(arrayIndex), 0, array.Length, arrayIndex);
+            }
             if (array.Length - arrayIndex < m_Size)
             {
                 ThrowHelper.ThrowArgumentOverLength(nameof(arrayIndex), 0, m_Size - array.Length, arrayIndex);
@@ -749,6 +897,10 @@ namespace ArrayPoolCollection
             {
                 ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, m_Size, count);
             }
+            if (count > m_Size)
+            {
+                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, m_Size, count);
+            }
             if (array.Length - arrayIndex < count)
             {
                 ThrowHelper.ThrowArgumentOverLength(nameof(arrayIndex), 0, count - array.Length, arrayIndex);
@@ -763,13 +915,50 @@ namespace ArrayPoolCollection
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
+            if (m_Size > span.Length)
+            {
+                ThrowHelper.ThrowArgumentOverLength(nameof(span), m_Size, int.MaxValue, span.Length);
+            }
 
             m_Values.AsSpan(..m_Size).CopyTo(span);
         }
 
-        public IEqualityComparer<ArrayPoolHashSet<T>> CreateSetComparer()
+        public static SetComparer CreateSetComparer()
         {
-            throw new NotImplementedException();
+            return new SetComparer();
+        }
+
+        public readonly struct SetComparer : IEqualityComparer<ArrayPoolHashSet<T>>
+        {
+            public bool Equals(ArrayPoolHashSet<T>? x, ArrayPoolHashSet<T>? y)
+            {
+                if (ReferenceEquals(x, y))
+                {
+                    return true;
+                }
+                if (x is null || y is null)
+                {
+                    return false;
+                }
+
+                // TODO
+                var (intersectCount, onlyInOtherCount) = x.CountWithOther(y);
+                return x.Count == intersectCount && onlyInOtherCount == 0;
+            }
+
+            public int GetHashCode([DisallowNull] ArrayPoolHashSet<T> obj)
+            {
+                int hashCode = 0;
+                var comparer = obj.Comparer;
+                foreach (var element in obj)
+                {
+                    if (element != null)
+                    {
+                        hashCode ^= comparer.GetHashCode(element);
+                    }
+                }
+                return hashCode;
+            }
         }
 
         public int EnsureCapacity(int capacity)
@@ -884,10 +1073,29 @@ namespace ArrayPoolCollection
 
         private void IntersectWithIEnumerable(IEnumerable<T> other)
         {
-            throw new NotImplementedException();
+            if (m_Values == null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
+            }
+
+            using var exists = new SpanBitSet(stackalloc nuint[SpanBitSet.StackallocThreshold], Count);
+
             foreach (var element in other)
             {
+                if (GetEntryIndex(element) is int index && index >= 0)
+                {
+                    exists.Set(index, true);
+                }
+            }
 
+            for (int i = 0; i < Count; i++)
+            {
+                if (!exists[i])
+                {
+                    RemoveEntry(m_Values[i]);
+                    exists.Set(i, exists[Count]);
+                    i--;
+                }
             }
         }
 
@@ -913,7 +1121,28 @@ namespace ArrayPoolCollection
                 }
             }
 
-            throw new NotImplementedException();
+            var (intersectCount, onlyInOtherCount) = CountWithOther(other);
+            return intersectCount == Count && onlyInOtherCount > 0;
+        }
+
+        private (int intersectCount, int onlyInOtherCount) CountWithOther(IEnumerable<T> other)
+        {
+            int intersectCount = 0;
+            int onlyInOtherCount = 0;
+
+            foreach (var element in other)
+            {
+                if (GetEntryIndex(element) >= 0)
+                {
+                    intersectCount++;
+                }
+                else
+                {
+                    onlyInOtherCount++;
+                }
+            }
+
+            return (intersectCount, onlyInOtherCount);
         }
 
         public bool IsProperSupersetOf(IEnumerable<T> other)
@@ -934,7 +1163,8 @@ namespace ArrayPoolCollection
                 }
             }
 
-            throw new NotImplementedException();
+            var (intersectCount, onlyInOtherCount) = CountWithOther(other);
+            return intersectCount < Count && onlyInOtherCount == 0;
         }
 
         public bool IsSubsetOf(IEnumerable<T> other)
@@ -955,7 +1185,8 @@ namespace ArrayPoolCollection
                 }
             }
 
-            throw new NotImplementedException();
+            var (intersectCount, onlyInOtherCount) = CountWithOther(other);
+            return intersectCount == Count && onlyInOtherCount >= 0;
         }
 
         public bool IsSupersetOf(IEnumerable<T> other)
@@ -980,7 +1211,8 @@ namespace ArrayPoolCollection
                 }
             }
 
-            throw new NotImplementedException();
+            var (intersectCount, onlyInOtherCount) = CountWithOther(other);
+            return intersectCount <= Count && onlyInOtherCount == 0;
         }
 
         public bool Overlaps(IEnumerable<T> other)
@@ -991,7 +1223,7 @@ namespace ArrayPoolCollection
             }
             if (other == this)
             {
-                return true;
+                return m_Size > 0;
             }
             if (m_Size == 0)
             {
@@ -1005,7 +1237,9 @@ namespace ArrayPoolCollection
                 }
             }
 
-            throw new NotImplementedException();
+            // TODO: opt. may not enumerate all of `other`
+            var (intersectCount, onlyInOtherCount) = CountWithOther(other);
+            return intersectCount > 0;
         }
 
         public bool Remove(T item)
@@ -1056,7 +1290,8 @@ namespace ArrayPoolCollection
                 }
             }
 
-            throw new NotImplementedException();
+            var (intersectCount, onlyInOtherCount) = CountWithOther(other);
+            return intersectCount == Count && onlyInOtherCount == 0;
         }
 
         public void SymmetricExceptWith(IEnumerable<T> other)
@@ -1186,7 +1421,7 @@ namespace ArrayPoolCollection
 
         void ICollection<T>.Add(T item)
         {
-            Add(item);
+            AddEntry(item, false);
         }
     }
 }

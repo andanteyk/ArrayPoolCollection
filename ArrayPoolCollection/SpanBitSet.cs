@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Runtime.InteropServices;
 
 namespace ArrayPoolCollection
 {
@@ -6,21 +7,25 @@ namespace ArrayPoolCollection
     {
         private nuint[]? m_Array;
         private Span<nuint> m_Span;
+        private ReadOnlySpan<int> m_VersionRef;
         private int m_Length;
         private int m_Version;
 
 
+        public readonly static int StackallocThreshold = 64;
         private readonly static int NuintBits = UIntPtr.Size == 4 ? 32 : 64;
         private readonly static int NuintShifts = UIntPtr.Size == 4 ? 5 : 6;
         private const nuint Zero = 0;
         private const nuint One = 1;
 
 
+        private readonly bool IsDisposed => m_VersionRef[0] == -1;
+
         public bool this[int index]
         {
             readonly get
             {
-                if (m_Version == -1)
+                if (IsDisposed)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
                 }
@@ -33,7 +38,7 @@ namespace ArrayPoolCollection
             }
             set
             {
-                if (m_Version == -1)
+                if (IsDisposed)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
                 }
@@ -59,7 +64,7 @@ namespace ArrayPoolCollection
         {
             get
             {
-                if (m_Version == -1)
+                if (IsDisposed)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
                 }
@@ -69,21 +74,35 @@ namespace ArrayPoolCollection
         }
 
 
-        public SpanBitSet(Span<nuint> span)
+        public SpanBitSet(Span<nuint> span) : this(span, 0) { }
+        public SpanBitSet(Span<nuint> span, int initialLength)
         {
+            if (initialLength > span.Length * NuintBits)
+            {
+                int arrayCapacity = (initialLength + NuintBits - 1) >> NuintShifts;
+                m_Array = ArrayPool<nuint>.Shared.Rent(arrayCapacity);
+                span = m_Array;
+            }
+
             m_Span = span;
             m_Span.Clear();
-
             m_Array = null;
-            m_Length = 0;
+
+            m_Length = initialLength;
             m_Version = 0;
+            m_VersionRef = MemoryMarshal.CreateReadOnlySpan(ref m_Version, 1);
         }
 
-        public SpanBitSet(int capacityBits)
+        public SpanBitSet(int capacityBits) : this(capacityBits, 0) { }
+        public SpanBitSet(int capacityBits, int initialLength)
         {
             if (capacityBits < 0)
             {
                 ThrowHelper.ThrowArgumentOutOfRange(nameof(capacityBits), 0, int.MaxValue, capacityBits);
+            }
+            if (initialLength > capacityBits * NuintBits)
+            {
+                ThrowHelper.ThrowArgumentOverLength(nameof(initialLength), 0, m_Span.Length * NuintBits, initialLength);
             }
 
             int arrayCapacity = (capacityBits + NuintBits - 1) >> NuintShifts;
@@ -92,29 +111,11 @@ namespace ArrayPoolCollection
             m_Span = m_Array;
             m_Span.Clear();
 
-            m_Length = 0;
+            m_Length = initialLength;
             m_Version = 0;
+            m_VersionRef = MemoryMarshal.CreateReadOnlySpan(ref m_Version, 1);
         }
 
-        public SpanBitSet(Span<nuint> span, int initialLength) : this(span)
-        {
-            if (initialLength > m_Span.Length * NuintBits)
-            {
-                ThrowHelper.ThrowArgumentOverLength(nameof(initialLength), 0, m_Span.Length * NuintBits, initialLength);
-            }
-
-            m_Length = initialLength;
-        }
-
-        public SpanBitSet(int capacityBits, int initialLength) : this(capacityBits)
-        {
-            if (initialLength > m_Span.Length * NuintBits)
-            {
-                ThrowHelper.ThrowArgumentOverLength(nameof(initialLength), 0, m_Span.Length * NuintBits, initialLength);
-            }
-
-            m_Length = initialLength;
-        }
 
         private void AddVersion()
         {
@@ -123,7 +124,7 @@ namespace ArrayPoolCollection
 
         public void Add(bool item)
         {
-            if (m_Version == -1)
+            if (IsDisposed)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
@@ -140,7 +141,7 @@ namespace ArrayPoolCollection
 
         private void Resize(int size)
         {
-            if (m_Version == -1)
+            if (IsDisposed)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
@@ -160,7 +161,7 @@ namespace ArrayPoolCollection
 
         public void Clear()
         {
-            if (m_Version == -1)
+            if (IsDisposed)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
@@ -171,7 +172,7 @@ namespace ArrayPoolCollection
 
         public readonly bool Contains(bool item)
         {
-            if (m_Version == -1)
+            if (IsDisposed)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
@@ -198,7 +199,7 @@ namespace ArrayPoolCollection
 
         public readonly void CopyTo(bool[] array, int arrayIndex)
         {
-            if (m_Version == -1)
+            if (IsDisposed)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
@@ -219,7 +220,7 @@ namespace ArrayPoolCollection
 
         public readonly void CopyTo(Span<bool> span)
         {
-            if (m_Version == -1)
+            if (IsDisposed)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
@@ -241,6 +242,11 @@ namespace ArrayPoolCollection
             m_Version = -1;
         }
 
+        public bool Get(int index)
+        {
+            return this[index];
+        }
+
         public ref struct Enumerator
         {
             private readonly SpanBitSet m_Parent;
@@ -258,11 +264,11 @@ namespace ArrayPoolCollection
             {
                 get
                 {
-                    if (m_Parent.m_Version == -1)
+                    if (m_Parent.IsDisposed)
                     {
                         ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                     }
-                    if (m_Version != m_Parent.m_Version)
+                    if (m_Version != m_Parent.m_VersionRef[0])
                     {
                         ThrowHelper.ThrowDifferentVersion();
                     }
@@ -281,11 +287,11 @@ namespace ArrayPoolCollection
 
             public bool MoveNext()
             {
-                if (m_Parent.m_Version == -1)
+                if (m_Parent.IsDisposed)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                 }
-                if (m_Version != m_Parent.m_Version)
+                if (m_Version != m_Parent.m_VersionRef[0])
                 {
                     ThrowHelper.ThrowDifferentVersion();
                 }
@@ -299,11 +305,11 @@ namespace ArrayPoolCollection
 
             public void Reset()
             {
-                if (m_Parent.m_Version == -1)
+                if (m_Parent.IsDisposed)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                 }
-                if (m_Version != m_Parent.m_Version)
+                if (m_Version != m_Parent.m_VersionRef[0])
                 {
                     ThrowHelper.ThrowDifferentVersion();
                 }
@@ -314,12 +320,17 @@ namespace ArrayPoolCollection
 
         public readonly Enumerator GetEnumerator()
         {
+            if (IsDisposed)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+            }
+
             return new Enumerator(this);
         }
 
         public readonly int IndexOf(bool item)
         {
-            if (m_Version == -1)
+            if (IsDisposed)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
@@ -351,7 +362,7 @@ namespace ArrayPoolCollection
 
         public void Insert(int index, bool item)
         {
-            if (m_Version == -1)
+            if (IsDisposed)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
@@ -390,7 +401,7 @@ namespace ArrayPoolCollection
 
         public bool Remove(bool item)
         {
-            if (m_Version == -1)
+            if (IsDisposed)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
@@ -414,7 +425,7 @@ namespace ArrayPoolCollection
 
         public void RemoveAt(int index)
         {
-            if (m_Version == -1)
+            if (IsDisposed)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
@@ -442,6 +453,11 @@ namespace ArrayPoolCollection
 
             m_Length--;
             AddVersion();
+        }
+
+        public void Set(int index, bool value)
+        {
+            this[index] = value;
         }
 
         public override string ToString()
