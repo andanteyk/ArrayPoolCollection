@@ -61,7 +61,7 @@ public class ArrayPoolStackTests
         {
             Assert.IsTrue(stackWithSource.Contains(i));
         }
-        Assert.AreEqual(100, stackWithCapacity.Count);
+        Assert.AreEqual(100, stackWithSource.Count);
     }
 
     [TestMethod]
@@ -136,9 +136,9 @@ public class ArrayPoolStackTests
 
         Assert.AreEqual(256, stack.EnsureCapacity(192));
         Assert.AreEqual(256, stack.EnsureCapacity(100));
+        Assert.AreEqual(256, stack.EnsureCapacity(1));
 
         Assert.ThrowsException<ArgumentOutOfRangeException>(() => stack.EnsureCapacity(-1));
-        Assert.ThrowsException<ArgumentException>(() => stack.EnsureCapacity(1));
 
 
         var enumerator = stack.GetEnumerator();
@@ -211,7 +211,7 @@ public class ArrayPoolStackTests
     {
         var stack = new ArrayPoolStack<int>(Enumerable.Range(0, 100));
 
-        for (int i = 99; i >= 0; i++)
+        for (int i = 99; i >= 0; i--)
         {
             Assert.AreEqual(i, stack.Pop());
             Assert.AreEqual(i, stack.Count);
@@ -239,7 +239,7 @@ public class ArrayPoolStackTests
         {
             stack.Push(i);
             Assert.AreEqual(i, stack.Peek());
-            Assert.AreEqual(i, stack.Count);
+            Assert.AreEqual(i + 1, stack.Count);
         }
 
 
@@ -250,6 +250,35 @@ public class ArrayPoolStackTests
 
         stack.Dispose();
         Assert.ThrowsException<ObjectDisposedException>(() => stack.Push(1));
+    }
+
+    [TestMethod]
+    public void PushRange()
+    {
+        var stack = new ArrayPoolStack<int>();
+
+        for (int i = 0; i < 100; i += 10)
+        {
+            stack.PushRange(Enumerable.Range(i, 10));
+            Assert.AreEqual(i + 9, stack.Peek());
+            Assert.AreEqual(i + 10, stack.Count);
+        }
+
+        for (int i = 0; i < 100; i += 10)
+        {
+            stack.PushRange(Enumerable.Range(i, 10).ToArray());
+            Assert.AreEqual(i + 9, stack.Peek());
+            Assert.AreEqual(i + 110, stack.Count);
+        }
+
+
+        var enumerator = stack.GetEnumerator();
+        stack.PushRange(Enumerable.Range(0, 10));
+        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+
+
+        stack.Dispose();
+        Assert.ThrowsException<ObjectDisposedException>(() => stack.PushRange(Enumerable.Range(0, 10)));
     }
 
     [TestMethod]

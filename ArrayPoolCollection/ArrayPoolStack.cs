@@ -173,12 +173,13 @@ namespace ArrayPoolCollection
 
             m_Version++;
 
-            if (CollectionHelper.RoundUpToPowerOf2(Math.Max(capacity, 16)) != m_Array.Length)
+            capacity = Math.Max(capacity, 16);
+            if (CollectionHelper.RoundUpToPowerOf2(capacity) != m_Array.Length)
             {
                 var oldArray = m_Array;
                 m_Array = ArrayPool<T>.Shared.Rent(capacity);
                 oldArray.AsSpan(..m_Length).CopyTo(m_Array);
-                ArrayPool<T>.Shared.Return(oldArray);
+                ArrayPool<T>.Shared.Return(oldArray, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
             }
         }
 
@@ -314,6 +315,55 @@ namespace ArrayPoolCollection
 
             m_Version++;
             m_Array[m_Length++] = item;
+        }
+
+        public void PushRange(IEnumerable<T> items)
+        {
+            if (m_Array is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+            }
+
+            if (CollectionHelper.TryGetNonEnumeratedCount(items, out int count))
+            {
+                if (m_Length + count > m_Array.Length)
+                {
+                    Resize(m_Length + count);
+                }
+            }
+
+            if (items is ICollection<T> collection)
+            {
+                collection.CopyTo(m_Array, m_Length);
+                m_Length += count;
+                m_Version++;
+            }
+            else
+            {
+                foreach (var item in items)
+                {
+                    Push(item);
+                }
+            }
+        }
+
+        public void PushRange(T[] items) => PushRange(items.AsSpan());
+
+        public void PushRange(ReadOnlySpan<T> span)
+        {
+            if (m_Array is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+            }
+
+            if (m_Length + span.Length > m_Array.Length)
+            {
+                Resize(m_Length + span.Length);
+            }
+
+            span.CopyTo(m_Array.AsSpan(m_Length..));
+            m_Length += span.Length;
+            m_Version++;
         }
 
         public T[] ToArray()
