@@ -75,5 +75,11 @@ namespace ArrayPoolCollection
         {
             throw new InvalidOperationException("Comparer is not IAlternateEqualityComparer<TAlternate, TKey>");
         }
+
+        [DoesNotReturn]
+        internal static void ThrowCollectionEmpty()
+        {
+            throw new InvalidOperationException("Collection is empty");
+        }
     }
 }
