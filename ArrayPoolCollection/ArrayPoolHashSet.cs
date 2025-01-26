@@ -53,7 +53,7 @@ namespace ArrayPoolCollection
         {
             if (typeof(T).IsValueType)
             {
-                if (comparer == null)
+                if (comparer is null)
                 {
                     return EqualityComparer<T>.Default.Equals(key1, key2);
                 }
@@ -71,7 +71,7 @@ namespace ArrayPoolCollection
         {
             if (typeof(T).IsValueType)
             {
-                if (comparer == null)
+                if (comparer is null)
                 {
                     return key!.GetHashCode() * HashMixer;
                 }
@@ -100,11 +100,11 @@ namespace ArrayPoolCollection
 
         private int GetEntryIndex(T key)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -143,11 +143,11 @@ namespace ArrayPoolCollection
 
         private int GetEntryIndexFallback(T key, uint fingerprint, int metadataIndex)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -180,11 +180,11 @@ namespace ArrayPoolCollection
 
         private bool AddEntry(T key, bool overwrite)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -238,11 +238,11 @@ namespace ArrayPoolCollection
 
         private void Resize(int newCapacity)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -269,11 +269,11 @@ namespace ArrayPoolCollection
 
         private (uint fingerprint, int metadataIndex) NextWhileLess(T key)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -295,7 +295,7 @@ namespace ArrayPoolCollection
 
         private void PlaceAndShiftUp(Metadata current, int metadataIndex)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
@@ -313,11 +313,11 @@ namespace ArrayPoolCollection
 
         private bool RemoveEntry(T key)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -346,11 +346,11 @@ namespace ArrayPoolCollection
 
         private void RemoveAt(int metadataIndex)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -392,11 +392,11 @@ namespace ArrayPoolCollection
 
         private void ClearTable()
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -500,11 +500,11 @@ namespace ArrayPoolCollection
 
             private int GetEntryIndex(TAlternate key)
             {
-                if (m_Parent.m_Metadata == null)
+                if (m_Parent.m_Metadata is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
                 }
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
                 }
@@ -548,11 +548,11 @@ namespace ArrayPoolCollection
 
             private int GetEntryIndexFallback(TAlternate key, uint fingerprint, int metadataIndex)
             {
-                if (m_Parent.m_Metadata == null)
+                if (m_Parent.m_Metadata is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
                 }
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
                 }
@@ -590,11 +590,11 @@ namespace ArrayPoolCollection
 
             private bool RemoveEntry(TAlternate key)
             {
-                if (m_Parent.m_Metadata == null)
+                if (m_Parent.m_Metadata is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
                 }
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
                 }
@@ -627,11 +627,11 @@ namespace ArrayPoolCollection
 
             private (uint fingerprint, int metadataIndex) NextWhileLess(TAlternate key)
             {
-                if (m_Parent.m_Metadata == null)
+                if (m_Parent.m_Metadata is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
                 }
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
                 }
@@ -665,7 +665,7 @@ namespace ArrayPoolCollection
                 }
 
                 var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternate, T>;
-                if (comparer == null)
+                if (comparer is null)
                 {
                     ThrowHelper.ThrowNotAlternateComparer();
                 }
@@ -762,7 +762,7 @@ namespace ArrayPoolCollection
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
                 }
 
-                if (m_Comparer == null)
+                if (m_Comparer is null)
                 {
                     return EqualityComparer<T>.Default;
                 }
@@ -800,11 +800,11 @@ namespace ArrayPoolCollection
         {
             if (source is ArrayPoolHashSet<T> cloneSource && cloneSource.m_Comparer == comparer)
             {
-                if (cloneSource.m_Values == null)
+                if (cloneSource.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(source));
                 }
-                if (cloneSource.m_Metadata == null)
+                if (cloneSource.m_Metadata is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(source));
                 }
@@ -847,7 +847,7 @@ namespace ArrayPoolCollection
 
         public bool Add(T item)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -857,7 +857,7 @@ namespace ArrayPoolCollection
 
         public void Clear()
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -867,7 +867,7 @@ namespace ArrayPoolCollection
 
         public bool Contains(T item)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -877,7 +877,7 @@ namespace ArrayPoolCollection
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -895,7 +895,7 @@ namespace ArrayPoolCollection
 
         public void CopyTo(T[] array, int arrayIndex, int count)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -917,7 +917,7 @@ namespace ArrayPoolCollection
 
         public void CopyTo(Span<T> span)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -958,7 +958,7 @@ namespace ArrayPoolCollection
                 var comparer = obj.Comparer;
                 foreach (var element in obj)
                 {
-                    if (element != null)
+                    if (element is not null)
                     {
                         hashCode ^= comparer.GetHashCode(element);
                     }
@@ -969,7 +969,7 @@ namespace ArrayPoolCollection
 
         public int EnsureCapacity(int capacity)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -991,12 +991,12 @@ namespace ArrayPoolCollection
 
         public void Dispose()
         {
-            if (m_Values != null)
+            if (m_Values is not null)
             {
                 ArrayPool<T>.Shared.Return(m_Values, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
                 m_Values = null;
             }
-            if (m_Metadata != null)
+            if (m_Metadata is not null)
             {
                 ArrayPool<Metadata>.Shared.Return(m_Metadata);
                 m_Metadata = null;
@@ -1007,7 +1007,7 @@ namespace ArrayPoolCollection
 
         public void ExceptWith(IEnumerable<T> other)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1029,7 +1029,7 @@ namespace ArrayPoolCollection
 
         public AlternateLookup<TAlternate> GetAlternateLookup<TAlternate>()
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1043,7 +1043,7 @@ namespace ArrayPoolCollection
 
         public Enumerator GetEnumerator()
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1058,7 +1058,7 @@ namespace ArrayPoolCollection
 
         public void IntersectWith(IEnumerable<T> other)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1079,7 +1079,7 @@ namespace ArrayPoolCollection
 
         private void IntersectWithIEnumerable(IEnumerable<T> other)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1107,7 +1107,7 @@ namespace ArrayPoolCollection
 
         public bool IsProperSubsetOf(IEnumerable<T> other)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1153,7 +1153,7 @@ namespace ArrayPoolCollection
 
         public bool IsProperSupersetOf(IEnumerable<T> other)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1175,7 +1175,7 @@ namespace ArrayPoolCollection
 
         public bool IsSubsetOf(IEnumerable<T> other)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1197,7 +1197,7 @@ namespace ArrayPoolCollection
 
         public bool IsSupersetOf(IEnumerable<T> other)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1223,7 +1223,7 @@ namespace ArrayPoolCollection
 
         public bool Overlaps(IEnumerable<T> other)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1250,7 +1250,7 @@ namespace ArrayPoolCollection
 
         public bool Remove(T item)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1260,7 +1260,7 @@ namespace ArrayPoolCollection
 
         public int RemoveWhere(Predicate<T> predicate)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1280,7 +1280,7 @@ namespace ArrayPoolCollection
 
         public bool SetEquals(IEnumerable<T> other)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1302,7 +1302,7 @@ namespace ArrayPoolCollection
 
         public void SymmetricExceptWith(IEnumerable<T> other)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1345,7 +1345,7 @@ namespace ArrayPoolCollection
 
         public void TrimExcess(int capacity)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1359,7 +1359,7 @@ namespace ArrayPoolCollection
 
         public bool TryGetAlternateLookup<TAlternate>(out AlternateLookup<TAlternate> lookup)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1376,7 +1376,7 @@ namespace ArrayPoolCollection
 
         public bool TryGetValue(T equalValue, out T actualValue)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1393,7 +1393,7 @@ namespace ArrayPoolCollection
 
         public void UnionWith(IEnumerable<T> other)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }

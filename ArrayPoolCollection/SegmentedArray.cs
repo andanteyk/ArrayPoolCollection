@@ -6,7 +6,7 @@ namespace ArrayPoolCollection
 {
     internal ref struct SegmentedArray<T>
     {
-        private Span<T> StackSegment;
+        private readonly Span<T> StackSegment;
         private Array27 Arrays;
         private Span<T> CurrentSegment;
         private int CurrentSegmentIndex;
@@ -23,7 +23,7 @@ namespace ArrayPoolCollection
         {
             foreach (var array in Arrays.AsSpan())
             {
-                if (array != null)
+                if (array is not null)
                 {
                     ArrayPool<T>.Shared.Return(array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
                 }

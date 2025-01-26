@@ -24,7 +24,7 @@ namespace ArrayPoolCollection
 
         public Span<T> AsSpan()
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -46,7 +46,7 @@ namespace ArrayPoolCollection
                 {
                     ThrowHelper.ThrowIndexOutOfRange(Length, index);
                 }
-                if (Array == null)
+                if (Array is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(Array));
                 }
@@ -58,7 +58,7 @@ namespace ArrayPoolCollection
                 {
                     ThrowHelper.ThrowIndexOutOfRange(Length, index);
                 }
-                if (Array == null)
+                if (Array is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(Array));
                 }
@@ -109,7 +109,7 @@ namespace ArrayPoolCollection
 
         public void Dispose()
         {
-            if (Array != null)
+            if (Array is not null)
             {
                 ArrayPool<T>.Shared.Return(Array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
                 Array = null;
@@ -118,7 +118,7 @@ namespace ArrayPoolCollection
 
         public Enumerator GetEnumerator()
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -165,7 +165,7 @@ namespace ArrayPoolCollection
             {
                 return Contains(typedValue);
             }
-            else if (value is null && default(T) == null)
+            else if (value is null && default(T) is null)
             {
                 return Contains(default!);
             }
@@ -179,7 +179,7 @@ namespace ArrayPoolCollection
             {
                 return IndexOf(typedValue);
             }
-            else if (value is null && default(T) == null)
+            else if (value is null && default(T) is null)
             {
                 return IndexOf(default!);
             }
@@ -204,7 +204,7 @@ namespace ArrayPoolCollection
 
         void ICollection.CopyTo(Array array, int index)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }

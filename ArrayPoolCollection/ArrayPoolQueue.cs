@@ -288,15 +288,16 @@ namespace ArrayPoolCollection
 
             if (m_Head + m_Length <= oldArray.Length)
             {
-                oldArray.AsSpan(m_Head..(m_Head + m_Length)).CopyTo(m_Array.AsSpan(m_Head..));
+                oldArray.AsSpan(m_Head..(m_Head + m_Length)).CopyTo(m_Array.AsSpan());
             }
             else
             {
-                oldArray.AsSpan(m_Head..).CopyTo(m_Array.AsSpan(m_Head..));
-                oldArray.AsSpan(..(m_Head + m_Length - oldArray.Length)).CopyTo(m_Array.AsSpan(oldArray.Length..));
+                oldArray.AsSpan(m_Head..).CopyTo(m_Array.AsSpan());
+                oldArray.AsSpan(..(m_Head + m_Length - oldArray.Length)).CopyTo(m_Array.AsSpan((oldArray.Length - m_Head)..));
             }
 
             ArrayPool<T>.Shared.Return(oldArray, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+            m_Head = 0;
             m_Version++;
         }
 

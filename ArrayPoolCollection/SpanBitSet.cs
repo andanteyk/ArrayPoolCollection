@@ -242,7 +242,7 @@ namespace ArrayPoolCollection
             m_Version = -1;
         }
 
-        public bool Get(int index)
+        public readonly bool Get(int index)
         {
             return this[index];
         }

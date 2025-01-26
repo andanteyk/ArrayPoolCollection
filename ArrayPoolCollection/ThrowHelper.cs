@@ -81,5 +81,17 @@ namespace ArrayPoolCollection
         {
             throw new InvalidOperationException("Collection is empty");
         }
+
+        [DoesNotReturn]
+        internal static void ThrowHasNoConstructor()
+        {
+            throw new InvalidOperationException("This type has no `new()`");
+        }
+
+        [DoesNotReturn]
+        internal static void ThrowDontDisposeShared()
+        {
+            throw new InvalidOperationException("Must not dispose Shared instance");
+        }
     }
 }

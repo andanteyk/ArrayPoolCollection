@@ -55,7 +55,7 @@ namespace ArrayPoolCollection
         {
             if (typeof(TKey).IsValueType)
             {
-                if (comparer == null)
+                if (comparer is null)
                 {
                     return EqualityComparer<TKey>.Default.Equals(key1, key2);
                 }
@@ -73,7 +73,7 @@ namespace ArrayPoolCollection
         {
             if (typeof(TKey).IsValueType)
             {
-                if (comparer == null)
+                if (comparer is null)
                 {
                     return key.GetHashCode() * HashMixer;
                 }
@@ -90,7 +90,7 @@ namespace ArrayPoolCollection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int IncrementMetadataIndex(int metadataIndex)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
@@ -100,11 +100,11 @@ namespace ArrayPoolCollection
 
         private int GetEntryIndex(TKey key)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -143,11 +143,11 @@ namespace ArrayPoolCollection
 
         private int GetEntryIndexFallback(TKey key, uint fingerprint, int metadataIndex)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -180,11 +180,11 @@ namespace ArrayPoolCollection
 
         private bool AddEntry(TKey key, TValue value, bool overwrite)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -238,11 +238,11 @@ namespace ArrayPoolCollection
 
         private void Resize(int newCapacity)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -269,11 +269,11 @@ namespace ArrayPoolCollection
 
         private (uint fingerprint, int metadataIndex) NextWhileLess(TKey key)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -293,7 +293,7 @@ namespace ArrayPoolCollection
 
         private void PlaceAndShiftUp(Metadata current, int metadataIndex)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
@@ -311,11 +311,11 @@ namespace ArrayPoolCollection
 
         private bool RemoveEntry(TKey key)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -344,11 +344,11 @@ namespace ArrayPoolCollection
 
         private void RemoveAt(int metadataIndex)
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -391,11 +391,11 @@ namespace ArrayPoolCollection
 
         private void ClearTable()
         {
-            if (m_Metadata == null)
+            if (m_Metadata is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
             }
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -448,7 +448,7 @@ namespace ArrayPoolCollection
 
             public void CopyTo(TKey[] array, int arrayIndex)
             {
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                 }
@@ -480,7 +480,7 @@ namespace ArrayPoolCollection
 
             void ICollection.CopyTo(Array array, int index)
             {
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                 }
@@ -527,7 +527,7 @@ namespace ArrayPoolCollection
                 {
                     get
                     {
-                        if (m_Parent.m_Values == null)
+                        if (m_Parent.m_Values is null)
                         {
                             ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                         }
@@ -552,7 +552,7 @@ namespace ArrayPoolCollection
 
                 public bool MoveNext()
                 {
-                    if (m_Parent.m_Values == null)
+                    if (m_Parent.m_Values is null)
                     {
                         ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                     }
@@ -571,7 +571,7 @@ namespace ArrayPoolCollection
 
                 public void Reset()
                 {
-                    if (m_Parent.m_Values == null)
+                    if (m_Parent.m_Values is null)
                     {
                         ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                     }
@@ -621,7 +621,7 @@ namespace ArrayPoolCollection
 
             public void CopyTo(TValue[] array, int arrayIndex)
             {
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                 }
@@ -653,7 +653,7 @@ namespace ArrayPoolCollection
 
             void ICollection.CopyTo(Array array, int index)
             {
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                 }
@@ -700,7 +700,7 @@ namespace ArrayPoolCollection
                 {
                     get
                     {
-                        if (m_Parent.m_Values == null)
+                        if (m_Parent.m_Values is null)
                         {
                             ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                         }
@@ -725,7 +725,7 @@ namespace ArrayPoolCollection
 
                 public bool MoveNext()
                 {
-                    if (m_Parent.m_Values == null)
+                    if (m_Parent.m_Values is null)
                     {
                         ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                     }
@@ -744,7 +744,7 @@ namespace ArrayPoolCollection
 
                 public void Reset()
                 {
-                    if (m_Parent.m_Values == null)
+                    if (m_Parent.m_Values is null)
                     {
                         ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                     }
@@ -775,7 +775,7 @@ namespace ArrayPoolCollection
             {
                 get
                 {
-                    if (m_Parent.m_Values == null)
+                    if (m_Parent.m_Values is null)
                     {
                         ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                     }
@@ -806,7 +806,7 @@ namespace ArrayPoolCollection
 
             public bool MoveNext()
             {
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                 }
@@ -825,7 +825,7 @@ namespace ArrayPoolCollection
 
             public void Reset()
             {
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent));
                 }
@@ -854,7 +854,7 @@ namespace ArrayPoolCollection
             {
                 get
                 {
-                    if (m_Parent.m_Values == null)
+                    if (m_Parent.m_Values is null)
                     {
                         ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Values));
                     }
@@ -869,13 +869,13 @@ namespace ArrayPoolCollection
                 }
                 set
                 {
-                    if (m_Parent.m_Values == null)
+                    if (m_Parent.m_Values is null)
                     {
                         ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Values));
                     }
 
                     var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternateKey, TKey>;
-                    if (comparer == null)
+                    if (comparer is null)
                     {
                         ThrowHelper.ThrowNotAlternateComparer();
                     }
@@ -887,11 +887,11 @@ namespace ArrayPoolCollection
 
             private int GetAlternateEntryIndex(TAlternateKey key)
             {
-                if (m_Parent.m_Metadata == null)
+                if (m_Parent.m_Metadata is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Metadata));
                 }
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Values));
                 }
@@ -900,7 +900,7 @@ namespace ArrayPoolCollection
                 var values = m_Parent.m_Values;
                 var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternateKey, TKey>;
 
-                if (comparer == null)
+                if (comparer is null)
                 {
                     ThrowHelper.ThrowNotAlternateComparer();
                 }
@@ -935,11 +935,11 @@ namespace ArrayPoolCollection
 
             private int GetAlternateEntryIndexFallback(TAlternateKey key, uint fingerprint, int metadataIndex)
             {
-                if (m_Parent.m_Metadata == null)
+                if (m_Parent.m_Metadata is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Metadata));
                 }
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Values));
                 }
@@ -948,7 +948,7 @@ namespace ArrayPoolCollection
                 var values = m_Parent.m_Values;
                 var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternateKey, TKey>;
 
-                if (comparer == null)
+                if (comparer is null)
                 {
                     ThrowHelper.ThrowNotAlternateComparer();
                 }
@@ -977,11 +977,11 @@ namespace ArrayPoolCollection
 
             private bool RemoveEntry(TAlternateKey key)
             {
-                if (m_Parent.m_Metadata == null)
+                if (m_Parent.m_Metadata is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
                 }
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
                 }
@@ -990,7 +990,7 @@ namespace ArrayPoolCollection
                 var values = m_Parent.m_Values;
                 var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternateKey, TKey>;
 
-                if (comparer == null)
+                if (comparer is null)
                 {
                     ThrowHelper.ThrowNotAlternateComparer();
                 }
@@ -1015,11 +1015,11 @@ namespace ArrayPoolCollection
 
             private (uint fingerprint, int metadataIndex) NextWhileLess(TAlternateKey key)
             {
-                if (m_Parent.m_Metadata == null)
+                if (m_Parent.m_Metadata is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Metadata));
                 }
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Values));
                 }
@@ -1027,7 +1027,7 @@ namespace ArrayPoolCollection
                 var metadata = m_Parent.m_Metadata;
                 var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternateKey, TKey>;
 
-                if (comparer == null)
+                if (comparer is null)
                 {
                     ThrowHelper.ThrowNotAlternateComparer();
                 }
@@ -1047,7 +1047,7 @@ namespace ArrayPoolCollection
 
             public bool ContainsKey(TAlternateKey alternateKey)
             {
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Values));
                 }
@@ -1057,7 +1057,7 @@ namespace ArrayPoolCollection
 
             public bool Remove(TAlternateKey alternateKey)
             {
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Values));
                 }
@@ -1067,7 +1067,7 @@ namespace ArrayPoolCollection
 
             public bool Remove(TAlternateKey alternateKey, [MaybeNullWhen(false)] out TKey key, [MaybeNullWhen(false)] out TValue value)
             {
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Values));
                 }
@@ -1089,13 +1089,13 @@ namespace ArrayPoolCollection
 
             public bool TryAdd(TAlternateKey alternateKey, TValue value)
             {
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Values));
                 }
 
                 var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternateKey, TKey>;
-                if (comparer == null)
+                if (comparer is null)
                 {
                     ThrowHelper.ThrowNotAlternateComparer();
                 }
@@ -1106,7 +1106,7 @@ namespace ArrayPoolCollection
 
             public bool TryGetValue(TAlternateKey alternateKey, [MaybeNullWhen(false)] out TKey key, [MaybeNullWhen(false)] out TValue value)
             {
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Values));
                 }
@@ -1125,7 +1125,7 @@ namespace ArrayPoolCollection
 
             public bool TryGetValue(TAlternateKey alternateKey, [MaybeNullWhen(false)] out TValue value)
             {
-                if (m_Parent.m_Values == null)
+                if (m_Parent.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Values));
                 }
@@ -1171,11 +1171,11 @@ namespace ArrayPoolCollection
         {
             if (source is ArrayPoolDictionary<TKey, TValue> cloneSource && cloneSource.m_Comparer == comparer)
             {
-                if (cloneSource.m_Values == null)
+                if (cloneSource.m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(source));
                 }
-                if (cloneSource.m_Metadata == null)
+                if (cloneSource.m_Metadata is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(source));
                 }
@@ -1242,11 +1242,11 @@ namespace ArrayPoolCollection
         {
             get
             {
-                if (m_Values == null)
+                if (m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
                 }
-                if (key == null)
+                if (key is null)
                 {
                     ThrowHelper.ThrowArgumentIsNull(nameof(key));
                 }
@@ -1261,7 +1261,7 @@ namespace ArrayPoolCollection
             }
             set
             {
-                if (key == null)
+                if (key is null)
                 {
                     ThrowHelper.ThrowArgumentIsNull(nameof(key));
                 }
@@ -1274,7 +1274,7 @@ namespace ArrayPoolCollection
         {
             get
             {
-                if (m_Values == null)
+                if (m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
                 }
@@ -1300,7 +1300,7 @@ namespace ArrayPoolCollection
             }
             set
             {
-                if (key == null)
+                if (key is null)
                 {
                     ThrowHelper.ThrowArgumentIsNull(nameof(key));
                 }
@@ -1323,7 +1323,7 @@ namespace ArrayPoolCollection
         {
             get
             {
-                if (m_Values == null)
+                if (m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
                 }
@@ -1336,7 +1336,7 @@ namespace ArrayPoolCollection
         {
             get
             {
-                if (m_Values == null)
+                if (m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
                 }
@@ -1349,7 +1349,7 @@ namespace ArrayPoolCollection
         {
             get
             {
-                if (m_Values == null)
+                if (m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
                 }
@@ -1362,12 +1362,12 @@ namespace ArrayPoolCollection
         {
             get
             {
-                if (m_Values == null)
+                if (m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
                 }
 
-                if (m_Comparer == null)
+                if (m_Comparer is null)
                 {
                     return EqualityComparer<TKey>.Default;
                 }
@@ -1380,7 +1380,7 @@ namespace ArrayPoolCollection
         {
             get
             {
-                if (m_Values == null)
+                if (m_Values is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
                 }
@@ -1411,7 +1411,7 @@ namespace ArrayPoolCollection
 
         public void Add(TKey key, TValue value)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1423,7 +1423,7 @@ namespace ArrayPoolCollection
 
         public void Add(KeyValuePair<TKey, TValue> item)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1435,7 +1435,7 @@ namespace ArrayPoolCollection
 
         public void Clear()
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1445,7 +1445,7 @@ namespace ArrayPoolCollection
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1456,7 +1456,7 @@ namespace ArrayPoolCollection
 
         public bool ContainsKey(TKey key)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1466,7 +1466,7 @@ namespace ArrayPoolCollection
 
         public bool ContainsValue(TValue value)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1483,7 +1483,7 @@ namespace ArrayPoolCollection
 
         public int EnsureCapacity(int capacity)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1505,7 +1505,7 @@ namespace ArrayPoolCollection
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1520,7 +1520,7 @@ namespace ArrayPoolCollection
         public AlternateLookup<TAlternateKey> GetAlternateLookup<TAlternateKey>()
             where TAlternateKey : notnull
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1534,7 +1534,7 @@ namespace ArrayPoolCollection
 
         public Enumerator GetEnumerator()
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1549,7 +1549,7 @@ namespace ArrayPoolCollection
 
         public bool Remove(TKey key)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1559,7 +1559,7 @@ namespace ArrayPoolCollection
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1576,7 +1576,7 @@ namespace ArrayPoolCollection
 
         public bool Remove(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1599,7 +1599,7 @@ namespace ArrayPoolCollection
 
         public void TrimExcess(int capacity)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1613,7 +1613,7 @@ namespace ArrayPoolCollection
 
         public bool TryAdd(TKey key, TValue value)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1624,7 +1624,7 @@ namespace ArrayPoolCollection
         public bool TryGetAlternateLookup<TAlternateKey>(out AlternateLookup<TAlternateKey> alternateLookup)
             where TAlternateKey : notnull
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1640,7 +1640,7 @@ namespace ArrayPoolCollection
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1656,7 +1656,7 @@ namespace ArrayPoolCollection
 
         void IDictionary.Add(object key, object? value)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1680,7 +1680,7 @@ namespace ArrayPoolCollection
 
         void IDictionary.Clear()
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1690,7 +1690,7 @@ namespace ArrayPoolCollection
 
         bool IDictionary.Contains(object key)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1710,7 +1710,7 @@ namespace ArrayPoolCollection
 
         void ICollection.CopyTo(Array array, int index)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1747,7 +1747,7 @@ namespace ArrayPoolCollection
 
         void IDictionary.Remove(object key)
         {
-            if (m_Values == null)
+            if (m_Values is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
             }
@@ -1767,12 +1767,12 @@ namespace ArrayPoolCollection
 
         public void Dispose()
         {
-            if (m_Values != null)
+            if (m_Values is not null)
             {
                 ArrayPool<KeyValuePair<TKey, TValue>>.Shared.Return(m_Values, RuntimeHelpers.IsReferenceOrContainsReferences<KeyValuePair<TKey, TValue>>());
                 m_Values = null;
             }
-            if (m_Metadata != null)
+            if (m_Metadata is not null)
             {
                 ArrayPool<Metadata>.Shared.Return(m_Metadata);
                 m_Metadata = null;

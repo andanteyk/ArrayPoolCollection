@@ -1,6 +1,6 @@
 namespace ArrayPoolCollection
 {
-    internal class EquatableSpanHelper
+    internal static class EquatableSpanHelper
     {
         internal static int IndexOf<T>(ReadOnlySpan<T> span, T value)
         {

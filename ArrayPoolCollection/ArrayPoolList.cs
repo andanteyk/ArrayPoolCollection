@@ -41,7 +41,7 @@ namespace ArrayPoolCollection
         {
             get
             {
-                if (Array == null)
+                if (Array is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(Array));
                 }
@@ -49,7 +49,7 @@ namespace ArrayPoolCollection
             }
             set
             {
-                if (Array == null)
+                if (Array is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(Array));
                 }
@@ -75,7 +75,7 @@ namespace ArrayPoolCollection
         {
             get
             {
-                if (Array == null)
+                if (Array is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(Array));
                 }
@@ -88,7 +88,7 @@ namespace ArrayPoolCollection
             }
             set
             {
-                if (Array == null)
+                if (Array is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(Array));
                 }
@@ -105,7 +105,7 @@ namespace ArrayPoolCollection
         {
             get
             {
-                if (Array == null)
+                if (Array is null)
                 {
                     ThrowHelper.ThrowObjectDisposed(nameof(Array));
                 }
@@ -154,7 +154,7 @@ namespace ArrayPoolCollection
 
         public void Add(T item)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -169,7 +169,7 @@ namespace ArrayPoolCollection
 
         public void AddRange(IEnumerable<T> source)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -216,7 +216,7 @@ namespace ArrayPoolCollection
 
         public void AddRangeFromSpan(ReadOnlySpan<T> source)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -231,7 +231,7 @@ namespace ArrayPoolCollection
 
         public ReadOnlyCollection<T> AsReadOnly()
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -241,7 +241,7 @@ namespace ArrayPoolCollection
 
         public int BinarySearch(T item)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -251,7 +251,7 @@ namespace ArrayPoolCollection
 
         public int BinarySearch(T item, IComparer<T> comparer)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -261,7 +261,7 @@ namespace ArrayPoolCollection
 
         public void Clear()
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -276,7 +276,7 @@ namespace ArrayPoolCollection
 
         public bool Contains(T item)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -286,7 +286,7 @@ namespace ArrayPoolCollection
 
         public ArrayPoolList<TOutput> ConvertAll<TOutput>(Converter<T, TOutput> converter)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -306,11 +306,11 @@ namespace ArrayPoolCollection
 
         public void CopyTo(int sourceIndex, T[] destination, int destinationIndex, int count)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
-            if (destination == null)
+            if (destination is null)
             {
                 ThrowHelper.ThrowArgumentIsNull(nameof(destination));
             }
@@ -328,11 +328,11 @@ namespace ArrayPoolCollection
 
         public void CopyTo(T[] array)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
-            if (array == null)
+            if (array is null)
             {
                 ThrowHelper.ThrowArgumentIsNull(nameof(array));
             }
@@ -342,7 +342,7 @@ namespace ArrayPoolCollection
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -352,7 +352,7 @@ namespace ArrayPoolCollection
 
         public void CopyTo(Span<T> span)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -362,7 +362,7 @@ namespace ArrayPoolCollection
 
         public int EnsureCapacity(int capacity)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -381,7 +381,7 @@ namespace ArrayPoolCollection
 
         public bool Exists(Predicate<T> predicate)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -399,7 +399,7 @@ namespace ArrayPoolCollection
 
         public T? Find(Predicate<T> predicate)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -417,7 +417,7 @@ namespace ArrayPoolCollection
 
         public ArrayPoolList<T> FindAll(Predicate<T> predicate)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -437,7 +437,7 @@ namespace ArrayPoolCollection
 
         public int FindIndex(int startIndex, int count, Predicate<T> predicate)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -460,7 +460,7 @@ namespace ArrayPoolCollection
 
         public int FindIndex(int startIndex, Predicate<T> predicate)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -483,7 +483,7 @@ namespace ArrayPoolCollection
 
         public int FindIndex(Predicate<T> predicate)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -502,7 +502,7 @@ namespace ArrayPoolCollection
 
         public T? FindLast(Predicate<T> predicate)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -520,7 +520,7 @@ namespace ArrayPoolCollection
 
         public int FindLastIndex(int startIndex, int count, Predicate<T> predicate)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -560,7 +560,7 @@ namespace ArrayPoolCollection
 
         public void ForEach(Action<T> action)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -580,7 +580,7 @@ namespace ArrayPoolCollection
 
         public Enumerator GetEnumerator()
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -592,7 +592,7 @@ namespace ArrayPoolCollection
 
         public ArrayPoolList<T> GetRange(int startIndex, int count)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -623,7 +623,7 @@ namespace ArrayPoolCollection
 
         public int IndexOf(T item)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -633,7 +633,7 @@ namespace ArrayPoolCollection
 
         public int IndexOf(T item, int startIndex)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -647,7 +647,7 @@ namespace ArrayPoolCollection
 
         public int IndexOf(T item, int startIndex, int count)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -670,7 +670,7 @@ namespace ArrayPoolCollection
 
         public void Insert(int index, T item)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -693,7 +693,7 @@ namespace ArrayPoolCollection
 
         public void InsertRange(int index, IEnumerable<T> source)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -753,7 +753,7 @@ namespace ArrayPoolCollection
 
         public void InsertRangeFromSpan(int index, ReadOnlySpan<T> source)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -777,7 +777,7 @@ namespace ArrayPoolCollection
 
         public int LastIndexOf(T item)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -787,7 +787,7 @@ namespace ArrayPoolCollection
 
         public int LastIndexOf(T item, int startIndex)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -802,7 +802,7 @@ namespace ArrayPoolCollection
 
         public int LastIndexOf(T item, int startIndex, int count)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -825,7 +825,7 @@ namespace ArrayPoolCollection
 
         public bool Remove(T item)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -848,7 +848,7 @@ namespace ArrayPoolCollection
 
         public int RemoveAll(Predicate<T> predicate)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -879,7 +879,7 @@ namespace ArrayPoolCollection
 
         public void RemoveAt(int index)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -899,7 +899,7 @@ namespace ArrayPoolCollection
 
         public void RemoveRange(int startIndex, int count)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -931,7 +931,7 @@ namespace ArrayPoolCollection
 
         public void Reverse()
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -945,7 +945,7 @@ namespace ArrayPoolCollection
 
         public void Reverse(int startIndex, int count)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -980,7 +980,7 @@ namespace ArrayPoolCollection
 
         public void Sort()
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -991,7 +991,7 @@ namespace ArrayPoolCollection
 
         public void Sort(Comparison<T> comparison)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -1003,7 +1003,7 @@ namespace ArrayPoolCollection
 
         public void Sort(IComparer<T> comparer)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -1014,7 +1014,7 @@ namespace ArrayPoolCollection
 
         public void Sort(int startIndex, int count, IComparer<T> comparer)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -1041,7 +1041,7 @@ namespace ArrayPoolCollection
 
         public T[] ToArray()
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -1063,7 +1063,7 @@ namespace ArrayPoolCollection
 
         public bool TrueForAll(Predicate<T> predicate)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
@@ -1085,7 +1085,7 @@ namespace ArrayPoolCollection
 
         public void Dispose()
         {
-            if (Array != null)
+            if (Array is not null)
             {
                 ArrayPool<T>.Shared.Return(Array);
                 Array = null;
@@ -1101,7 +1101,7 @@ namespace ArrayPoolCollection
                 Add(typedValue);
                 return Length - 1;
             }
-            else if (value is null && default(T) == null)
+            else if (value is null && default(T) is null)
             {
                 Add(default!);
                 return Length - 1;
@@ -1117,7 +1117,7 @@ namespace ArrayPoolCollection
             {
                 return Contains(typedValue);
             }
-            else if (value is null && default(T) == null)
+            else if (value is null && default(T) is null)
             {
                 return Contains(default!);
             }
@@ -1131,7 +1131,7 @@ namespace ArrayPoolCollection
             {
                 return IndexOf(typedValue);
             }
-            else if (value is null && default(T) == null)
+            else if (value is null && default(T) is null)
             {
                 return IndexOf(default!);
             }
@@ -1145,7 +1145,7 @@ namespace ArrayPoolCollection
             {
                 Insert(index, typedValue);
             }
-            else if (value is null && default(T) == null)
+            else if (value is null && default(T) is null)
             {
                 Insert(index, default!);
             }
@@ -1161,7 +1161,7 @@ namespace ArrayPoolCollection
             {
                 Remove(typedValue);
             }
-            else if (value is null && default(T) == null)
+            else if (value is null && default(T) is null)
             {
                 Remove(default!);
             }
@@ -1173,7 +1173,7 @@ namespace ArrayPoolCollection
 
         void ICollection.CopyTo(Array array, int index)
         {
-            if (Array == null)
+            if (Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(Array));
             }
