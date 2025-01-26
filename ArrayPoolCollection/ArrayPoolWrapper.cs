@@ -6,30 +6,30 @@ namespace ArrayPoolCollection
 {
     public sealed class ArrayPoolWrapper<T> : IList<T>, IReadOnlyList<T>, IList, IDisposable
     {
-        private T[]? Array;
-        private int Length;
+        private T[]? m_Array;
+        private readonly int m_Length;
 
         public ArrayPoolWrapper(int length) : this(length, true) { }
 
         public ArrayPoolWrapper(int length, bool clearArray)
         {
-            Array = ArrayPool<T>.Shared.Rent(length);
-            Length = length;
+            m_Array = ArrayPool<T>.Shared.Rent(length);
+            m_Length = length;
 
             if (clearArray)
             {
-                Array.AsSpan(..Length).Clear();
+                m_Array.AsSpan(..m_Length).Clear();
             }
         }
 
         public Span<T> AsSpan()
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            return Array.AsSpan(..Length);
+            return m_Array.AsSpan(..m_Length);
         }
 
         public static implicit operator Span<T>(ArrayPoolWrapper<T> source)
@@ -42,31 +42,31 @@ namespace ArrayPoolCollection
         {
             get
             {
-                if ((uint)index >= Length)
+                if ((uint)index >= m_Length)
                 {
-                    ThrowHelper.ThrowIndexOutOfRange(Length, index);
+                    ThrowHelper.ThrowIndexOutOfRange(m_Length, index);
                 }
-                if (Array is null)
+                if (m_Array is null)
                 {
-                    ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
                 }
-                return Array[index];
+                return m_Array[index];
             }
             set
             {
-                if ((uint)index >= Length)
+                if ((uint)index >= m_Length)
                 {
-                    ThrowHelper.ThrowIndexOutOfRange(Length, index);
+                    ThrowHelper.ThrowIndexOutOfRange(m_Length, index);
                 }
-                if (Array is null)
+                if (m_Array is null)
                 {
-                    ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
                 }
-                Array[index] = value;
+                m_Array[index] = value;
             }
         }
 
-        public int Count => Length;
+        public int Count => m_Length;
 
         public bool IsReadOnly => false;
 
@@ -109,18 +109,18 @@ namespace ArrayPoolCollection
 
         public void Dispose()
         {
-            if (Array is not null)
+            if (m_Array is not null)
             {
-                ArrayPool<T>.Shared.Return(Array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-                Array = null;
+                ArrayPool<T>.Shared.Return(m_Array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                m_Array = null;
             }
         }
 
         public Enumerator GetEnumerator()
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
             return new Enumerator(this);
         }
@@ -204,20 +204,20 @@ namespace ArrayPoolCollection
 
         void ICollection.CopyTo(Array array, int index)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
             if (array.Rank > 1)
             {
                 ThrowHelper.ThrowArgumentTypeMismatch(nameof(array));
             }
-            if (array.GetType() != Array.GetType())
+            if (array.GetType() != m_Array.GetType())
             {
                 ThrowHelper.ThrowArgumentTypeMismatch(nameof(array));
             }
 
-            System.Array.Copy(Array, 0, array, index, Length);
+            System.Array.Copy(m_Array, 0, array, index, m_Length);
         }
 
         public struct Enumerator : IEnumerator<T>
@@ -235,7 +235,7 @@ namespace ArrayPoolCollection
             {
                 get
                 {
-                    if ((uint)Index >= Source.Length)
+                    if ((uint)Index >= Source.m_Length)
                     {
                         throw new InvalidOperationException();
                     }
@@ -252,12 +252,12 @@ namespace ArrayPoolCollection
 
             public bool MoveNext()
             {
-                if (Index >= Source.Length)
+                if (Index >= Source.m_Length)
                 {
                     return false;
                 }
 
-                return ++Index < Source.Length;
+                return ++Index < Source.m_Length;
             }
 
             public void Reset()

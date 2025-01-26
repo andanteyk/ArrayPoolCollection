@@ -27,7 +27,7 @@ namespace ArrayPoolCollection.Pool
                             }
                         }
                     ), DefaultTrimThreshold);
-                    GabageCollectorCallback.Register(() => m_Shared.TrimExcess());
+                    GabageCollectorCallback.Register(() => m_Shared?.TrimExcess());
                     return m_Shared;
                 }
                 else

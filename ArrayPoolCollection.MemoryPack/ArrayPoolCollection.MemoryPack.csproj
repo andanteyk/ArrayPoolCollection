@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\ArrayPoolCollection\ArrayPoolCollection.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MemoryPack" Version="1.21.3" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFrameworks>net9.0;netstandard2.1</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>11</LangVersion>
+  </PropertyGroup>
+
+</Project>

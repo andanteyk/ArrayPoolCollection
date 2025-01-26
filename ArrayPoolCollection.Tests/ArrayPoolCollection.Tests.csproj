@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ArrayPoolCollection\ArrayPoolCollection.csproj" />
+    <ProjectReference Include="..\ArrayPoolCollection.MemoryPack\ArrayPoolCollection.MemoryPack.csproj" />
   </ItemGroup>
 
 </Project>

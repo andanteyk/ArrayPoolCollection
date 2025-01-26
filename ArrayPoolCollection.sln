@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArrayPoolCollection.Benchma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArrayPoolCollection.Tests", "ArrayPoolCollection.Tests\ArrayPoolCollection.Tests.csproj", "{7EAA6536-D0AF-4FA1-9643-35A10D1744EF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArrayPoolCollection.MemoryPack", "ArrayPoolCollection.MemoryPack\ArrayPoolCollection.MemoryPack.csproj", "{43582650-DDF2-4002-84EB-B7457363DE0D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{7EAA6536-D0AF-4FA1-9643-35A10D1744EF}.Release|x64.Build.0 = Release|Any CPU
 		{7EAA6536-D0AF-4FA1-9643-35A10D1744EF}.Release|x86.ActiveCfg = Release|Any CPU
 		{7EAA6536-D0AF-4FA1-9643-35A10D1744EF}.Release|x86.Build.0 = Release|Any CPU
+		{43582650-DDF2-4002-84EB-B7457363DE0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43582650-DDF2-4002-84EB-B7457363DE0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43582650-DDF2-4002-84EB-B7457363DE0D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{43582650-DDF2-4002-84EB-B7457363DE0D}.Debug|x64.Build.0 = Debug|Any CPU
+		{43582650-DDF2-4002-84EB-B7457363DE0D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{43582650-DDF2-4002-84EB-B7457363DE0D}.Debug|x86.Build.0 = Debug|Any CPU
+		{43582650-DDF2-4002-84EB-B7457363DE0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43582650-DDF2-4002-84EB-B7457363DE0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43582650-DDF2-4002-84EB-B7457363DE0D}.Release|x64.ActiveCfg = Release|Any CPU
+		{43582650-DDF2-4002-84EB-B7457363DE0D}.Release|x64.Build.0 = Release|Any CPU
+		{43582650-DDF2-4002-84EB-B7457363DE0D}.Release|x86.ActiveCfg = Release|Any CPU
+		{43582650-DDF2-4002-84EB-B7457363DE0D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

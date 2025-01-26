@@ -7,22 +7,22 @@ namespace ArrayPoolCollection
 {
     public sealed class ArrayPoolList<T> : IList<T>, IReadOnlyList<T>, IList, IDisposable
     {
-        private T[]? Array;
-        private int Length;
-        private int Version;
+        private T[]? m_Array;
+        private int m_Length;
+        private int m_Version;
 
         public ArrayPoolList()
         {
-            Array = ArrayPool<T>.Shared.Rent(16);
-            Length = 0;
-            Version = 0;
+            m_Array = ArrayPool<T>.Shared.Rent(16);
+            m_Length = 0;
+            m_Version = 0;
         }
 
         public ArrayPoolList(int capacity)
         {
-            Array = ArrayPool<T>.Shared.Rent(capacity);
-            Length = 0;
-            Version = 0;
+            m_Array = ArrayPool<T>.Shared.Rent(capacity);
+            m_Length = 0;
+            m_Version = 0;
         }
 
         public ArrayPoolList(IEnumerable<T> source)
@@ -32,40 +32,40 @@ namespace ArrayPoolCollection
             var segmentedArray = new SegmentedArray<T>(segmentedStack.AsSpan());
 
             segmentedArray.AddRange(source);
-            Array = segmentedArray.ToArrayPool(out var span);
-            Length = span.Length;
-            Version = 0;
+            m_Array = segmentedArray.ToArrayPool(out var span);
+            m_Length = span.Length;
+            m_Version = 0;
         }
 
         public int Capacity
         {
             get
             {
-                if (Array is null)
+                if (m_Array is null)
                 {
-                    ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
                 }
-                return Array.Length;
+                return m_Array.Length;
             }
             set
             {
-                if (Array is null)
+                if (m_Array is null)
                 {
-                    ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
                 }
-                if (value < Length)
+                if (value < m_Length)
                 {
-                    ThrowHelper.ThrowArgumentOutOfRange(nameof(value), Length, 0x7FFFFFC7, value);
+                    ThrowHelper.ThrowArgumentOutOfRange(nameof(value), m_Length, 0x7FFFFFC7, value);
                 }
 
                 int newLength = Math.Max(CollectionHelper.RoundUpToPowerOf2(value), 16);
-                if (newLength != Array.Length)
+                if (newLength != m_Array.Length)
                 {
                     var newArray = ArrayPool<T>.Shared.Rent(newLength);
-                    Array.AsSpan(..Length).CopyTo(newArray);
-                    ArrayPool<T>.Shared.Return(Array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-                    Array = newArray;
-                    Version++;
+                    m_Array.AsSpan(..m_Length).CopyTo(newArray);
+                    ArrayPool<T>.Shared.Return(m_Array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                    m_Array = newArray;
+                    m_Version++;
                 }
             }
         }
@@ -75,29 +75,29 @@ namespace ArrayPoolCollection
         {
             get
             {
-                if (Array is null)
+                if (m_Array is null)
                 {
-                    ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
                 }
-                if ((uint)index >= Length)
+                if ((uint)index >= m_Length)
                 {
-                    ThrowHelper.ThrowIndexOutOfRange(Length, index);
+                    ThrowHelper.ThrowIndexOutOfRange(m_Length, index);
                 }
 
-                return Array[index];
+                return m_Array[index];
             }
             set
             {
-                if (Array is null)
+                if (m_Array is null)
                 {
-                    ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
                 }
-                if ((uint)index >= Length)
+                if ((uint)index >= m_Length)
                 {
-                    ThrowHelper.ThrowIndexOutOfRange(Length, index);
+                    ThrowHelper.ThrowIndexOutOfRange(m_Length, index);
                 }
 
-                Array[index] = value;
+                m_Array[index] = value;
             }
         }
 
@@ -105,11 +105,11 @@ namespace ArrayPoolCollection
         {
             get
             {
-                if (Array is null)
+                if (m_Array is null)
                 {
-                    ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
                 }
-                return Length;
+                return m_Length;
             }
         }
 
@@ -145,57 +145,57 @@ namespace ArrayPoolCollection
         private void Grow(int leastSize)
         {
             var newArray = ArrayPool<T>.Shared.Rent(leastSize);
-            Array.AsSpan().CopyTo(newArray);
-            ArrayPool<T>.Shared.Return(Array!, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-            Array = newArray;
+            m_Array.AsSpan().CopyTo(newArray);
+            ArrayPool<T>.Shared.Return(m_Array!, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+            m_Array = newArray;
 
-            Version++;
+            m_Version++;
         }
 
         public void Add(T item)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            if (Length + 1 > Array.Length)
+            if (m_Length + 1 > m_Array.Length)
             {
-                Grow(Array.Length + 1);
+                Grow(m_Array.Length + 1);
             }
-            Array[Length++] = item;
-            Version++;
+            m_Array[m_Length++] = item;
+            m_Version++;
         }
 
         public void AddRange(IEnumerable<T> source)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
             if (CollectionHelper.TryGetNonEnumeratedCount(source, out int count))
             {
-                if (Length + count > Array.Length)
+                if (m_Length + count > m_Array.Length)
                 {
-                    Grow(Length + count);
+                    Grow(m_Length + count);
                 }
 
                 if (source is ICollection<T> genericCollection)
                 {
-                    genericCollection.CopyTo(Array, Length);
-                    Length += count;
+                    genericCollection.CopyTo(m_Array, m_Length);
+                    m_Length += count;
                 }
                 else if (source is ICollection collection)
                 {
-                    collection.CopyTo(Array, Length);
-                    Length += count;
+                    collection.CopyTo(m_Array, m_Length);
+                    m_Length += count;
                 }
                 else
                 {
                     foreach (var element in source)
                     {
-                        Array[Length++] = element;
+                        m_Array[m_Length++] = element;
                     }
                 }
             }
@@ -203,190 +203,207 @@ namespace ArrayPoolCollection
             {
                 foreach (var element in source)
                 {
-                    if (Length + 1 > Array.Length)
+                    if (m_Length + 1 > m_Array.Length)
                     {
-                        Grow(Array.Length + 1);
+                        Grow(m_Array.Length + 1);
                     }
-                    Array[Length++] = element;
+                    m_Array[m_Length++] = element;
                 }
             }
 
-            Version++;
+            m_Version++;
         }
 
-        public void AddRangeFromSpan(ReadOnlySpan<T> source)
+        public void AddRange(T[] source) => AddRange(source.AsSpan());
+
+        public void AddRange(ReadOnlySpan<T> source)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            if (Length + source.Length > Array.Length)
+            if (m_Length + source.Length > m_Array.Length)
             {
-                Grow(Length + source.Length);
+                Grow(m_Length + source.Length);
             }
-            source.CopyTo(Array.AsSpan(Length..));
-            Length += source.Length;
+            source.CopyTo(m_Array.AsSpan(m_Length..));
+            m_Length += source.Length;
+            m_Version++;
         }
 
         public ReadOnlyCollection<T> AsReadOnly()
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
             return new ReadOnlyCollection<T>(this);
         }
 
-        public int BinarySearch(T item)
+        /// <summary>
+        /// `AsSpan()` works similarly to `CollectionsMarshal.AsSpan()`.
+        /// Note that adding or removing elements from a collection may reference discarded buffers.
+        /// </summary>
+        public Span<T> AsSpan()
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            return Array.AsSpan(..Length).BinarySearch(item, Comparer<T>.Default);
+            return m_Array.AsSpan(..m_Length);
+        }
+
+        public int BinarySearch(T item)
+        {
+            if (m_Array is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+            }
+
+            return m_Array.AsSpan(..m_Length).BinarySearch(item, Comparer<T>.Default);
         }
 
         public int BinarySearch(T item, IComparer<T> comparer)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            return Array.AsSpan(..Length).BinarySearch(item, comparer);
+            return m_Array.AsSpan(..m_Length).BinarySearch(item, comparer);
         }
 
         public void Clear()
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
             if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
             {
-                Array.AsSpan(..Length).Clear();
+                m_Array.AsSpan(..m_Length).Clear();
             }
-            Length = 0;
-            Version++;
+            m_Length = 0;
+            m_Version++;
         }
 
         public bool Contains(T item)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            return EquatableSpanHelper.IndexOf(Array.AsSpan(..Length), item) != -1;
+            return EquatableSpanHelper.IndexOf(m_Array.AsSpan(..m_Length), item) != -1;
         }
 
         public ArrayPoolList<TOutput> ConvertAll<TOutput>(Converter<T, TOutput> converter)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            var converted = new ArrayPoolList<TOutput>(Length);
+            var converted = new ArrayPoolList<TOutput>(m_Length);
 
             int i = 0;
-            foreach (var element in Array.AsSpan(..Length))
+            foreach (var element in m_Array.AsSpan(..m_Length))
             {
-                converted.Array![i] = converter(element);
+                converted.m_Array![i] = converter(element);
                 i++;
             }
-            converted.Length = i;
+            converted.m_Length = i;
 
             return converted;
         }
 
         public void CopyTo(int sourceIndex, T[] destination, int destinationIndex, int count)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
             if (destination is null)
             {
                 ThrowHelper.ThrowArgumentIsNull(nameof(destination));
             }
-            if (sourceIndex >= Length)
+            if (sourceIndex >= m_Length)
             {
-                ThrowHelper.ThrowArgumentOverLength(nameof(sourceIndex), 0, Length, sourceIndex);
+                ThrowHelper.ThrowArgumentOverLength(nameof(sourceIndex), 0, m_Length, sourceIndex);
             }
             if (destinationIndex + count >= destination.Length)
             {
-                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, Length - sourceIndex, destinationIndex + count);
+                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, m_Length - sourceIndex, destinationIndex + count);
             }
 
-            Array.AsSpan(sourceIndex..Length).CopyTo(destination.AsSpan(destinationIndex..(destinationIndex + count)));
+            m_Array.AsSpan(sourceIndex..m_Length).CopyTo(destination.AsSpan(destinationIndex..(destinationIndex + count)));
         }
 
         public void CopyTo(T[] array)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
             if (array is null)
             {
                 ThrowHelper.ThrowArgumentIsNull(nameof(array));
             }
 
-            Array.AsSpan(..Length).CopyTo(array.AsSpan());
+            m_Array.AsSpan(..m_Length).CopyTo(array.AsSpan());
         }
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            Array.AsSpan(..Length).CopyTo(array.AsSpan(arrayIndex..));
+            m_Array.AsSpan(..m_Length).CopyTo(array.AsSpan(arrayIndex..));
         }
 
         public void CopyTo(Span<T> span)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            Array.AsSpan(..Length).CopyTo(span);
+            m_Array.AsSpan(..m_Length).CopyTo(span);
         }
 
         public int EnsureCapacity(int capacity)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
             if (capacity < 0)
             {
                 ThrowHelper.ThrowArgumentOutOfRange(nameof(capacity), 0, int.MaxValue, capacity);
             }
 
-            if (Array.Length < capacity)
+            if (m_Array.Length < capacity)
             {
                 Grow(capacity);
             }
 
-            return Array.Length;
+            return m_Array.Length;
         }
 
         public bool Exists(Predicate<T> predicate)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            foreach (var element in Array.AsSpan(..Length))
+            foreach (var element in m_Array.AsSpan(..m_Length))
             {
                 if (predicate(element))
                 {
@@ -399,12 +416,12 @@ namespace ArrayPoolCollection
 
         public T? Find(Predicate<T> predicate)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            foreach (var element in Array.AsSpan(..Length))
+            foreach (var element in m_Array.AsSpan(..m_Length))
             {
                 if (predicate(element))
                 {
@@ -417,14 +434,14 @@ namespace ArrayPoolCollection
 
         public ArrayPoolList<T> FindAll(Predicate<T> predicate)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
             var result = new ArrayPoolList<T>();
 
-            foreach (var element in Array.AsSpan(..Length))
+            foreach (var element in m_Array.AsSpan(..m_Length))
             {
                 if (predicate(element))
                 {
@@ -437,17 +454,17 @@ namespace ArrayPoolCollection
 
         public int FindIndex(int startIndex, int count, Predicate<T> predicate)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
-            if (startIndex + count > Length)
+            if (startIndex + count > m_Length)
             {
-                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, Length, startIndex + count);
+                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, m_Length, startIndex + count);
             }
 
             int i = startIndex;
-            foreach (var element in Array.AsSpan(startIndex..(startIndex + count)))
+            foreach (var element in m_Array.AsSpan(startIndex..(startIndex + count)))
             {
                 if (predicate(element))
                 {
@@ -460,17 +477,17 @@ namespace ArrayPoolCollection
 
         public int FindIndex(int startIndex, Predicate<T> predicate)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
-            if (startIndex > Length)
+            if (startIndex > m_Length)
             {
-                ThrowHelper.ThrowArgumentOverLength(nameof(startIndex), 0, Length, startIndex);
+                ThrowHelper.ThrowArgumentOverLength(nameof(startIndex), 0, m_Length, startIndex);
             }
 
             int i = startIndex;
-            foreach (var element in Array.AsSpan(startIndex..Length))
+            foreach (var element in m_Array.AsSpan(startIndex..m_Length))
             {
                 if (predicate(element))
                 {
@@ -483,13 +500,13 @@ namespace ArrayPoolCollection
 
         public int FindIndex(Predicate<T> predicate)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
             int i = 0;
-            foreach (var element in Array.AsSpan(..Length))
+            foreach (var element in m_Array.AsSpan(..m_Length))
             {
                 if (predicate(element))
                 {
@@ -502,16 +519,16 @@ namespace ArrayPoolCollection
 
         public T? FindLast(Predicate<T> predicate)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            for (int i = Length - 1; i >= 0; i--)
+            for (int i = m_Length - 1; i >= 0; i--)
             {
-                if (predicate(Array[i]))
+                if (predicate(m_Array[i]))
                 {
-                    return Array[i];
+                    return m_Array[i];
                 }
             }
 
@@ -520,26 +537,26 @@ namespace ArrayPoolCollection
 
         public int FindLastIndex(int startIndex, int count, Predicate<T> predicate)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
-            if ((uint)startIndex >= Length)
+            if ((uint)startIndex >= m_Length)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, Length, startIndex);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, m_Length, startIndex);
             }
             if (count < 0)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, Length, count);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, m_Length, count);
             }
-            if ((uint)(startIndex + count) > Length)
+            if ((uint)(startIndex + count) > m_Length)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, Length, startIndex + count);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, m_Length, startIndex + count);
             }
 
             for (int i = startIndex + count - 1; i >= startIndex; i--)
             {
-                if (predicate(Array[i]))
+                if (predicate(m_Array[i]))
                 {
                     return i;
                 }
@@ -550,28 +567,28 @@ namespace ArrayPoolCollection
 
         public int FindLastIndex(int startIndex, Predicate<T> predicate)
         {
-            return FindLastIndex(startIndex, Length - startIndex, predicate);
+            return FindLastIndex(startIndex, m_Length - startIndex, predicate);
         }
 
         public int FindLastIndex(Predicate<T> predicate)
         {
-            return FindLastIndex(0, Length, predicate);
+            return FindLastIndex(0, m_Length, predicate);
         }
 
         public void ForEach(Action<T> action)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            int version = Version;
+            int version = m_Version;
 
-            foreach (var element in Array.AsSpan(..Length))
+            foreach (var element in m_Array.AsSpan(..m_Length))
             {
                 action(element);
 
-                if (Version != version)
+                if (m_Version != version)
                 {
                     ThrowHelper.ThrowDifferentVersion();
                 }
@@ -580,9 +597,9 @@ namespace ArrayPoolCollection
 
         public Enumerator GetEnumerator()
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
             return new Enumerator(this);
@@ -592,140 +609,140 @@ namespace ArrayPoolCollection
 
         public ArrayPoolList<T> GetRange(int startIndex, int count)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
             if (startIndex < 0)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, Length, startIndex);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, m_Length, startIndex);
             }
-            if (startIndex >= Length)
+            if (startIndex >= m_Length)
             {
-                ThrowHelper.ThrowArgumentOverLength(nameof(startIndex), 0, Length, startIndex);
+                ThrowHelper.ThrowArgumentOverLength(nameof(startIndex), 0, m_Length, startIndex);
             }
             if (count < 0)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, Length, count);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, m_Length, count);
             }
-            if ((uint)(startIndex + count) > Length)
+            if ((uint)(startIndex + count) > m_Length)
             {
-                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, Length, startIndex + count);
+                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, m_Length, startIndex + count);
             }
 
             var result = new ArrayPoolList<T>(count);
 
-            Array.AsSpan(startIndex..(startIndex + count)).CopyTo(result.Array.AsSpan());
-            result.Length = count;
+            m_Array.AsSpan(startIndex..(startIndex + count)).CopyTo(result.m_Array.AsSpan());
+            result.m_Length = count;
 
             return result;
         }
 
         public int IndexOf(T item)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            return EquatableSpanHelper.IndexOf(Array.AsSpan(..Length), item);
+            return EquatableSpanHelper.IndexOf(m_Array.AsSpan(..m_Length), item);
         }
 
         public int IndexOf(T item, int startIndex)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
-            if ((uint)startIndex >= Length)
+            if ((uint)startIndex >= m_Length)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, Length, startIndex);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, m_Length, startIndex);
             }
 
-            return EquatableSpanHelper.IndexOf(Array.AsSpan(startIndex..Length), item);
+            return EquatableSpanHelper.IndexOf(m_Array.AsSpan(startIndex..m_Length), item);
         }
 
         public int IndexOf(T item, int startIndex, int count)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
-            if ((uint)startIndex >= Length)
+            if ((uint)startIndex >= m_Length)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, Length, startIndex);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, m_Length, startIndex);
             }
             if (count < 0)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, Length, count);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, m_Length, count);
             }
-            if ((uint)(startIndex + count) > Length)
+            if ((uint)(startIndex + count) > m_Length)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, Length, startIndex + count);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, m_Length, startIndex + count);
             }
 
-            int index = EquatableSpanHelper.IndexOf(Array.AsSpan(startIndex..(startIndex + count)), item);
+            int index = EquatableSpanHelper.IndexOf(m_Array.AsSpan(startIndex..(startIndex + count)), item);
             return index == -1 ? -1 : (index + startIndex);
         }
 
         public void Insert(int index, T item)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
-            if ((uint)index > Length)
+            if ((uint)index > m_Length)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(index), 0, Length + 1, index);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(index), 0, m_Length + 1, index);
             }
 
-            if (Length + 1 > Array.Length)
+            if (m_Length + 1 > m_Array.Length)
             {
                 // TODO: optimizable(copy)
-                Grow(Array.Length + 1);
+                Grow(m_Array.Length + 1);
             }
 
-            Array.AsSpan(index..Length).CopyTo(Array.AsSpan((index + 1)..));
-            Array[index] = item;
-            Length++;
-            Version++;
+            m_Array.AsSpan(index..m_Length).CopyTo(m_Array.AsSpan((index + 1)..));
+            m_Array[index] = item;
+            m_Length++;
+            m_Version++;
         }
 
         public void InsertRange(int index, IEnumerable<T> source)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
-            if ((uint)index > Length)
+            if ((uint)index > m_Length)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(index), 0, Length + 1, index);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(index), 0, m_Length + 1, index);
             }
 
             if (CollectionHelper.TryGetNonEnumeratedCount(source, out int count))
             {
-                if (Length + count > Array.Length)
+                if (m_Length + count > m_Array.Length)
                 {
                     // TODO: optimizable(copy)
-                    Grow(Length + count);
+                    Grow(m_Length + count);
                 }
 
-                Array.AsSpan(index..Length).CopyTo(Array.AsSpan((index + count)..));
+                m_Array.AsSpan(index..m_Length).CopyTo(m_Array.AsSpan((index + count)..));
 
                 if (source is ICollection<T> genericCollection)
                 {
-                    genericCollection.CopyTo(Array, index);
+                    genericCollection.CopyTo(m_Array, index);
                 }
                 else if (source is ICollection collection)
                 {
-                    collection.CopyTo(Array, index);
+                    collection.CopyTo(m_Array, index);
                 }
                 else
                 {
                     int i = index;
                     foreach (var element in source)
                     {
-                        Array[i++] = element;
+                        m_Array[i++] = element;
                     }
                 }
             }
@@ -736,241 +753,264 @@ namespace ArrayPoolCollection
 
                 segmentedArray.AddRange(source);
                 count = segmentedArray.GetTotalLength();
-                if (Length + count > Array.Length)
+                if (m_Length + count > m_Array.Length)
                 {
                     // TODO: optimizable(copy)
-                    Grow(Length + count);
+                    Grow(m_Length + count);
                 }
 
-                Array.AsSpan(index..Length).CopyTo(Array.AsSpan((index + count)..));
+                m_Array.AsSpan(index..m_Length).CopyTo(m_Array.AsSpan((index + count)..));
 
-                segmentedArray.CopyTo(Array.AsSpan(index..));
+                segmentedArray.CopyTo(m_Array.AsSpan(index..));
             }
 
-            Length += count;
-            Version++;
+            m_Length += count;
+            m_Version++;
         }
 
         public void InsertRangeFromSpan(int index, ReadOnlySpan<T> source)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
-            if ((uint)index > Length)
+            if ((uint)index > m_Length)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(index), 0, Length + 1, index);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(index), 0, m_Length + 1, index);
             }
 
-            if (Length + source.Length > Array.Length)
+            if (m_Length + source.Length > m_Array.Length)
             {
                 // TODO: optimizable(copy)
-                Grow(Length + source.Length);
+                Grow(m_Length + source.Length);
             }
 
-            Array.AsSpan(index..Length).CopyTo(Array.AsSpan((index + source.Length)..));
-            source.CopyTo(Array.AsSpan(index..));
+            m_Array.AsSpan(index..m_Length).CopyTo(m_Array.AsSpan((index + source.Length)..));
+            source.CopyTo(m_Array.AsSpan(index..));
 
-            Length += source.Length;
-            Version++;
+            m_Length += source.Length;
+            m_Version++;
         }
 
         public int LastIndexOf(T item)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            return EquatableSpanHelper.LastIndexOf(Array.AsSpan(..Length), item);
+            return EquatableSpanHelper.LastIndexOf(m_Array.AsSpan(..m_Length), item);
         }
 
         public int LastIndexOf(T item, int startIndex)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
-            if ((uint)startIndex >= Length)
+            if ((uint)startIndex >= m_Length)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, Length, startIndex);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, m_Length, startIndex);
             }
 
-            int index = EquatableSpanHelper.LastIndexOf(Array.AsSpan(startIndex..Length), item);
+            int index = EquatableSpanHelper.LastIndexOf(m_Array.AsSpan(startIndex..m_Length), item);
             return index == -1 ? -1 : (startIndex + index);
         }
 
         public int LastIndexOf(T item, int startIndex, int count)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
-            if ((uint)startIndex >= Length)
+            if ((uint)startIndex >= m_Length)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, Length, startIndex);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, m_Length, startIndex);
             }
             if (count < 0)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, Length, count);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, m_Length, count);
             }
-            if ((uint)(startIndex + count) >= Length)
+            if ((uint)(startIndex + count) >= m_Length)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, Length, startIndex + count);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, m_Length, startIndex + count);
             }
 
-            int index = EquatableSpanHelper.LastIndexOf(Array.AsSpan(startIndex..(startIndex + count)), item);
+            int index = EquatableSpanHelper.LastIndexOf(m_Array.AsSpan(startIndex..(startIndex + count)), item);
             return index == -1 ? -1 : (startIndex + index);
         }
 
         public bool Remove(T item)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            int index = EquatableSpanHelper.IndexOf(Array.AsSpan(..Length), item);
+            int index = EquatableSpanHelper.IndexOf(m_Array.AsSpan(..m_Length), item);
             if (index == -1)
             {
                 return false;
             }
 
-            Array.AsSpan((index + 1)..Length).CopyTo(Array.AsSpan(index..));
+            m_Array.AsSpan((index + 1)..m_Length).CopyTo(m_Array.AsSpan(index..));
             if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
             {
-                Array[Length - 1] = default!;
+                m_Array[m_Length - 1] = default!;
             }
-            Length--;
-            Version++;
+            m_Length--;
+            m_Version++;
             return true;
         }
 
         public int RemoveAll(Predicate<T> predicate)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
             int skipCount = 0;
 
-            for (int i = 0; i < Length; i++)
+            for (int i = 0; i < m_Length; i++)
             {
-                if (predicate(Array[i]))
+                if (predicate(m_Array[i]))
                 {
                     skipCount++;
                 }
                 else
                 {
-                    Array[i - skipCount] = Array[i];
+                    m_Array[i - skipCount] = m_Array[i];
                 }
             }
 
             if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
             {
-                Array.AsSpan((Length - skipCount)..Length).Clear();
+                m_Array.AsSpan((m_Length - skipCount)..m_Length).Clear();
             }
 
-            Length -= skipCount;
-            Version++;
+            m_Length -= skipCount;
+            m_Version++;
             return skipCount;
         }
 
         public void RemoveAt(int index)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
-            if ((uint)index >= Length)
+            if ((uint)index >= m_Length)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(index), 0, Length, index);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(index), 0, m_Length, index);
             }
 
-            Array.AsSpan((index + 1)..Length).CopyTo(Array.AsSpan(index..));
+            m_Array.AsSpan((index + 1)..m_Length).CopyTo(m_Array.AsSpan(index..));
             if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
             {
-                Array[Length - 1] = default!;
+                m_Array[m_Length - 1] = default!;
             }
-            Length--;
-            Version++;
+            m_Length--;
+            m_Version++;
         }
 
         public void RemoveRange(int startIndex, int count)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
             if (startIndex < 0)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, Length, startIndex);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, m_Length, startIndex);
             }
-            if (startIndex >= Length)
+            if (startIndex >= m_Length)
             {
-                ThrowHelper.ThrowArgumentOverLength(nameof(startIndex), 0, Length, startIndex);
+                ThrowHelper.ThrowArgumentOverLength(nameof(startIndex), 0, m_Length, startIndex);
             }
             if (count < 0)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, Length, count);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, m_Length, count);
             }
-            if ((uint)(startIndex + count) >= Length)
+            if ((uint)(startIndex + count) >= m_Length)
             {
-                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, Length, startIndex + count);
+                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, m_Length, startIndex + count);
             }
 
-            Array.AsSpan((startIndex + count)..Length).CopyTo(Array.AsSpan(startIndex..));
+            m_Array.AsSpan((startIndex + count)..m_Length).CopyTo(m_Array.AsSpan(startIndex..));
             if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
             {
-                Array.AsSpan((Length - count)..Length).Clear();
+                m_Array.AsSpan((m_Length - count)..m_Length).Clear();
             }
-            Length -= count;
-            Version++;
+            m_Length -= count;
+            m_Version++;
         }
 
         public void Reverse()
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            for (int i = 0; i < Length / 2; i++)
+            for (int i = 0; i < m_Length / 2; i++)
             {
-                (Array[i], Array[Length - 1 - i]) = (Array[Length - 1 - i], Array[i]);
+                (m_Array[i], m_Array[m_Length - 1 - i]) = (m_Array[m_Length - 1 - i], m_Array[i]);
             }
-            Version++;
+            m_Version++;
         }
 
         public void Reverse(int startIndex, int count)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
-            if (startIndex >= Length)
+            if (startIndex >= m_Length)
             {
-                ThrowHelper.ThrowArgumentOverLength(nameof(startIndex), 0, Length, startIndex);
+                ThrowHelper.ThrowArgumentOverLength(nameof(startIndex), 0, m_Length, startIndex);
             }
             if (startIndex < 0)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, Length, count);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, m_Length, count);
             }
             if (count < 0)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, Length, count);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, m_Length, count);
             }
-            if ((uint)(startIndex + count) >= Length)
+            if ((uint)(startIndex + count) >= m_Length)
             {
-                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, Length, startIndex + count);
+                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, m_Length, startIndex + count);
             }
 
             for (int i = 0; i < count / 2; i++)
             {
-                (Array[startIndex + i], Array[startIndex + count - 1 - i]) = (Array[startIndex + count - 1 - i], Array[startIndex + i]);
+                (m_Array[startIndex + i], m_Array[startIndex + count - 1 - i]) = (m_Array[startIndex + count - 1 - i], m_Array[startIndex + i]);
             }
-            Version++;
+            m_Version++;
+        }
+
+        /// <summary>
+        /// `SetCount()` works similarly as `CollectionsMarshal.SetCount()`.
+        /// Use with caution as it may reference uninitialized area.
+        /// </summary>
+        public void SetCount(int count)
+        {
+            if (m_Array is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+            }
+            if (count < 0)
+            {
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, m_Array.Length, count);
+            }
+            if (count > m_Array.Length)
+            {
+                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, m_Array.Length, count);
+            }
+
+            m_Length = count;
+            m_Version++;
         }
 
         public ArrayPoolList<T> Slice(int startIndex, int count)
@@ -980,95 +1020,95 @@ namespace ArrayPoolCollection
 
         public void Sort()
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            System.Array.Sort(Array, 0, Length);
-            Version++;
+            Array.Sort(m_Array, 0, m_Length);
+            m_Version++;
         }
 
         public void Sort(Comparison<T> comparison)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
             // TODO: alloc?
-            System.Array.Sort(Array, 0, Length, Comparer<T>.Create(comparison));
-            Version++;
+            Array.Sort(m_Array, 0, m_Length, Comparer<T>.Create(comparison));
+            m_Version++;
         }
 
         public void Sort(IComparer<T> comparer)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            System.Array.Sort(Array, 0, Length, comparer);
-            Version++;
+            Array.Sort(m_Array, 0, m_Length, comparer);
+            m_Version++;
         }
 
         public void Sort(int startIndex, int count, IComparer<T> comparer)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
             if (startIndex < 0)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, Length, startIndex);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(startIndex), 0, m_Length, startIndex);
             }
-            if (startIndex >= Length)
+            if (startIndex >= m_Length)
             {
-                ThrowHelper.ThrowArgumentOverLength(nameof(startIndex), 0, Length, startIndex);
+                ThrowHelper.ThrowArgumentOverLength(nameof(startIndex), 0, m_Length, startIndex);
             }
             if (count < 0)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, Length, count);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, m_Length, count);
             }
-            if ((uint)(startIndex + count) >= Length)
+            if ((uint)(startIndex + count) >= m_Length)
             {
-                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, Length, startIndex + count);
+                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, m_Length, startIndex + count);
             }
 
-            System.Array.Sort(Array, startIndex, count, comparer);
-            Version++;
+            Array.Sort(m_Array, startIndex, count, comparer);
+            m_Version++;
         }
 
         public T[] ToArray()
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            var result = CollectionHelper.AllocateUninitializedArray<T>(Length);
-            Array.AsSpan(0..Length).CopyTo(result);
+            var result = CollectionHelper.AllocateUninitializedArray<T>(m_Length);
+            m_Array.AsSpan(0..m_Length).CopyTo(result);
             return result;
         }
 
         public override string ToString()
         {
-            return $"{Length} items";
+            return $"{m_Length} items";
         }
 
         public void TrimExcess()
         {
-            Capacity = Length;
+            Capacity = m_Length;
         }
 
         public bool TrueForAll(Predicate<T> predicate)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            foreach (var element in Array.AsSpan(..Length))
+            foreach (var element in m_Array.AsSpan(..m_Length))
             {
                 if (!predicate(element))
                 {
@@ -1085,13 +1125,13 @@ namespace ArrayPoolCollection
 
         public void Dispose()
         {
-            if (Array is not null)
+            if (m_Array is not null)
             {
-                ArrayPool<T>.Shared.Return(Array);
-                Array = null;
+                ArrayPool<T>.Shared.Return(m_Array);
+                m_Array = null;
             }
-            Length = 0;
-            Version = int.MinValue;
+            m_Length = 0;
+            m_Version = int.MinValue;
         }
 
         int IList.Add(object? value)
@@ -1099,12 +1139,12 @@ namespace ArrayPoolCollection
             if (value is T typedValue)
             {
                 Add(typedValue);
-                return Length - 1;
+                return m_Length - 1;
             }
             else if (value is null && default(T) is null)
             {
                 Add(default!);
-                return Length - 1;
+                return m_Length - 1;
             }
 
             ThrowHelper.ThrowArgumentTypeMismatch(nameof(value));
@@ -1173,20 +1213,20 @@ namespace ArrayPoolCollection
 
         void ICollection.CopyTo(Array array, int index)
         {
-            if (Array is null)
+            if (m_Array is null)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(Array));
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
             if (array.Rank > 1)
             {
                 ThrowHelper.ThrowArgumentTypeMismatch(nameof(array));
             }
-            if (array.GetType() != Array.GetType())
+            if (array.GetType() != m_Array.GetType())
             {
                 ThrowHelper.ThrowArgumentTypeMismatch(nameof(array));
             }
 
-            System.Array.Copy(Array, 0, array, index, Length);
+            Array.Copy(m_Array, 0, array, index, m_Length);
         }
 
         public struct Enumerator : IEnumerator<T>
@@ -1199,18 +1239,18 @@ namespace ArrayPoolCollection
             {
                 Source = source;
                 Index = -1;
-                Version = source.Version;
+                Version = source.m_Version;
             }
 
             public readonly T Current
             {
                 get
                 {
-                    if (Source.Version != Version)
+                    if (Source.m_Version != Version)
                     {
                         ThrowHelper.ThrowDifferentVersion();
                     }
-                    if ((uint)Index >= Source.Length)
+                    if ((uint)Index >= Source.m_Length)
                     {
                         ThrowHelper.ThrowEnumeratorUndefined();
                     }
@@ -1227,21 +1267,21 @@ namespace ArrayPoolCollection
 
             public bool MoveNext()
             {
-                if (Source.Version != Version)
+                if (Source.m_Version != Version)
                 {
                     ThrowHelper.ThrowDifferentVersion();
                 }
-                if (Index >= Source.Length)
+                if (Index >= Source.m_Length)
                 {
                     return false;
                 }
 
-                return ++Index < Source.Length;
+                return ++Index < Source.m_Length;
             }
 
             public void Reset()
             {
-                if (Source.Version != Version)
+                if (Source.m_Version != Version)
                 {
                     ThrowHelper.ThrowDifferentVersion();
                 }

@@ -136,33 +136,21 @@ public class ArrayPoolListTests
         list.AddRange([]);
         CollectionAssert.AreEqual(Enumerable.Range(0, 48).ToArray(), list);
 
+        list.AddRange(Enumerable.Range(48, 16).ToArray().AsSpan());
+        CollectionAssert.AreEqual(Enumerable.Range(0, 64).ToArray(), list);
+
 
         var enumerator = list.GetEnumerator();
         list.AddRange(Enumerable.Range(0, 16));
         Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        enumerator = list.GetEnumerator();
+        list.AddRange(Enumerable.Range(0, 16).ToArray().AsSpan());
+        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+
 
         list.Dispose();
         Assert.ThrowsException<ObjectDisposedException>(() => list.AddRange(Enumerable.Range(0, 16)));
-    }
-
-    [TestMethod]
-    public void AddRangeFromSpan()
-    {
-        var list = new ArrayPoolList<int>();
-
-        list.AddRangeFromSpan(Enumerable.Range(0, 16).ToArray());
-        CollectionAssert.AreEqual(Enumerable.Range(0, 16).ToArray(), list);
-
-        list.AddRangeFromSpan([]);
-        CollectionAssert.AreEqual(Enumerable.Range(0, 16).ToArray(), list);
-
-
-        var enumerator = list.GetEnumerator();
-        list.AddRangeFromSpan(Enumerable.Range(0, 16).ToArray());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-
-        list.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => list.AddRangeFromSpan(Enumerable.Range(0, 16).ToArray()));
+        Assert.ThrowsException<ObjectDisposedException>(() => list.AddRange(Enumerable.Range(0, 16).ToArray().AsSpan()));
     }
 
     [TestMethod]
@@ -180,6 +168,19 @@ public class ArrayPoolListTests
         list.Dispose();
         Assert.ThrowsException<ObjectDisposedException>(() => list.AsReadOnly());
         Assert.ThrowsException<ObjectDisposedException>(() => readonlyList[0]);
+    }
+
+    [TestMethod]
+    public void AsSpan()
+    {
+        var list = new ArrayPoolList<int>() { 1, 2, 3 };
+        var span = list.AsSpan();
+
+        CollectionAssert.AreEqual(new int[] { 1, 2, 3 }, span.ToArray());
+
+
+        list.Dispose();
+        Assert.ThrowsException<ObjectDisposedException>(() => list.AsSpan());
     }
 
     [TestMethod]
@@ -719,8 +720,30 @@ public class ArrayPoolListTests
         list.Reverse();
         Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
 
+
         list.Dispose();
         Assert.ThrowsException<ObjectDisposedException>(() => list.Reverse());
+    }
+
+    [TestMethod]
+    public void SetCount()
+    {
+        var list = new ArrayPoolList<int>() { 1, 2, 3, 4, 5, 6 };
+
+        list.SetCount(12);
+        Assert.AreEqual(12, list.Count);
+
+        Assert.ThrowsException<ArgumentOutOfRangeException>(() => list.SetCount(-1));
+        Assert.ThrowsException<ArgumentException>(() => list.SetCount(99));
+
+
+        var enumerator = list.GetEnumerator();
+        list.SetCount(13);
+        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+
+
+        list.Dispose();
+        Assert.ThrowsException<ObjectDisposedException>(() => list.SetCount(1));
     }
 
     [TestMethod]
