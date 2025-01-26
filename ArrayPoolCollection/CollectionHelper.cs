@@ -115,5 +115,10 @@ namespace ArrayPoolCollection
             return c;
 #endif
         }
+
+        internal static ref T NullRef<T>()
+        {
+            return ref Unsafe.NullRef<T>();
+        }
     }
 }

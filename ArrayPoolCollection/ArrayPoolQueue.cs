@@ -70,6 +70,29 @@ namespace ArrayPoolCollection
         }
 
 
+        /// <summary>
+        /// `AsSpan()` works similarly to `CollectionsMarshal.AsSpan()`.
+        /// Note that adding or removing elements from a collection may reference discarded buffers.
+        /// </summary>
+        public static void AsSpan(ArrayPoolQueue<T> queue, out Span<T> headSide, out Span<T> tailSide)
+        {
+            if (queue.m_Array is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(queue.m_Array));
+            }
+
+            if (queue.m_Head + queue.m_Length <= queue.m_Array.Length)
+            {
+                headSide = queue.m_Array.AsSpan(queue.m_Head..(queue.m_Head + queue.m_Length));
+                tailSide = Span<T>.Empty;
+            }
+            else
+            {
+                headSide = queue.m_Array.AsSpan(queue.m_Head..);
+                tailSide = queue.m_Array.AsSpan(..(queue.m_Head + queue.m_Length - queue.m_Array.Length));
+            }
+        }
+
         public void Clear()
         {
             if (m_Array is null)
@@ -427,6 +450,29 @@ namespace ArrayPoolCollection
             }
 
             return m_Array[m_Head];
+        }
+
+        /// <summary>
+        /// `SetCount()` works similarly as `CollectionsMarshal.SetCount()`.
+        /// Use with caution as it may reference uninitialized area.
+        /// </summary>
+        public static void SetCount(ArrayPoolQueue<T> queue, int count)
+        {
+            if (queue.m_Array is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+            }
+            if (count < 0)
+            {
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, queue.m_Array.Length, count);
+            }
+            if (count > queue.m_Array.Length)
+            {
+                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, queue.m_Array.Length, count);
+            }
+
+            queue.m_Length = count;
+            queue.m_Version++;
         }
 
         public T[] ToArray()

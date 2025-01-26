@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace ArrayPoolCollection
 {
@@ -307,6 +308,64 @@ namespace ArrayPoolCollection
                 metadataIndex = IncrementMetadataIndex(metadataIndex);
             }
             metadata[metadataIndex] = current;
+        }
+
+        private ref TValue? GetValueRefOrAddDefault(TKey key, out bool exists)
+        {
+            if (m_Metadata is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
+            }
+            if (m_Values is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
+            }
+
+            var metadata = m_Metadata;
+            var values = m_Values;
+            var comparer = m_Comparer;
+
+            int hashCode = GetHashCode(key, comparer);
+            uint fingerprint = HashCodeToFingerprint(hashCode);
+            int metadataIndex = HashCodeToMetadataIndex(hashCode, GetShifts(m_Values.Length));
+
+
+            var current = metadata[metadataIndex];
+            while (fingerprint <= current.Fingerprint)
+            {
+                if (fingerprint == current.Fingerprint &&
+                    AreEqual(key, values[current.ValueIndex].Key, comparer))
+                {
+                    m_Version++;
+                    exists = true;
+                    var convertSpan = MemoryMarshal.Cast<KeyValuePair<TKey, TValue>, (TKey key, TValue value)>(
+                        MemoryMarshal.CreateSpan(ref values[current.ValueIndex], 1));
+                    return ref convertSpan[0].value!;
+                }
+
+                fingerprint += DistanceUnit;
+                metadataIndex = IncrementMetadataIndex(metadataIndex);
+                current = metadata[metadataIndex];
+            }
+
+
+            m_Size++;
+            values[m_Size - 1] = new KeyValuePair<TKey, TValue>(key, default!);
+            PlaceAndShiftUp(new Metadata(fingerprint, m_Size - 1), metadataIndex);
+
+
+            if (m_Size * MaxLoadFactorDen >= m_Metadata.Length * MaxLoadFactorNum)
+            {
+                Resize(m_Values.Length << 1);
+            }
+
+            m_Version++;
+            exists = false;
+            {
+                var convertSpan = MemoryMarshal.Cast<KeyValuePair<TKey, TValue>, (TKey key, TValue value)>(
+                    MemoryMarshal.CreateSpan(ref m_Values[m_Size - 1], 1));
+                return ref convertSpan[0].value!;
+            }
         }
 
         private bool RemoveEntry(TKey key)
@@ -1433,6 +1492,10 @@ namespace ArrayPoolCollection
             }
         }
 
+        /// <summary>
+        /// `AsSpan()` works similarly to `CollectionsMarshal.AsSpan()`.
+        /// Note that adding or removing elements may reference discarded buffers.
+        /// </summary>
         public static Span<KeyValuePair<TKey, TValue>> AsSpan(ArrayPoolDictionary<TKey, TValue> dictionary)
         {
             if (dictionary.m_Values is null)
@@ -1555,6 +1618,43 @@ namespace ArrayPoolCollection
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        /// <summary>
+        /// `GetValueRefOrAddDefault()` works similarly to `CollectionsMarshal.GetValueRefOrAddDefault()`.
+        /// Note that adding or removing elements may reference discarded buffers.
+        /// </summary>
+        public static ref TValue? GetValueRefOrAddDefault(ArrayPoolDictionary<TKey, TValue> dictionary, TKey key, out bool exists)
+        {
+            if (dictionary.m_Values is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
+            }
+
+            return ref dictionary.GetValueRefOrAddDefault(key, out exists);
+        }
+
+        /// <summary>
+        /// `GetValueRefOrNullRef()` works similarly to `CollectionsMarshal.GetValueRefOrNullRef()`.
+        /// Note that adding or removing elements may reference discarded buffers.
+        /// </summary>
+        public static ref TValue GetValueRefOrNullRef(ArrayPoolDictionary<TKey, TValue> dictionary, TKey key)
+        {
+            if (dictionary.m_Values is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
+            }
+
+            if (dictionary.GetEntryIndex(key) is int index && index >= 0)
+            {
+                var convertSpan = MemoryMarshal.Cast<KeyValuePair<TKey, TValue>, (TKey key, TValue value)>(
+                    MemoryMarshal.CreateSpan(ref dictionary.m_Values[index], 1));
+                return ref convertSpan[0].value;
+            }
+            else
+            {
+                return ref CollectionHelper.NullRef<TValue>();
+            }
         }
 
         public bool Remove(TKey key)

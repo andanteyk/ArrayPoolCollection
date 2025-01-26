@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using Microsoft.VisualBasic;
 
 namespace ArrayPoolCollection.Tests;
 
@@ -290,6 +292,19 @@ public class ArrayPoolDictionaryTests
     }
 
     [TestMethod]
+    public void AsSpan()
+    {
+        var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
+
+        var span = ArrayPoolDictionary<int, int>.AsSpan(dict);
+        CollectionAssert.AreEquivalent(new Dictionary<int, int> { { 1, 2 }, { 2, 4 }, { 3, 6 } }.ToArray(), span.ToArray());
+
+
+        dict.Dispose();
+        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolDictionary<int, int>.AsSpan(dict));
+    }
+
+    [TestMethod]
     public void Clear()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
@@ -532,6 +547,53 @@ public class ArrayPoolDictionaryTests
         Assert.ThrowsException<ObjectDisposedException>(() => enumerator.Current);
         Assert.ThrowsException<ObjectDisposedException>(() => enumerator.MoveNext());
         Assert.ThrowsException<ObjectDisposedException>(() => enumerator.Reset());
+    }
+
+    [TestMethod]
+    public void GetValueRefOrAddDefault()
+    {
+        var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
+
+        for (int i = 0; i < 33; i++)
+        {
+            ArrayPoolDictionary<int, int>.GetValueRefOrAddDefault(dict, i, out bool exists) = i * 3;
+
+            Assert.AreEqual(1 <= i && i <= 3, exists);
+            Assert.AreEqual(i * 3, dict[i]);
+        }
+
+
+        var enumerator = dict.GetEnumerator();
+        ArrayPoolDictionary<int, int>.GetValueRefOrAddDefault(dict, 1, out _) = 123;
+        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+
+
+        dict.Dispose();
+        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolDictionary<int, int>.GetValueRefOrAddDefault(dict, 0, out bool exists) = 0);
+    }
+
+    [TestMethod]
+    public void GetValueRefOrNullRef()
+    {
+        var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
+
+        for (int i = 0; i < 33; i++)
+        {
+            ref var value = ref ArrayPoolDictionary<int, int>.GetValueRefOrNullRef(dict, i);
+
+            Assert.AreEqual(1 <= i && i <= 3, !Unsafe.IsNullRef(ref value));
+
+            if (!Unsafe.IsNullRef(ref value))
+            {
+                value = i * 3;
+                Assert.AreEqual(i * 3, dict[i]);
+            }
+        }
+
+
+        dict.Dispose();
+        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolDictionary<int, int>.GetValueRefOrAddDefault(dict, 0, out bool exists) = 0);
+
     }
 
     [TestMethod]

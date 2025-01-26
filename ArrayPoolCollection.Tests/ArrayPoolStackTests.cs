@@ -75,6 +75,19 @@ public class ArrayPoolStackTests
     }
 
     [TestMethod]
+    public void AsSpan()
+    {
+        var stack = new ArrayPoolStack<int>(Enumerable.Range(1, 3));
+        var span = ArrayPoolStack<int>.AsSpan(stack);
+
+        CollectionAssert.AreEqual(new int[] { 1, 2, 3 }, span.ToArray());
+
+
+        stack.Dispose();
+        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolStack<int>.AsSpan(stack));
+    }
+
+    [TestMethod]
     public void Clear()
     {
         var stack = new ArrayPoolStack<int>(Enumerable.Range(0, 100));
@@ -279,6 +292,27 @@ public class ArrayPoolStackTests
 
         stack.Dispose();
         Assert.ThrowsException<ObjectDisposedException>(() => stack.PushRange(Enumerable.Range(0, 10)));
+    }
+
+    [TestMethod]
+    public void SetCount()
+    {
+        var stack = new ArrayPoolStack<int>(Enumerable.Range(1, 6));
+
+        ArrayPoolStack<int>.SetCount(stack, 12);
+        Assert.AreEqual(12, stack.Count);
+
+        Assert.ThrowsException<ArgumentOutOfRangeException>(() => ArrayPoolStack<int>.SetCount(stack, -1));
+        Assert.ThrowsException<ArgumentException>(() => ArrayPoolStack<int>.SetCount(stack, 99));
+
+
+        var enumerator = stack.GetEnumerator();
+        ArrayPoolStack<int>.SetCount(stack, 13);
+        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+
+
+        stack.Dispose();
+        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolStack<int>.SetCount(stack, 1));
     }
 
     [TestMethod]
