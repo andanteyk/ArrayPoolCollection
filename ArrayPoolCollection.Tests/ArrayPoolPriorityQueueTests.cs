@@ -135,6 +135,19 @@ public class ArrayPoolPriorityQueueTests
     }
 
     [TestMethod]
+    public void AsSpan()
+    {
+        var queue = new ArrayPoolPriorityQueue<int, int>(Enumerable.Range(1, 15).Select(i => (i, i)));
+        var span = ArrayPoolPriorityQueue<int, int>.AsSpan(queue);
+
+        CollectionAssert.AreEquivalent(Enumerable.Range(1, 15).Select(i => (i, i)).ToArray(), span.ToArray());
+
+
+        queue.Dispose();
+        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolPriorityQueue<int, int>.AsSpan(queue));
+    }
+
+    [TestMethod]
     public void Clear()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>(Enumerable.Range(0, 100).Select(i => (i, i)));
@@ -297,6 +310,27 @@ public class ArrayPoolPriorityQueueTests
 
         queue.Dispose();
         Assert.ThrowsException<ObjectDisposedException>(() => queue.Peek());
+    }
+
+    [TestMethod]
+    public void SetCount()
+    {
+        var stack = new ArrayPoolPriorityQueue<int, int>(Enumerable.Range(1, 6).Select(i => (i, i)));
+
+        ArrayPoolPriorityQueue<int, int>.SetCount(stack, 12);
+        Assert.AreEqual(12, stack.Count);
+
+        Assert.ThrowsException<ArgumentOutOfRangeException>(() => ArrayPoolPriorityQueue<int, int>.SetCount(stack, -1));
+        Assert.ThrowsException<ArgumentException>(() => ArrayPoolPriorityQueue<int, int>.SetCount(stack, 99));
+
+
+        var enumerator = stack.UnorderedItems.GetEnumerator();
+        ArrayPoolPriorityQueue<int, int>.SetCount(stack, 13);
+        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+
+
+        stack.Dispose();
+        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolPriorityQueue<int, int>.SetCount(stack, 1));
     }
 
     [TestMethod]

@@ -1,7 +1,7 @@
 namespace ArrayPoolCollection.Tests;
 
 [TestClass]
-public class ArrayPoolHashSsetTests
+public class ArrayPoolHashSetTests
 {
     [TestMethod]
     public void Count()
@@ -125,6 +125,19 @@ public class ArrayPoolHashSsetTests
 
         set.Dispose();
         Assert.ThrowsException<ObjectDisposedException>(() => set.Add(-1));
+    }
+
+    [TestMethod]
+    public void AsSpan()
+    {
+        var set = new ArrayPoolHashSet<int>() { 1, 2, 3 };
+
+        var span = ArrayPoolHashSet<int>.AsSpan(set);
+        CollectionAssert.AreEquivalent(new int[] { 1, 2, 3 }, span.ToArray());
+
+
+        set.Dispose();
+        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolHashSet<int>.AsSpan(set));
     }
 
     [TestMethod]

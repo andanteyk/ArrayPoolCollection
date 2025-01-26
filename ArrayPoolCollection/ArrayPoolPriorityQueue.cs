@@ -267,6 +267,20 @@ namespace ArrayPoolCollection
             }
         }
 
+        /// <summary>
+        /// `AsSpan()` works similarly to `CollectionsMarshal.AsSpan()`.
+        /// Note that adding or removing elements from a collection may reference discarded buffers.
+        /// </summary>
+        public static Span<(TElement Element, TPriority Priority)> AsSpan(ArrayPoolPriorityQueue<TElement, TPriority> queue)
+        {
+            if (queue.m_Array is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+            }
+
+            return queue.m_Array.AsSpan(..queue.m_Length);
+        }
+
         public void Clear()
         {
             if (m_Array is null)
@@ -553,6 +567,29 @@ namespace ArrayPoolCollection
             }
 
             return m_Array[0].Element;
+        }
+
+        /// <summary>
+        /// `SetCount()` works similarly as `CollectionsMarshal.SetCount()`.
+        /// Use with caution as it may reference uninitialized area.
+        /// </summary>
+        public static void SetCount(ArrayPoolPriorityQueue<TElement, TPriority> queue, int count)
+        {
+            if (queue.m_Array is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+            }
+            if (count < 0)
+            {
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, queue.m_Array.Length, count);
+            }
+            if (count > queue.m_Array.Length)
+            {
+                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, queue.m_Array.Length, count);
+            }
+
+            queue.m_Length = count;
+            queue.m_Version++;
         }
 
         public override string ToString()

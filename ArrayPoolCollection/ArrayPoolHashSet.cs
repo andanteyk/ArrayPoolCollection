@@ -843,8 +843,6 @@ namespace ArrayPoolCollection
         }
 
 
-
-
         public bool Add(T item)
         {
             if (m_Values is null)
@@ -853,6 +851,20 @@ namespace ArrayPoolCollection
             }
 
             return AddEntry(item, false);
+        }
+
+        /// <summary>
+        /// `AsSpan()` works similarly to `CollectionsMarshal.AsSpan()`.
+        /// Note that adding or removing elements may reference discarded buffers.
+        /// </summary>
+        public static Span<T> AsSpan(ArrayPoolHashSet<T> set)
+        {
+            if (set.m_Values is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
+            }
+
+            return set.m_Values.AsSpan(..set.m_Size);
         }
 
         public void Clear()
