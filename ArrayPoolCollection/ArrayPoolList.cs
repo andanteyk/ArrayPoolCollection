@@ -246,14 +246,14 @@ namespace ArrayPoolCollection
         /// `AsSpan()` works similarly to `CollectionsMarshal.AsSpan()`.
         /// Note that adding or removing elements from a collection may reference discarded buffers.
         /// </summary>
-        public Span<T> AsSpan()
+        public static Span<T> AsSpan(ArrayPoolList<T> source)
         {
-            if (m_Array is null)
+            if (source.m_Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            return m_Array.AsSpan(..m_Length);
+            return source.m_Array.AsSpan(..source.m_Length);
         }
 
         public int BinarySearch(T item)
@@ -994,23 +994,23 @@ namespace ArrayPoolCollection
         /// `SetCount()` works similarly as `CollectionsMarshal.SetCount()`.
         /// Use with caution as it may reference uninitialized area.
         /// </summary>
-        public void SetCount(int count)
+        public static void SetCount(ArrayPoolList<T> source, int count)
         {
-            if (m_Array is null)
+            if (source.m_Array is null)
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
             if (count < 0)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, m_Array.Length, count);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, source.m_Array.Length, count);
             }
-            if (count > m_Array.Length)
+            if (count > source.m_Array.Length)
             {
-                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, m_Array.Length, count);
+                ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, source.m_Array.Length, count);
             }
 
-            m_Length = count;
-            m_Version++;
+            source.m_Length = count;
+            source.m_Version++;
         }
 
         public ArrayPoolList<T> Slice(int startIndex, int count)

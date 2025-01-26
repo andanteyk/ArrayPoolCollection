@@ -15,8 +15,8 @@ namespace ArrayPoolCollection.MemoryPack
             value = new ArrayPoolList<T>(length);
             if (length > 0)
             {
-                value.SetCount(length);
-                var span = value.AsSpan();
+                ArrayPoolList<T>.SetCount(value, length);
+                var span = ArrayPoolList<T>.AsSpan(value);
                 reader.ReadSpan(ref span!);
             }
         }
@@ -29,7 +29,7 @@ namespace ArrayPoolCollection.MemoryPack
                 return;
             }
 
-            var span = value.AsSpan();
+            var span = ArrayPoolList<T>.AsSpan(value);
             writer.WriteSpan(span!);
         }
     }

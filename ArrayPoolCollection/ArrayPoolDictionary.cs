@@ -1433,6 +1433,16 @@ namespace ArrayPoolCollection
             }
         }
 
+        public static Span<KeyValuePair<TKey, TValue>> AsSpan(ArrayPoolDictionary<TKey, TValue> dictionary)
+        {
+            if (dictionary.m_Values is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
+            }
+
+            return dictionary.m_Values.AsSpan(..dictionary.m_Size);
+        }
+
         public void Clear()
         {
             if (m_Values is null)
