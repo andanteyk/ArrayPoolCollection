@@ -1250,7 +1250,6 @@ namespace ArrayPoolCollection
                 return;
             }
 
-            // TODO: should be count * den / num?
             int capacity = (int)(source.Count * MaxLoadFactorDen / MaxLoadFactorNum);
             m_Values = ArrayPool<KeyValuePair<TKey, TValue>>.Shared.Rent(capacity);
             m_Metadata = ArrayPool<Metadata>.Shared.Rent(capacity);
@@ -1279,7 +1278,6 @@ namespace ArrayPoolCollection
                 count = 8;
             }
 
-            // TODO: should be count * den / num?
             count = (int)(count * MaxLoadFactorDen / MaxLoadFactorNum);
             m_Values = ArrayPool<KeyValuePair<TKey, TValue>>.Shared.Rent(count);
             m_Metadata = ArrayPool<Metadata>.Shared.Rent(count);

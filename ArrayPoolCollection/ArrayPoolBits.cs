@@ -69,13 +69,45 @@ namespace ArrayPoolCollection
 
         public bool IsReadOnly => false;
 
-        bool IList.IsFixedSize => throw new NotImplementedException();
+        bool IList.IsFixedSize => false;
 
-        bool ICollection.IsSynchronized => throw new NotImplementedException();
+        bool ICollection.IsSynchronized => false;
 
-        object ICollection.SyncRoot => throw new NotImplementedException();
+        object ICollection.SyncRoot => this;
 
-        object IList.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        object? IList.this[int index]
+        {
+            get => this[index];
+            set
+            {
+                if (m_Array is null)
+                {
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+                }
+                if ((uint)index >= m_Length)
+                {
+                    ThrowHelper.ThrowIndexOutOfRange(m_Length, index);
+                }
+                if (value is not bool bit)
+                {
+                    ThrowHelper.ThrowArgumentTypeMismatch(nameof(value));
+                }
+                else
+                {
+                    if (bit)
+                    {
+                        m_Array[index >> NuintShifts] |= One << (index & (NuintBits - 1));
+                    }
+                    else
+                    {
+                        m_Array[index >> NuintShifts] &= ~(One << (index & (NuintBits - 1)));
+                    }
+                }
+
+                m_Version++;
+            }
+        }
+
 
         public ArrayPoolBits() : this(0) { }
         public ArrayPoolBits(int bitLength)
@@ -747,7 +779,7 @@ namespace ArrayPoolCollection
             return GetEnumerator();
         }
 
-        int IList.Add(object value)
+        int IList.Add(object? value)
         {
             if (m_Array is null)
             {
@@ -763,7 +795,7 @@ namespace ArrayPoolCollection
             return -1;
         }
 
-        bool IList.Contains(object value)
+        bool IList.Contains(object? value)
         {
             if (m_Array is null)
             {
@@ -778,7 +810,7 @@ namespace ArrayPoolCollection
             return default;
         }
 
-        int IList.IndexOf(object value)
+        int IList.IndexOf(object? value)
         {
             if (m_Array is null)
             {
@@ -793,7 +825,7 @@ namespace ArrayPoolCollection
             return -1;
         }
 
-        void IList.Insert(int index, object value)
+        void IList.Insert(int index, object? value)
         {
             if (m_Array is null)
             {
@@ -807,7 +839,7 @@ namespace ArrayPoolCollection
             ThrowHelper.ThrowArgumentTypeMismatch(nameof(value));
         }
 
-        void IList.Remove(object value)
+        void IList.Remove(object? value)
         {
             if (m_Array is null)
             {
