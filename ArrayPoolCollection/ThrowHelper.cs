@@ -93,5 +93,11 @@ namespace ArrayPoolCollection
         {
             throw new InvalidOperationException("Must not dispose Shared instance");
         }
+
+        [DoesNotReturn]
+        internal static void ThrowLengthIsDifferent()
+        {
+            throw new ArgumentException("Each element has a different length");
+        }
     }
 }

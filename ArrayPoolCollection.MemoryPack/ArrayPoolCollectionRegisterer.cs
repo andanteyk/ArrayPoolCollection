@@ -13,6 +13,7 @@ namespace ArrayPoolCollection.MemoryPack
             MemoryPackFormatterProvider.RegisterGenericType(typeof(ArrayPoolStack<>), typeof(ArrayPoolStackFormatter<>));
             MemoryPackFormatterProvider.RegisterGenericType(typeof(ArrayPoolQueue<>), typeof(ArrayPoolQueueFormatter<>));
             MemoryPackFormatterProvider.RegisterGenericType(typeof(ArrayPoolPriorityQueue<,>), typeof(ArrayPoolPriorityQueueFormatter<,>));
+            MemoryPackFormatterProvider.Register(new ArrayPoolBitsFormatter());
         }
     }
 }
