@@ -112,13 +112,13 @@ namespace ArrayPoolCollection
         public ArrayPoolBits() : this(0) { }
         public ArrayPoolBits(int bitLength)
         {
-            if (bitLength < 0)
+            if ((uint)bitLength > CollectionHelper.ArrayMaxLength)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(bitLength), 0, int.MaxValue, bitLength);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(bitLength), 0, CollectionHelper.ArrayMaxLength, bitLength);
             }
 
-            int arrayLength = (bitLength + NuintBits - 1) >> NuintShifts;
-            m_Array = ArrayPool<nuint>.Shared.Rent(Math.Max(arrayLength, 16));
+            int arrayLength = (int)((bitLength - 1L + NuintBits) >> NuintShifts);
+            m_Array = ArrayPool<nuint>.Shared.Rent(CollectionHelper.GetInitialPoolingSize(arrayLength));
             m_Length = bitLength;
 
             m_Array.AsSpan(..arrayLength).Clear();
@@ -132,7 +132,7 @@ namespace ArrayPoolCollection
             }
 
             int arrayLength = (count + NuintBits - 1) >> NuintShifts;
-            m_Array = ArrayPool<nuint>.Shared.Rent(arrayLength);
+            m_Array = ArrayPool<nuint>.Shared.Rent(CollectionHelper.GetInitialPoolingSize(arrayLength));
 
             foreach (var bit in bools)
             {
@@ -142,7 +142,7 @@ namespace ArrayPoolCollection
         public ArrayPoolBits(ReadOnlySpan<bool> bools)
         {
             int arrayLength = (bools.Length + NuintBits - 1) >> NuintShifts;
-            m_Array = ArrayPool<nuint>.Shared.Rent(arrayLength);
+            m_Array = ArrayPool<nuint>.Shared.Rent(CollectionHelper.GetInitialPoolingSize(arrayLength));
             m_Length = bools.Length;
 
             for (int i = 0; i < bools.Length; i++)
@@ -154,7 +154,7 @@ namespace ArrayPoolCollection
         public ArrayPoolBits(ReadOnlySpan<byte> bytes)
         {
             int arrayLength = (bytes.Length * 8 + NuintBits - 1) >> NuintShifts;
-            m_Array = ArrayPool<nuint>.Shared.Rent(arrayLength);
+            m_Array = ArrayPool<nuint>.Shared.Rent(CollectionHelper.GetInitialPoolingSize(arrayLength));
 
             bytes.CopyTo(MemoryMarshal.AsBytes(m_Array.AsSpan()));
             m_Length = bytes.Length * 8;
@@ -179,9 +179,9 @@ namespace ArrayPoolCollection
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            if (m_Length >= m_Array.Length * NuintBits)
+            if (m_Length >= Math.Min((long)m_Array.Length * NuintBits, CollectionHelper.ArrayMaxLength))
             {
-                Resize(m_Length << 1);
+                Resize(CollectionHelper.GetNextPoolingSize(m_Length));
             }
 
             m_Length++;
@@ -234,7 +234,7 @@ namespace ArrayPoolCollection
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            return bits.m_Array.AsSpan(..((bits.m_Length + NuintBits - 1) >> NuintShifts));
+            return bits.m_Array.AsSpan(..(int)((bits.m_Length - 1L + NuintBits) >> NuintShifts));
         }
 
         public void Clear()
@@ -496,16 +496,16 @@ namespace ArrayPoolCollection
             }
             if (index < 0)
             {
-                ThrowHelper.ThrowArgumentOutOfRange(nameof(index), 0, m_Length, index);
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(index), 0, m_Length + 1, index);
             }
             if (index > m_Length)
             {
                 ThrowHelper.ThrowArgumentOverLength(nameof(index), 0, m_Length + 1, index);
             }
 
-            if (m_Length >= m_Array.Length * NuintBits)
+            if (m_Length >= Math.Min((long)m_Array.Length * NuintBits, CollectionHelper.ArrayMaxLength))
             {
-                Resize(m_Length << 1);
+                Resize(CollectionHelper.GetNextPoolingSize(m_Length));
             }
 
             int startIndex = index >> NuintShifts;
@@ -741,7 +741,7 @@ namespace ArrayPoolCollection
             {
                 ThrowHelper.ThrowArgumentOutOfRange(nameof(count), 0, source.m_Array.Length * NuintBits, count);
             }
-            if (count > source.m_Array.Length * NuintBits)
+            if (count > (long)source.m_Array.Length * NuintBits)
             {
                 ThrowHelper.ThrowArgumentOverLength(nameof(count), 0, source.m_Array.Length * NuintBits, count);
             }

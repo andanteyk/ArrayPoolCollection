@@ -46,6 +46,7 @@ public class ArrayPoolBitsTests
         using var withLength = new ArrayPoolBits(123);
         Assert.AreEqual(123, withLength.Count);
         Assert.ThrowsException<ArgumentOutOfRangeException>(() => new ArrayPoolBits(-1));
+        Assert.ThrowsException<ArgumentOutOfRangeException>(() => new ArrayPoolBits(int.MaxValue));
 
         using var withEnumerable = new ArrayPoolBits(Enumerable.Range(0, 200).Select(i => i % 2 != 0));
         Assert.AreEqual(200, withEnumerable.Count);
@@ -570,5 +571,59 @@ public class ArrayPoolBitsTests
 
         left.Dispose();
         Assert.ThrowsException<ObjectDisposedException>(() => left.Xor(right));
+    }
+
+    [ContidionalTestMethod("HUGE")]
+    public void Huge()
+    {
+        using var bits = new ArrayPoolBits(CollectionHelper.ArrayMaxLength);
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, bits.Count);
+
+        using var bits2 = new ArrayPoolBits(bits);
+
+        bits[^1] = true;
+        Assert.IsTrue(bits[^1]);
+
+        Assert.ThrowsException<OutOfMemoryException>(() => bits.Add(false));
+
+        bits.And(bits2);
+
+        Assert.AreEqual((CollectionHelper.ArrayMaxLength >> (UIntPtr.Size == 4 ? 5 : 6)) + 1, ArrayPoolBits.AsSpan(bits).Length);
+
+        bits.Clear();
+        ArrayPoolBits.SetCount(bits, CollectionHelper.ArrayMaxLength);
+
+        Assert.IsFalse(bits.Contains(true));
+
+        var buffer = new bool[CollectionHelper.ArrayMaxLength];
+        bits.CopyTo(buffer, 0);
+
+        foreach (var bit in bits)
+        {
+            Assert.IsFalse(bit);
+        }
+
+        Assert.IsFalse(bits.HasAllSet());
+        Assert.IsFalse(bits.HasAnySet());
+
+        Assert.AreEqual(-1, bits.IndexOf(true));
+
+        Assert.ThrowsException<OutOfMemoryException>(() => bits.Insert(0, false));
+
+        bits.LeftShift(1);
+        bits.RightShift(1);
+
+        bits.Not();
+
+        bits.Or(bits2);
+
+        Assert.IsFalse(bits.Remove(false));
+
+        bits.RemoveAt(0);
+        bits.Insert(0, false);
+
+        bits.SetAll(false);
+
+        bits.Xor(bits2);
     }
 }

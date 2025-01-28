@@ -99,5 +99,11 @@ namespace ArrayPoolCollection
         {
             throw new ArgumentException("Each element has a different length");
         }
+
+        [DoesNotReturn]
+        internal static void ThrowOutOfMemory()
+        {
+            throw new OutOfMemoryException("Array.Length exceeded supported range.");
+        }
     }
 }

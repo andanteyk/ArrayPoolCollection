@@ -120,5 +120,48 @@ namespace ArrayPoolCollection
         {
             return ref Unsafe.NullRef<T>();
         }
+
+        internal static int ArrayMaxLength =>
+#if NET6_0_OR_GREATER
+            Array.MaxLength;    // 0x7FFFFFC7
+#else
+            0x7FEFFFFF;
+#endif
+
+        internal static int GetInitialPoolingSize(int size)
+        {
+            if (size < 0)
+            {
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(size), 0, ArrayMaxLength, size);
+            }
+
+            int pow2 = RoundUpToPowerOf2(Math.Max(size, 16));
+            if (pow2 == int.MinValue)
+            {
+                pow2 = ArrayMaxLength;
+            }
+
+            return pow2;
+        }
+
+        internal static int GetNextPoolingSize(int currentSize)
+        {
+            if (currentSize < 0)
+            {
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(currentSize), 0, ArrayMaxLength, currentSize);
+            }
+            if (currentSize == ArrayMaxLength)
+            {
+                ThrowHelper.ThrowOutOfMemory();
+            }
+
+            int next = currentSize << 1;
+            if (next == int.MinValue)
+            {
+                next = ArrayMaxLength;
+            }
+
+            return next;
+        }
     }
 }
