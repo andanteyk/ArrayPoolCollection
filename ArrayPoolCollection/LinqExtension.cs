@@ -4,19 +4,49 @@ namespace ArrayPoolCollection
     {
         public static ArrayPoolWrapper<T> ToArrayPool<T>(this IEnumerable<T> source)
         {
-            using var segmentedArray = new SegmentedArray<T>(SegmentedArray<T>.Stack16.Create().AsSpan());
-            segmentedArray.AddRange(source);
+            if (CollectionHelper.TryGetSpan(source, out var span))
+            {
+                var result = new ArrayPoolWrapper<T>(span.Length, false);
+                span.CopyTo(result);
+                return result;
+            }
+            else if (CollectionHelper.TryGetNonEnumeratedCount(source, out int count))
+            {
+                var result = new ArrayPoolWrapper<T>(count, false);
 
-            var result = new ArrayPoolWrapper<T>(segmentedArray.GetTotalLength(), false);
-            segmentedArray.CopyTo(result.AsSpan());
+                if (source is ICollection<T> collection)
+                {
+                    result.CopyFrom(collection);
+                }
+                else
+                {
+                    int i = 0;
+                    foreach (var element in source)
+                    {
+                        result[i] = element;
+                        i++;
+                    }
+                }
+                return result;
+            }
+            else
+            {
+                using var segmentedArray = new SegmentedArray<T>(SegmentedArray<T>.Stack16.Create().AsSpan());
+                segmentedArray.AddRange(source);
 
-            return result;
+                var result = new ArrayPoolWrapper<T>(segmentedArray.GetTotalLength(), false);
+                segmentedArray.CopyTo(result.AsSpan());
+
+                return result;
+            }
         }
+
 
         public static ArrayPoolList<T> ToArrayPoolList<T>(this IEnumerable<T> source)
         {
             return new ArrayPoolList<T>(source);
         }
+
 
         public static ArrayPoolDictionary<TKey, TValue> ToArrayPoolDictionary<TKey, TValue>(this IEnumerable<(TKey key, TValue value)> source)
             where TKey : notnull
@@ -99,5 +129,17 @@ namespace ArrayPoolCollection
             return dict;
         }
 
+
+        public static ArrayPoolHashSet<T> ToArrayPoolHashSet<T>(this IEnumerable<T> source)
+        {
+            var set = new ArrayPoolHashSet<T>(source);
+            return set;
+        }
+
+        public static ArrayPoolHashSet<T> ToArrayPoolHashSet<T>(this IEnumerable<T> source, IEqualityComparer<T> comparer)
+        {
+            var set = new ArrayPoolHashSet<T>(source, comparer);
+            return set;
+        }
     }
 }

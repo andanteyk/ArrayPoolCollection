@@ -572,20 +572,20 @@ public class ArrayPoolListTests
     {
         var list = new ArrayPoolList<int>() { 1, 2, 3, 4, 5, 6 };
 
-        list.InsertRangeFromSpan(1, Enumerable.Range(10, 3).ToArray());
+        list.InsertRange(1, Enumerable.Range(10, 3).ToArray());
         CollectionAssert.AreEqual(new int[] { 1, 10, 11, 12, 2, 3, 4, 5, 6 }, list);
 
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => list.InsertRangeFromSpan(-1, [99]));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => list.InsertRangeFromSpan(99, [99]));
+        Assert.ThrowsException<ArgumentOutOfRangeException>(() => list.InsertRange(-1, [99]));
+        Assert.ThrowsException<ArgumentOutOfRangeException>(() => list.InsertRange(99, [99]));
 
 
         var enumerator = list.GetEnumerator();
-        list.InsertRangeFromSpan(1, [10]);
+        list.InsertRange(1, [10]);
         Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
 
         list.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => list.InsertRangeFromSpan(1, [10]));
+        Assert.ThrowsException<ObjectDisposedException>(() => list.InsertRange(1, [10]));
     }
 
     [TestMethod]
@@ -1039,8 +1039,8 @@ public class ArrayPoolListTests
         Assert.AreEqual(123, list.IndexOf(123));
 
         Assert.ThrowsException<OutOfMemoryException>(() => list.Insert(1, -1));
+        Assert.ThrowsException<OutOfMemoryException>(() => list.InsertRange(1, Enumerable.Range(0, 1)));
         Assert.ThrowsException<OutOfMemoryException>(() => list.InsertRange(1, [1]));
-        Assert.ThrowsException<OutOfMemoryException>(() => list.InsertRangeFromSpan(1, [1]));
 
         Assert.AreEqual(123, list.LastIndexOf(123));
 

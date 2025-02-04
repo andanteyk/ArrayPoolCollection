@@ -47,7 +47,13 @@ namespace ArrayPoolCollection
                     span = ListToSpan(list);
                     return true;
 
-                // TODO: my own classes
+                case ArrayPoolWrapper<T> arrayPoolWrapper:
+                    span = arrayPoolWrapper;
+                    return true;
+
+                case ArrayPoolList<T> arrayPoolList:
+                    span = ArrayPoolList<T>.AsSpan(arrayPoolList);
+                    return true;
 
                 default:
                     span = default;

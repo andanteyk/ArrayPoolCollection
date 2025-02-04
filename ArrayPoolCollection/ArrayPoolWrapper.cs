@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace ArrayPoolCollection
@@ -97,9 +98,9 @@ namespace ArrayPoolCollection
 
         int ICollection.Count => Length;
 
-        bool ICollection.IsSynchronized => throw new NotImplementedException();
+        bool ICollection.IsSynchronized => false;
 
-        object ICollection.SyncRoot => throw new NotImplementedException();
+        object ICollection.SyncRoot => this;
 
         object? IList.this[int index]
         {
@@ -379,6 +380,16 @@ namespace ArrayPoolCollection
             }
 
             return result;
+        }
+
+        internal void CopyFrom(ICollection<T> collection)
+        {
+            if (m_Array is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+            }
+
+            collection.CopyTo(m_Array, 0);
         }
 
         public void CopyTo(Span<T> span)
@@ -994,10 +1005,10 @@ namespace ArrayPoolCollection
         }
     }
 
-    // TODO: internal?
-    internal static class ArrayPoolWrapperBuilder
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static class ArrayPoolWrapperBuilder
     {
-        internal static ArrayPoolWrapper<T> Create<T>(ReadOnlySpan<T> source)
+        public static ArrayPoolWrapper<T> Create<T>(ReadOnlySpan<T> source)
         {
             var result = new ArrayPoolWrapper<T>(source.Length, false);
             source.CopyTo(result);

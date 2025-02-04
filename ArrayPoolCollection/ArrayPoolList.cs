@@ -1,10 +1,12 @@
 using System.Buffers;
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace ArrayPoolCollection
 {
+    [CollectionBuilder(typeof(ArrayPoolListBuilder), nameof(ArrayPoolListBuilder.Create))]
     public sealed class ArrayPoolList<T> : IList<T>, IReadOnlyList<T>, IList, IDisposable
     {
         private T[]? m_Array;
@@ -20,6 +22,11 @@ namespace ArrayPoolCollection
 
         public ArrayPoolList(int capacity)
         {
+            if ((uint)capacity > (uint)CollectionHelper.ArrayMaxLength)
+            {
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(capacity), 0, CollectionHelper.ArrayMaxLength, capacity);
+            }
+
             m_Array = ArrayPool<T>.Shared.Rent(capacity);
             m_Length = 0;
             m_Version = 0;
@@ -27,12 +34,39 @@ namespace ArrayPoolCollection
 
         public ArrayPoolList(IEnumerable<T> source)
         {
-            // TODO: may be able to optimize if source is ICollection(<T>)
-            var segmentedArray = new SegmentedArray<T>(SegmentedArray<T>.Stack16.Create().AsSpan());
+            if (CollectionHelper.TryGetSpan(source, out var span))
+            {
+                m_Array = ArrayPool<T>.Shared.Rent(span.Length);
+                span.CopyTo(m_Array);
+                m_Length = span.Length;
+            }
+            else if (CollectionHelper.TryGetNonEnumeratedCount(source, out int count))
+            {
+                m_Array = ArrayPool<T>.Shared.Rent(count);
+                m_Length = count;
 
-            segmentedArray.AddRange(source);
-            m_Array = segmentedArray.ToArrayPool(out var span);
-            m_Length = span.Length;
+                if (source is ICollection<T> collection)
+                {
+                    collection.CopyTo(m_Array, 0);
+                }
+                else
+                {
+                    int i = 0;
+                    foreach (var element in source)
+                    {
+                        m_Array[i++] = element;
+                    }
+                }
+            }
+            else
+            {
+                var segmentedArray = new SegmentedArray<T>(SegmentedArray<T>.Stack16.Create().AsSpan());
+
+                segmentedArray.AddRange(source);
+                m_Array = segmentedArray.ToArrayPool(out var segSpan);
+                m_Length = segSpan.Length;
+            }
+
             m_Version = 0;
         }
 
@@ -771,7 +805,9 @@ namespace ArrayPoolCollection
             m_Version++;
         }
 
-        public void InsertRangeFromSpan(int index, ReadOnlySpan<T> source)
+        public void InsertRange(int index, T[] source) => InsertRange(index, source.AsSpan());
+
+        public void InsertRange(int index, ReadOnlySpan<T> source)
         {
             if (m_Array is null)
             {
@@ -1291,6 +1327,17 @@ namespace ArrayPoolCollection
 
                 Index = -1;
             }
+        }
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static class ArrayPoolListBuilder
+    {
+        public static ArrayPoolList<T> Create<T>(ReadOnlySpan<T> source)
+        {
+            var result = new ArrayPoolList<T>(source.Length);
+            result.AddRange(source);
+            return result;
         }
     }
 }
