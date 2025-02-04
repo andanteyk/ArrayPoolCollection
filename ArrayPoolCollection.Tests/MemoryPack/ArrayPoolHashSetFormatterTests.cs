@@ -2,21 +2,20 @@ using MemoryPack;
 
 namespace ArrayPoolCollection.MemoryPack.Tests;
 
-[TestClass]
 public class ArrayPoolHashSetFormatterTests
 {
-    [TestMethod]
+    [Fact]
     public void SerializeInt()
     {
         var rng = new Random(0);
 
         var bytes = MemoryPackSerializer.Serialize<ArrayPoolHashSet<int>>(null);
-        Assert.IsNull(MemoryPackSerializer.Deserialize<ArrayPoolHashSet<int>>(bytes));
+        Assert.Null(MemoryPackSerializer.Deserialize<ArrayPoolHashSet<int>>(bytes));
 
         var source = new ArrayPoolHashSet<int>();
         bytes = MemoryPackSerializer.Serialize(source);
         var dest = MemoryPackSerializer.Deserialize<ArrayPoolHashSet<int>>(bytes)!;
-        CollectionAssert.AreEquivalent(source.ToArray(), dest.ToArray());
+        Assert.Equivalent(source.ToArray(), dest.ToArray());
 
         for (int i = 0; i < 1024; i++)
         {
@@ -25,22 +24,22 @@ public class ArrayPoolHashSetFormatterTests
             bytes = MemoryPackSerializer.Serialize(source);
             dest = MemoryPackSerializer.Deserialize<ArrayPoolHashSet<int>>(bytes)!;
 
-            CollectionAssert.AreEquivalent(source.ToArray(), dest.ToArray());
+            Assert.Equivalent(source.ToArray(), dest.ToArray());
         }
     }
 
-    [TestMethod]
+    [Fact]
     public void SerializeString()
     {
         var rng = new Random(0);
 
         var bytes = MemoryPackSerializer.Serialize<ArrayPoolHashSet<string>>(null);
-        Assert.IsNull(MemoryPackSerializer.Deserialize<ArrayPoolHashSet<string>>(bytes));
+        Assert.Null(MemoryPackSerializer.Deserialize<ArrayPoolHashSet<string>>(bytes));
 
         var source = new ArrayPoolHashSet<string>();
         bytes = MemoryPackSerializer.Serialize(source);
         var dest = MemoryPackSerializer.Deserialize<ArrayPoolHashSet<string>>(bytes)!;
-        CollectionAssert.AreEquivalent(source.ToArray(), dest.ToArray());
+        Assert.Equivalent(source.ToArray(), dest.ToArray());
 
         for (int i = 0; i < 1024; i++)
         {
@@ -48,11 +47,11 @@ public class ArrayPoolHashSetFormatterTests
 
             bytes = MemoryPackSerializer.Serialize(source);
             dest = MemoryPackSerializer.Deserialize<ArrayPoolHashSet<string>>(bytes)!;
-            CollectionAssert.AreEquivalent(source.ToArray(), dest.ToArray());
+            Assert.Equivalent(source.ToArray(), dest.ToArray());
         }
     }
 
-    [TestMethod]
+    [Fact]
     public void SerializeWrappedClass()
     {
         var rng = new Random(0);
@@ -65,7 +64,7 @@ public class ArrayPoolHashSetFormatterTests
         var bytes = MemoryPackSerializer.Serialize(source);
         var dest = MemoryPackSerializer.Deserialize<HashSetWrapper<int>>(bytes)!;
 
-        CollectionAssert.AreEquivalent(source.Values.ToArray(), dest.Values.ToArray());
+        Assert.Equivalent(source.Values.ToArray(), dest.Values.ToArray());
     }
 }
 

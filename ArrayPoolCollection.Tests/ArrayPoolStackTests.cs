@@ -1,70 +1,64 @@
-using System.Collections.ObjectModel;
-using System.Reflection.Metadata;
-using System.Runtime;
-using System.Security.Cryptography;
-
 namespace ArrayPoolCollection.Tests;
 
-[TestClass]
 public class ArrayPoolStackTests
 {
-    [TestMethod]
+    [Fact]
     public void Count()
     {
         var stack = new ArrayPoolStack<int>();
-        Assert.AreEqual(0, stack.Count);
+        Assert.Empty(stack);
 
         for (int i = 0; i < 100; i++)
         {
             stack.Push(i);
-            Assert.AreEqual(i + 1, stack.Count);
+            Assert.Equal(i + 1, stack.Count);
         }
 
         for (int i = 0; i < 100; i++)
         {
             stack.Pop();
-            Assert.AreEqual(99 - i, stack.Count);
+            Assert.Equal(99 - i, stack.Count);
         }
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => stack.Count);
+        Assert.Throws<ObjectDisposedException>(() => stack.Count);
     }
 
-    [TestMethod]
+    [Fact]
     public void Capacity()
     {
         var stack = new ArrayPoolStack<int>();
-        Assert.AreEqual(16, stack.Capacity);
+        Assert.Equal(16, stack.Capacity);
 
         using var stackWithCapacity = new ArrayPoolStack<int>(48);
-        Assert.AreEqual(64, stackWithCapacity.Capacity);
+        Assert.Equal(64, stackWithCapacity.Capacity);
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => stack.Capacity);
+        Assert.Throws<ObjectDisposedException>(() => stack.Capacity);
     }
 
-    [TestMethod]
+    [Fact]
     public void Ctor()
     {
         using var stack = new ArrayPoolStack<int>();
-        Assert.AreEqual(0, stack.Count);
+        Assert.Empty(stack);
 
         using var stackWithCapacity = new ArrayPoolStack<int>(64);
-        Assert.AreEqual(0, stackWithCapacity.Count);
+        Assert.Empty(stackWithCapacity);
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => new ArrayPoolStack<int>(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayPoolStack<int>(-1));
 
         using var stackWithSource = new ArrayPoolStack<int>(Enumerable.Range(0, 100));
         for (int i = 0; i < 100; i++)
         {
-            Assert.IsTrue(stackWithSource.Contains(i));
+            Assert.True(stackWithSource.Contains(i));
         }
-        Assert.AreEqual(100, stackWithSource.Count);
+        Assert.Equal(100, stackWithSource.Count);
     }
 
-    [TestMethod]
+    [Fact]
     public void Dispose()
     {
         var stack = new ArrayPoolStack<int>();
@@ -74,96 +68,96 @@ public class ArrayPoolStackTests
         stack.Dispose();
     }
 
-    [TestMethod]
+    [Fact]
     public void AsSpan()
     {
         var stack = new ArrayPoolStack<int>(Enumerable.Range(1, 3));
         var span = ArrayPoolStack<int>.AsSpan(stack);
 
-        CollectionAssert.AreEqual(new int[] { 1, 2, 3 }, span.ToArray());
+        Assert.Equal(new int[] { 1, 2, 3 }, span.ToArray());
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolStack<int>.AsSpan(stack));
+        Assert.Throws<ObjectDisposedException>(() => ArrayPoolStack<int>.AsSpan(stack));
     }
 
-    [TestMethod]
+    [Fact]
     public void Clear()
     {
         var stack = new ArrayPoolStack<int>(Enumerable.Range(0, 100));
 
         stack.Clear();
-        Assert.AreEqual(0, stack.Count);
+        Assert.Empty(stack);
 
         stack.Push(1);
         var enumerator = stack.GetEnumerator();
         stack.Clear();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => stack.Clear());
+        Assert.Throws<ObjectDisposedException>(() => stack.Clear());
     }
 
-    [TestMethod]
+    [Fact]
     public void Contains()
     {
         var stack = new ArrayPoolStack<int>(Enumerable.Range(0, 100));
 
-        Assert.IsTrue(stack.Contains(0));
-        Assert.IsTrue(stack.Contains(99));
-        Assert.IsFalse(stack.Contains(100));
+        Assert.True(stack.Contains(0));
+        Assert.True(stack.Contains(99));
+        Assert.False(stack.Contains(100));
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => stack.Contains(0));
+        Assert.Throws<ObjectDisposedException>(() => stack.Contains(0));
     }
 
-    [TestMethod]
+    [Fact]
     public void CopyTo()
     {
         var stack = new ArrayPoolStack<int>(Enumerable.Range(0, 100));
         var buffer = new int[128];
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => stack.CopyTo(buffer, -1));
-        Assert.ThrowsException<ArgumentException>(() => stack.CopyTo(buffer, 100));
+        Assert.Throws<ArgumentOutOfRangeException>(() => stack.CopyTo(buffer, -1));
+        Assert.Throws<ArgumentException>(() => stack.CopyTo(buffer, 100));
 
         stack.CopyTo(buffer, 1);
         for (int i = 0; i < 100; i++)
         {
-            Assert.AreEqual(i, buffer[i + 1]);
+            Assert.Equal(i, buffer[i + 1]);
         }
 
         stack.CopyTo(buffer.AsSpan(1..));
-        Assert.ThrowsException<ArgumentException>(() => stack.CopyTo(buffer.AsSpan(100..)));
+        Assert.Throws<ArgumentException>(() => stack.CopyTo(buffer.AsSpan(100..)));
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => stack.CopyTo(buffer, 0));
+        Assert.Throws<ObjectDisposedException>(() => stack.CopyTo(buffer, 0));
     }
 
-    [TestMethod]
+    [Fact]
     public void EnsureCapacity()
     {
         var stack = new ArrayPoolStack<int>(Enumerable.Range(0, 100));
 
-        Assert.AreEqual(256, stack.EnsureCapacity(192));
-        Assert.AreEqual(256, stack.EnsureCapacity(100));
-        Assert.AreEqual(256, stack.EnsureCapacity(1));
+        Assert.Equal(256, stack.EnsureCapacity(192));
+        Assert.Equal(256, stack.EnsureCapacity(100));
+        Assert.Equal(256, stack.EnsureCapacity(1));
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => stack.EnsureCapacity(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => stack.EnsureCapacity(-1));
 
 
         var enumerator = stack.GetEnumerator();
         stack.EnsureCapacity(512);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => stack.EnsureCapacity(100));
+        Assert.Throws<ObjectDisposedException>(() => stack.EnsureCapacity(100));
     }
 
-    [TestMethod]
+    [Fact]
     public void GetEnumerator()
     {
         var stack = new ArrayPoolStack<int>(Enumerable.Range(0, 100));
@@ -171,79 +165,79 @@ public class ArrayPoolStackTests
         int i = 0;
         foreach (var element in stack)
         {
-            Assert.AreEqual(i++, element);
+            Assert.Equal(i++, element);
         }
 
 
         var enumerator = stack.GetEnumerator();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
         for (i = 0; i < 100; i++)
         {
-            Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual(i, enumerator.Current);
+            Assert.True(enumerator.MoveNext());
+            Assert.Equal(i, enumerator.Current);
         }
-        Assert.IsFalse(enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
+        Assert.False(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
 
 
         enumerator.Reset();
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => stack.GetEnumerator());
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.Current);
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.Reset());
+        Assert.Throws<ObjectDisposedException>(() => stack.GetEnumerator());
+        Assert.Throws<ObjectDisposedException>(() => enumerator.Current);
+        Assert.Throws<ObjectDisposedException>(() => enumerator.MoveNext());
+        Assert.Throws<ObjectDisposedException>(() => enumerator.Reset());
     }
 
-    [TestMethod]
+    [Fact]
     public void Peek()
     {
         var stack = new ArrayPoolStack<int>(Enumerable.Range(0, 100));
 
-        Assert.AreEqual(99, stack.Peek());
-        Assert.AreEqual(99, stack.Peek());
+        Assert.Equal(99, stack.Peek());
+        Assert.Equal(99, stack.Peek());
 
         stack.Push(100);
-        Assert.AreEqual(100, stack.Peek());
+        Assert.Equal(100, stack.Peek());
 
         stack.Pop();
-        Assert.AreEqual(99, stack.Peek());
+        Assert.Equal(99, stack.Peek());
 
 
         stack.Clear();
-        Assert.ThrowsException<InvalidOperationException>(() => stack.Peek());
+        Assert.Throws<InvalidOperationException>(() => stack.Peek());
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => stack.Peek());
+        Assert.Throws<ObjectDisposedException>(() => stack.Peek());
     }
 
-    [TestMethod]
+    [Fact]
     public void Pop()
     {
         var stack = new ArrayPoolStack<int>(Enumerable.Range(0, 100));
 
         for (int i = 99; i >= 0; i--)
         {
-            Assert.AreEqual(i, stack.Pop());
-            Assert.AreEqual(i, stack.Count);
+            Assert.Equal(i, stack.Pop());
+            Assert.Equal(i, stack.Count);
         }
 
-        Assert.ThrowsException<InvalidOperationException>(() => stack.Pop());
+        Assert.Throws<InvalidOperationException>(() => stack.Pop());
 
 
         stack.Push(1);
         var enumerator = stack.GetEnumerator();
         stack.Pop();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => stack.Pop());
+        Assert.Throws<ObjectDisposedException>(() => stack.Pop());
     }
 
-    [TestMethod]
+    [Fact]
     public void Push()
     {
         var stack = new ArrayPoolStack<int>();
@@ -251,21 +245,21 @@ public class ArrayPoolStackTests
         for (int i = 0; i < 100; i++)
         {
             stack.Push(i);
-            Assert.AreEqual(i, stack.Peek());
-            Assert.AreEqual(i + 1, stack.Count);
+            Assert.Equal(i, stack.Peek());
+            Assert.Equal(i + 1, stack.Count);
         }
 
 
         var enumerator = stack.GetEnumerator();
         stack.Push(100);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => stack.Push(1));
+        Assert.Throws<ObjectDisposedException>(() => stack.Push(1));
     }
 
-    [TestMethod]
+    [Fact]
     public void PushRange()
     {
         var stack = new ArrayPoolStack<int>();
@@ -273,132 +267,132 @@ public class ArrayPoolStackTests
         for (int i = 0; i < 100; i += 10)
         {
             stack.PushRange(Enumerable.Range(i, 10));
-            Assert.AreEqual(i + 9, stack.Peek());
-            Assert.AreEqual(i + 10, stack.Count);
+            Assert.Equal(i + 9, stack.Peek());
+            Assert.Equal(i + 10, stack.Count);
         }
 
         for (int i = 0; i < 100; i += 10)
         {
             stack.PushRange(Enumerable.Range(i, 10).ToArray());
-            Assert.AreEqual(i + 9, stack.Peek());
-            Assert.AreEqual(i + 110, stack.Count);
+            Assert.Equal(i + 9, stack.Peek());
+            Assert.Equal(i + 110, stack.Count);
         }
 
 
         var enumerator = stack.GetEnumerator();
         stack.PushRange(Enumerable.Range(0, 10));
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => stack.PushRange(Enumerable.Range(0, 10)));
+        Assert.Throws<ObjectDisposedException>(() => stack.PushRange(Enumerable.Range(0, 10)));
     }
 
-    [TestMethod]
+    [Fact]
     public void SetCount()
     {
         var stack = new ArrayPoolStack<int>(Enumerable.Range(1, 6));
 
         ArrayPoolStack<int>.SetCount(stack, 12);
-        Assert.AreEqual(12, stack.Count);
+        Assert.Equal(12, stack.Count);
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => ArrayPoolStack<int>.SetCount(stack, -1));
-        Assert.ThrowsException<ArgumentException>(() => ArrayPoolStack<int>.SetCount(stack, 99));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ArrayPoolStack<int>.SetCount(stack, -1));
+        Assert.Throws<ArgumentException>(() => ArrayPoolStack<int>.SetCount(stack, 99));
 
 
         var enumerator = stack.GetEnumerator();
         ArrayPoolStack<int>.SetCount(stack, 13);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolStack<int>.SetCount(stack, 1));
+        Assert.Throws<ObjectDisposedException>(() => ArrayPoolStack<int>.SetCount(stack, 1));
     }
 
-    [TestMethod]
+    [Fact]
     public void ToArray()
     {
         var stack = new ArrayPoolStack<int>();
 
         for (int i = 0; i < 100; i++)
         {
-            CollectionAssert.AreEqual(Enumerable.Range(0, i).ToArray(), stack.ToArray());
+            Assert.Equal(Enumerable.Range(0, i).ToArray(), stack.ToArray());
             stack.Push(i);
         }
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => stack.ToArray());
+        Assert.Throws<ObjectDisposedException>(() => stack.ToArray());
     }
 
-    [TestMethod]
+    [Fact]
     public void TrimExcess()
     {
         var stack = new ArrayPoolStack<int>(256);
 
         stack.TrimExcess();
-        Assert.AreEqual(16, stack.Capacity);
+        Assert.Equal(16, stack.Capacity);
 
         stack.EnsureCapacity(128);
         stack.TrimExcess(48);
-        Assert.AreEqual(64, stack.Capacity);
+        Assert.Equal(64, stack.Capacity);
 
 
         stack.Push(1);
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => stack.TrimExcess(-1));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => stack.TrimExcess(0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => stack.TrimExcess(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => stack.TrimExcess(0));
 
 
         var enumerator = stack.GetEnumerator();
         stack.TrimExcess(48);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => stack.TrimExcess());
+        Assert.Throws<ObjectDisposedException>(() => stack.TrimExcess());
     }
 
-    [TestMethod]
+    [Fact]
     public void TryPeek()
     {
         var stack = new ArrayPoolStack<int>();
 
-        Assert.IsFalse(stack.TryPeek(out _));
+        Assert.False(stack.TryPeek(out _));
 
         for (int i = 0; i < 100; i++)
         {
             stack.Push(i);
-            Assert.IsTrue(stack.TryPeek(out var value));
-            Assert.AreEqual(i, value);
+            Assert.True(stack.TryPeek(out var value));
+            Assert.Equal(i, value);
         }
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => stack.TryPeek(out _));
+        Assert.Throws<ObjectDisposedException>(() => stack.TryPeek(out _));
     }
 
-    [TestMethod]
+    [Fact]
     public void TryPop()
     {
         var stack = new ArrayPoolStack<int>(Enumerable.Range(0, 100));
 
         for (int i = 99; i >= 0; i--)
         {
-            Assert.IsTrue(stack.TryPop(out var value));
-            Assert.AreEqual(i, value);
-            Assert.AreEqual(i, stack.Count);
+            Assert.True(stack.TryPop(out var value));
+            Assert.Equal(i, value);
+            Assert.Equal(i, stack.Count);
         }
 
-        Assert.IsFalse(stack.TryPop(out _));
+        Assert.False(stack.TryPop(out _));
 
 
         stack.Push(1);
         var enumerator = stack.GetEnumerator();
-        Assert.IsTrue(stack.TryPop(out _));
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.True(stack.TryPop(out _));
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => stack.TryPop(out _));
+        Assert.Throws<ObjectDisposedException>(() => stack.TryPop(out _));
     }
 }

@@ -2,75 +2,74 @@ using System.Collections;
 
 namespace ArrayPoolCollection.Tests;
 
-[TestClass]
 public class ArrayPoolWrapperTests
 {
-    [TestMethod]
+    [Fact]
     public void Ctor()
     {
         // should not throw any exceptions
         using var one = new ArrayPoolWrapper<int>(1);
         using var zero = new ArrayPoolWrapper<int>(0);
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => new ArrayPoolWrapper<int>(-1));
-        Assert.ThrowsException<OutOfMemoryException>(() => new ArrayPoolWrapper<int>(int.MaxValue));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayPoolWrapper<int>(-1));
+        Assert.Throws<OutOfMemoryException>(() => new ArrayPoolWrapper<int>(int.MaxValue));
 
-        Assert.AreEqual(0, one[0]);
+        Assert.Equal(0, one[0]);
     }
 
-    [TestMethod]
+    [Fact]
     public void Items()
     {
         var array = new ArrayPoolWrapper<int>(6);
 
         array[3] = 123;
-        Assert.AreEqual(123, array[3]);
+        Assert.Equal(123, array[3]);
 
-        Assert.ThrowsException<IndexOutOfRangeException>(() => array[-1]);
-        Assert.ThrowsException<IndexOutOfRangeException>(() => array[123] = 1);
+        Assert.Throws<IndexOutOfRangeException>(() => array[-1]);
+        Assert.Throws<IndexOutOfRangeException>(() => array[123] = 1);
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array[3]);
+        Assert.Throws<ObjectDisposedException>(() => array[3]);
     }
 
-    [TestMethod]
+    [Fact]
     public void Length()
     {
         var array = new ArrayPoolWrapper<int>(6);
-        Assert.AreEqual(6, array.Length);
+        Assert.Equal(6, array.Length);
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.Length);
+        Assert.Throws<ObjectDisposedException>(() => array.Length);
     }
 
-    [TestMethod]
+    [Fact]
     public void LongLength()
     {
         var array = new ArrayPoolWrapper<int>(6);
-        Assert.AreEqual(6L, array.LongLength);
+        Assert.Equal(6L, array.LongLength);
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.LongLength);
+        Assert.Throws<ObjectDisposedException>(() => array.LongLength);
     }
 
-    [TestMethod]
+    [Fact]
     public void AsReadOnly()
     {
         var array = new ArrayPoolWrapper<int>(6);
         array[3] = 123;
 
         var view = array.AsReadOnly();
-        Assert.AreEqual(123, view[3]);
+        Assert.Equal(123, view[3]);
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.AsReadOnly());
-        Assert.ThrowsException<ObjectDisposedException>(() => view[3]);
+        Assert.Throws<ObjectDisposedException>(() => array.AsReadOnly());
+        Assert.Throws<ObjectDisposedException>(() => view[3]);
     }
 
-    [TestMethod]
+    [Fact]
     public void AsSpan()
     {
         var array = new ArrayPoolWrapper<int>(6);
@@ -80,64 +79,64 @@ public class ArrayPoolWrapperTests
         }
 
 
-        Assert.AreEqual(6, array.AsSpan().Length);
+        Assert.Equal(6, array.AsSpan().Length);
 
         // implicit
         {
             Span<int> span = array;
-            Assert.AreEqual(6, span.Length);
+            Assert.Equal(6, span.Length);
         }
 
         var fromOne = array.AsSpan(1);
-        CollectionAssert.AreEqual(new int[] { 1, 2, 3, 4, 5 }, fromOne.ToArray());
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.AsSpan(-1));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.AsSpan(8));
+        Assert.Equal(new int[] { 1, 2, 3, 4, 5 }, fromOne.ToArray());
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.AsSpan(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.AsSpan(8));
 
         var fromLastTwo = array.AsSpan(^2);
-        CollectionAssert.AreEqual(new int[] { 4, 5 }, fromLastTwo.ToArray());
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.AsSpan(^-1));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.AsSpan(^8));
+        Assert.Equal(new int[] { 4, 5 }, fromLastTwo.ToArray());
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.AsSpan(^-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.AsSpan(^8));
 
         var centerTwo = array.AsSpan(2..4);
-        CollectionAssert.AreEqual(new int[] { 2, 3 }, centerTwo.ToArray());
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.AsSpan(-1..3));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.AsSpan(1..-1));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.AsSpan(8..1));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.AsSpan(1..8));
+        Assert.Equal(new int[] { 2, 3 }, centerTwo.ToArray());
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.AsSpan(-1..3));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.AsSpan(1..-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.AsSpan(8..1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.AsSpan(1..8));
 
         var centerFour = array.AsSpan(1, 4);
-        CollectionAssert.AreEqual(new int[] { 1, 2, 3, 4 }, centerFour.ToArray());
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.AsSpan(-1, 1));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.AsSpan(1, -1));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.AsSpan(8, 1));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.AsSpan(1, 8));
+        Assert.Equal(new int[] { 1, 2, 3, 4 }, centerFour.ToArray());
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.AsSpan(-1, 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.AsSpan(1, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.AsSpan(8, 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.AsSpan(1, 8));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.AsSpan());
+        Assert.Throws<ObjectDisposedException>(() => array.AsSpan());
     }
 
-    [TestMethod]
+    [Fact]
     public void BinarySearch()
     {
         var array = Enumerable.Range(0, 64).Select(i => i * 2).ToArrayPool();
 
-        Assert.AreEqual(4, array.BinarySearch(8));
-        Assert.AreEqual(~4, array.BinarySearch(7));
+        Assert.Equal(4, array.BinarySearch(8));
+        Assert.Equal(~4, array.BinarySearch(7));
 
-        Assert.AreEqual(~10, array.BinarySearch(10, 10, 8));
+        Assert.Equal(~10, array.BinarySearch(10, 10, 8));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.BinarySearch(8));
+        Assert.Throws<ObjectDisposedException>(() => array.BinarySearch(8));
     }
 
-    [TestMethod]
+    [Fact]
     public void Clear()
     {
         var array = new ArrayPoolWrapper<int>(8, false);
         array.Clear();
-        CollectionAssert.AreEqual(new int[8], array);
+        Assert.Equal(new int[8], array);
 
 
         for (int i = 0; i < array.Length; i++)
@@ -146,87 +145,71 @@ public class ArrayPoolWrapperTests
         }
 
         array.Clear(1, 3);
-        CollectionAssert.AreEqual(new int[] { 0, 0, 0, 0, 4, 5, 6, 7 }, array);
+        Assert.Equal(new int[] { 0, 0, 0, 0, 4, 5, 6, 7 }, array);
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.Clear());
+        Assert.Throws<ObjectDisposedException>(() => array.Clear());
     }
 
-    [TestMethod]
+    [Fact]
     public void Clone()
     {
         var source = Enumerable.Range(0, 100).ToArrayPool();
         using var clone = source.Clone();
 
-        CollectionAssert.AreEqual(clone, source);
+        Assert.Equal(clone, source);
 
 
         source.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => source.Clone());
+        Assert.Throws<ObjectDisposedException>(() => source.Clone());
     }
 
-    [TestMethod]
+    [Fact]
     public void ConvertAll()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
         using var doubleArray = array.ConvertAll(i => i * 2.0);
 
-        CollectionAssert.AreEqual(Enumerable.Range(0, 100).Select(i => i * 2.0).ToArray(), doubleArray);
+        Assert.Equal(Enumerable.Range(0, 100).Select(i => i * 2.0).ToArray(), doubleArray);
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.ConvertAll(i => i * 2.0));
+        Assert.Throws<ObjectDisposedException>(() => array.ConvertAll(i => i * 2.0));
     }
 
-    [TestMethod]
-    public void Contains()
-    {
-        var array = new ArrayPoolWrapper<int>(6)
-        {
-            [4] = 123
-        };
-
-        Assert.IsTrue(array.Contains(123));
-        Assert.IsFalse(array.Contains(456));
-
-
-        array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.Contains(123));
-    }
-
-    [TestMethod]
+    [Fact]
     public void CopyTo()
     {
         var array = Enumerable.Range(1, 6).ToArrayPool();
 
         var dest = new int[10];
         array.CopyTo(dest, 2);
-        CollectionAssert.AreEqual(new int[] { 0, 0, 1, 2, 3, 4, 5, 6, 0, 0 }, dest);
+        Assert.Equal(new int[] { 0, 0, 1, 2, 3, 4, 5, 6, 0, 0 }, dest);
 
         Array.Clear(dest, 0, dest.Length);
         array.CopyTo(dest);
-        CollectionAssert.AreEqual(new int[] { 1, 2, 3, 4, 5, 6, 0, 0, 0, 0 }, dest);
+        Assert.Equal(new int[] { 1, 2, 3, 4, 5, 6, 0, 0, 0, 0 }, dest);
 
         Array.Clear(dest, 0, dest.Length);
         array.CopyTo(dest.AsSpan(1..));
-        CollectionAssert.AreEqual(new int[] { 0, 1, 2, 3, 4, 5, 6, 0, 0, 0 }, dest);
+        Assert.Equal(new int[] { 0, 1, 2, 3, 4, 5, 6, 0, 0, 0 }, dest);
 
         Array.Clear(dest, 0, dest.Length);
         array.CopyTo(dest.AsMemory(3..));
-        CollectionAssert.AreEqual(new int[] { 0, 0, 0, 1, 2, 3, 4, 5, 6, 0 }, dest);
+        Assert.Equal(new int[] { 0, 0, 0, 1, 2, 3, 4, 5, 6, 0 }, dest);
 
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.CopyTo(dest, -1));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.CopyTo(dest, 11));
-        Assert.ThrowsException<ArgumentException>(() => array.CopyTo(dest, 8));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.CopyTo(dest, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.CopyTo(dest, 11));
+        Assert.Throws<ArgumentException>(() => array.CopyTo(dest, 8));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.CopyTo(dest, 0));
+        Assert.Throws<ObjectDisposedException>(() => array.CopyTo(dest, 0));
     }
 
-    [TestMethod]
+    [Fact]
     public void Dispose()
     {
         var array = new ArrayPoolWrapper<int>(6);
@@ -236,125 +219,125 @@ public class ArrayPoolWrapperTests
         array.Dispose();
     }
 
-    [TestMethod]
+    [Fact]
     public void Exists()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
 
-        Assert.IsTrue(array.Exists(i => i == 23));
-        Assert.IsFalse(array.Exists(i => i == -1));
+        Assert.True(array.Exists(i => i == 23));
+        Assert.False(array.Exists(i => i == -1));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.Exists(i => i == 1));
+        Assert.Throws<ObjectDisposedException>(() => array.Exists(i => i == 1));
     }
 
-    [TestMethod]
+    [Fact]
     public void Fill()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
 
         array.Fill(123);
-        CollectionAssert.AreEqual(Enumerable.Repeat(123, 100).ToArray(), array);
+        Assert.Equal(Enumerable.Repeat(123, 100).ToArray(), array);
 
 
         array.Fill(456, 25, 50);
-        CollectionAssert.AreEqual(Enumerable.Range(0, 100).Select(i => 25 <= i && i < 75 ? 456 : 123).ToArray(), array);
+        Assert.Equal(Enumerable.Range(0, 100).Select(i => 25 <= i && i < 75 ? 456 : 123).ToArray(), array);
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.Fill(123));
+        Assert.Throws<ObjectDisposedException>(() => array.Fill(123));
     }
 
-    [TestMethod]
+    [Fact]
     public void Find()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
-        Assert.AreEqual(12, array.Find(i => i == 12));
-        Assert.AreEqual(default, array.Find(i => i < 0));
+        Assert.Equal(12, array.Find(i => i == 12));
+        Assert.Equal(default, array.Find(i => i < 0));
 
         using var stringArray = Enumerable.Repeat("hoge", 100).ToArrayPool();
-        Assert.AreEqual(null, stringArray.Find(s => s == "fuga"));
+        Assert.Null(stringArray.Find(s => s == "fuga"));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.Find(i => i == 10));
+        Assert.Throws<ObjectDisposedException>(() => array.Find(i => i == 10));
     }
 
-    [TestMethod]
+    [Fact]
     public void FindAll()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
 
         using var inRange = array.FindAll(i => 25 <= i && i < 75);
-        CollectionAssert.AreEqual(Enumerable.Range(25, 50).ToArray(), inRange);
+        Assert.Equal(Enumerable.Range(25, 50).ToArray(), inRange);
 
         using var empty = array.FindAll(i => i < 0);
-        CollectionAssert.AreEqual(new int[0], empty);
+        Assert.Equal(new int[0], empty);
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.FindAll(i => i == 1));
+        Assert.Throws<ObjectDisposedException>(() => array.FindAll(i => i == 1));
     }
 
-    [TestMethod]
+    [Fact]
     public void FindIndex()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
 
-        Assert.AreEqual(11, array.FindIndex(i => i % 12 == 11));
-        Assert.AreEqual(23, array.FindIndex(20, i => i % 12 == 11));
-        Assert.AreEqual(-1, array.FindIndex(12, 10, i => i % 12 == 11));
+        Assert.Equal(11, array.FindIndex(i => i % 12 == 11));
+        Assert.Equal(23, array.FindIndex(20, i => i % 12 == 11));
+        Assert.Equal(-1, array.FindIndex(12, 10, i => i % 12 == 11));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.FindIndex(i => i == 1));
+        Assert.Throws<ObjectDisposedException>(() => array.FindIndex(i => i == 1));
     }
 
-    [TestMethod]
+    [Fact]
     public void FindLast()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
 
-        Assert.AreEqual(95, array.FindLast(i => i % 12 == 11));
-        Assert.AreEqual(default, array.FindLast(i => i < 0));
+        Assert.Equal(95, array.FindLast(i => i % 12 == 11));
+        Assert.Equal(default, array.FindLast(i => i < 0));
 
         var stringArray = Enumerable.Repeat("hoge", 100).ToArrayPool();
-        Assert.AreEqual(null, stringArray.FindLast(s => s == "fuga"));
+        Assert.Null(stringArray.FindLast(s => s == "fuga"));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.FindLast(i => i == 0));
+        Assert.Throws<ObjectDisposedException>(() => array.FindLast(i => i == 0));
     }
 
-    [TestMethod]
+    [Fact]
     public void FindLastIndex()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
 
-        Assert.AreEqual(95, array.FindLastIndex(i => i % 12 == 11));
-        Assert.AreEqual(95, array.FindLastIndex(20, i => i % 12 == 11));
-        Assert.AreEqual(-1, array.FindLastIndex(12, 10, i => i % 12 == 11));
+        Assert.Equal(95, array.FindLastIndex(i => i % 12 == 11));
+        Assert.Equal(95, array.FindLastIndex(20, i => i % 12 == 11));
+        Assert.Equal(-1, array.FindLastIndex(12, 10, i => i % 12 == 11));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.FindLastIndex(i => i == 1));
+        Assert.Throws<ObjectDisposedException>(() => array.FindLastIndex(i => i == 1));
     }
 
-    [TestMethod]
+    [Fact]
     public void ForEach()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
 
-        array.ForEach(i => Assert.IsTrue(i >= 0));
-        array.ForEach((i, index) => Assert.AreEqual(index, i));
+        array.ForEach(i => Assert.True(i >= 0));
+        array.ForEach((i, index) => Assert.Equal(index, i));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.ForEach(i => Assert.Fail()));
+        Assert.Throws<ObjectDisposedException>(() => array.ForEach(i => Assert.Fail()));
     }
 
-    [TestMethod]
+    [Fact]
     public void GetEnumerator()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
@@ -362,129 +345,129 @@ public class ArrayPoolWrapperTests
         int expected = 0;
         foreach (var value in array)
         {
-            Assert.AreEqual(expected, value);
+            Assert.Equal(expected, value);
             expected++;
         }
 
 
         var enumerator = array.GetEnumerator();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
         for (int i = 0; i < 100; i++)
         {
-            Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual(i, enumerator.Current);
+            Assert.True(enumerator.MoveNext());
+            Assert.Equal(i, enumerator.Current);
         }
-        Assert.IsFalse(enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
+        Assert.False(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
 
         enumerator.Reset();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.GetEnumerator());
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.Current);
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.MoveNext());
+        Assert.Throws<ObjectDisposedException>(() => array.GetEnumerator());
+        Assert.Throws<ObjectDisposedException>(() => enumerator.Current);
+        Assert.Throws<ObjectDisposedException>(() => enumerator.MoveNext());
     }
 
-    [TestMethod]
+    [Fact]
     public void IndexOf()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
 
-        Assert.AreEqual(12, array.IndexOf(12));
-        Assert.AreEqual(-1, array.IndexOf(123));
+        Assert.Equal(12, array.IndexOf(12));
+        Assert.Equal(-1, array.IndexOf(123));
 
-        Assert.AreEqual(-1, array.IndexOf(12, 20));
-        Assert.AreEqual(-1, array.IndexOf(48, 1, 16));
+        Assert.Equal(-1, array.IndexOf(12, 20));
+        Assert.Equal(-1, array.IndexOf(48, 1, 16));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.IndexOf(12));
+        Assert.Throws<ObjectDisposedException>(() => array.IndexOf(12));
     }
 
-    [TestMethod]
+    [Fact]
     public void LastIndexOf()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
 
-        Assert.AreEqual(12, array.LastIndexOf(12));
-        Assert.AreEqual(-1, array.LastIndexOf(123));
+        Assert.Equal(12, array.LastIndexOf(12));
+        Assert.Equal(-1, array.LastIndexOf(123));
 
-        Assert.AreEqual(-1, array.LastIndexOf(12, 20));
-        Assert.AreEqual(-1, array.LastIndexOf(48, 1, 16));
+        Assert.Equal(-1, array.LastIndexOf(12, 20));
+        Assert.Equal(-1, array.LastIndexOf(48, 1, 16));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.LastIndexOf(12));
+        Assert.Throws<ObjectDisposedException>(() => array.LastIndexOf(12));
     }
 
-    [TestMethod]
+    [Fact]
     public void Resize()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
 
         ArrayPoolWrapper<int>.Resize(ref array, 200);
-        CollectionAssert.AreEqual(Enumerable.Range(0, 100).Concat(Enumerable.Repeat(0, 100)).ToArray(), array);
+        Assert.Equal(Enumerable.Range(0, 100).Concat(Enumerable.Repeat(0, 100)).ToArray(), array);
 
         ArrayPoolWrapper<int>.Resize(ref array, 50);
-        CollectionAssert.AreEqual(Enumerable.Range(0, 50).ToArray(), array);
+        Assert.Equal(Enumerable.Range(0, 50).ToArray(), array);
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => ArrayPoolWrapper<int>.Resize(ref array, -1));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => ArrayPoolWrapper<int>.Resize(ref array, int.MaxValue));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ArrayPoolWrapper<int>.Resize(ref array, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ArrayPoolWrapper<int>.Resize(ref array, int.MaxValue));
 
 
         var enumerator = array.GetEnumerator();
         ArrayPoolWrapper<int>.Resize(ref array, 100);
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.MoveNext());
+        Assert.Throws<ObjectDisposedException>(() => enumerator.MoveNext());
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolWrapper<int>.Resize(ref array, 123));
+        Assert.Throws<ObjectDisposedException>(() => ArrayPoolWrapper<int>.Resize(ref array, 123));
     }
 
-    [TestMethod]
+    [Fact]
     public void Reverse()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
 
         array.Reverse();
-        CollectionAssert.AreEqual(Enumerable.Range(0, 100).Reverse().ToArray(), array);
+        Assert.Equal(Enumerable.Range(0, 100).Reverse().ToArray(), array);
 
         array.Reverse();
         array.Reverse(12, 34);
 
-        CollectionAssert.AreEqual(
+        Assert.Equal(
             Enumerable.Range(0, 12).Concat(Enumerable.Range(12, 34).Reverse()).Concat(Enumerable.Range(46, 54)).ToArray(),
             array);
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.Reverse(-1, 12));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.Reverse(12, -1));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.Reverse(12, 123));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.Reverse(-1, 12));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.Reverse(12, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.Reverse(12, 123));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.Reverse());
+        Assert.Throws<ObjectDisposedException>(() => array.Reverse());
     }
 
-    [TestMethod]
+    [Fact]
     public void Slice()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
 
-        CollectionAssert.AreEqual(Enumerable.Range(12, 34).ToArray(), array.Slice(12, 34).ToArray());
-        CollectionAssert.AreEqual(Enumerable.Range(56, 22).ToArray(), array[56..78].ToArray());
+        Assert.Equal(Enumerable.Range(12, 34).ToArray(), array.Slice(12, 34).ToArray());
+        Assert.Equal(Enumerable.Range(56, 22).ToArray(), array[56..78].ToArray());
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.Slice(-1, 12));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.Slice(12, -1));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.Slice(12, 123));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.Slice(-1, 12));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.Slice(12, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.Slice(12, 123));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.Slice(12, 34));
+        Assert.Throws<ObjectDisposedException>(() => array.Slice(12, 34));
     }
 
-    [TestMethod]
+    [Fact]
     public void Sort()
     {
         var rng = new Random(0);
@@ -501,76 +484,76 @@ public class ArrayPoolWrapperTests
 
         Shuffle(array.AsSpan(), rng);
         array.Sort();
-        CollectionAssert.AreEqual(Enumerable.Range(0, 100).ToArray(), array);
+        Assert.Equal(Enumerable.Range(0, 100).ToArray(), array);
 
         Shuffle(array.AsSpan(), rng);
         array.Sort((a, b) => b - a);
-        CollectionAssert.AreEqual(Enumerable.Range(0, 100).Reverse().ToArray(), array);
+        Assert.Equal(Enumerable.Range(0, 100).Reverse().ToArray(), array);
 
         array.Sort(25, 50);
-        CollectionAssert.AreEqual(Enumerable.Range(75, 25).Reverse().Concat(Enumerable.Range(25, 50)).Concat(Enumerable.Range(0, 25).Reverse()).ToArray(), array);
+        Assert.Equal(Enumerable.Range(75, 25).Reverse().Concat(Enumerable.Range(25, 50)).Concat(Enumerable.Range(0, 25).Reverse()).ToArray(), array);
 
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.Sort(-1, 12));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.Sort(12, -1));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => array.Sort(12, 123));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.Sort(-1, 12));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.Sort(12, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => array.Sort(12, 123));
 
 
         using ArrayPoolWrapper<string> stringArray = ["Alice", "abigail", "Barbara", "Charlotte"];
         Shuffle(stringArray.AsSpan(), rng);
         stringArray.Sort(StringComparer.OrdinalIgnoreCase);
-        CollectionAssert.AreEqual(new string[] { "abigail", "Alice", "Barbara", "Charlotte" }, stringArray);
+        Assert.Equal(new string[] { "abigail", "Alice", "Barbara", "Charlotte" }, stringArray);
 
 
         array.Sort();
         var keyArray = Enumerable.Range(0, 100).Reverse().ToArrayPool();
         ArrayPoolWrapper<int>.Sort(keyArray, array);
-        CollectionAssert.AreEqual(Enumerable.Range(0, 100).Reverse().ToArray(), array);
+        Assert.Equal(Enumerable.Range(0, 100).Reverse().ToArray(), array);
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.Sort());
+        Assert.Throws<ObjectDisposedException>(() => array.Sort());
     }
 
-    [TestMethod]
+    [Fact]
     public void TrueForAll()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
 
-        Assert.IsTrue(array.TrueForAll(i => i >= 0));
-        Assert.IsFalse(array.TrueForAll(i => i == 12));
+        Assert.True(array.TrueForAll(i => i >= 0));
+        Assert.False(array.TrueForAll(i => i == 12));
 
 
         using var empty = new ArrayPoolWrapper<int>(0);
-        Assert.IsTrue(empty.TrueForAll(i => false));
+        Assert.True(empty.TrueForAll(i => false));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => array.TrueForAll(i => true));
+        Assert.Throws<ObjectDisposedException>(() => array.TrueForAll(i => true));
     }
 
-    [TestMethod]
+    [Fact]
     public void Create()
     {
         using ArrayPoolWrapper<int> array = [2, 3, 5, 7, 11, 13, 17, 19];
-        CollectionAssert.AreEqual(new int[] { 2, 3, 5, 7, 11, 13, 17, 19 }, array);
+        Assert.Equal(new int[] { 2, 3, 5, 7, 11, 13, 17, 19 }, array);
     }
 
-    [TestMethod]
+    [Fact]
     public void Contains_ICollectionT()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
         ICollection<int> collection = array;
 
-        Assert.IsTrue(collection.Contains(12));
-        Assert.IsFalse(collection.Contains(-1));
+        Assert.True(collection.Contains(12));
+        Assert.False(collection.Contains(-1));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => collection.Contains(12));
+        Assert.Throws<ObjectDisposedException>(() => collection.Contains(12));
     }
 
-    [TestMethod]
+    [Fact]
     public void CopyTo_ICollectionT()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
@@ -578,60 +561,60 @@ public class ArrayPoolWrapperTests
 
         var buffer = new int[128];
         collection.CopyTo(buffer, 10);
-        CollectionAssert.AreEqual(Enumerable.Repeat(0, 10).Concat(Enumerable.Range(0, 100)).Concat(Enumerable.Repeat(0, 18)).ToArray(), buffer);
+        Assert.Equal(Enumerable.Repeat(0, 10).Concat(Enumerable.Range(0, 100)).Concat(Enumerable.Repeat(0, 18)).ToArray(), buffer);
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => collection.CopyTo(buffer, 0));
+        Assert.Throws<ObjectDisposedException>(() => collection.CopyTo(buffer, 0));
     }
 
-    [TestMethod]
+    [Fact]
     public void IndexOf_IListT()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
         IList<int> list = array;
 
-        Assert.AreEqual(12, list.IndexOf(12));
-        Assert.AreEqual(-1, list.IndexOf(-1));
+        Assert.Equal(12, list.IndexOf(12));
+        Assert.Equal(-1, list.IndexOf(-1));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => list.IndexOf(12));
+        Assert.Throws<ObjectDisposedException>(() => list.IndexOf(12));
     }
 
-    [TestMethod]
+    [Fact]
     public void Contains_IList()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
         IList list = array;
 
-        Assert.IsTrue(list.Contains(12));
-        Assert.IsFalse(list.Contains(-1));
-        Assert.IsFalse(list.Contains("hoge"));
+        Assert.True(list.Contains(12));
+        Assert.False(list.Contains(-1));
+        Assert.False(list.Contains("hoge"));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => list.Contains(12));
+        Assert.Throws<ObjectDisposedException>(() => list.Contains(12));
 
     }
 
-    [TestMethod]
+    [Fact]
     public void IndexOf_IList()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
         IList list = array;
 
-        Assert.AreEqual(12, list.IndexOf(12));
-        Assert.AreEqual(-1, list.IndexOf(-1));
-        Assert.AreEqual(-1, list.IndexOf("hoge"));
+        Assert.Equal(12, list.IndexOf(12));
+        Assert.Equal(-1, list.IndexOf(-1));
+        Assert.Equal(-1, list.IndexOf("hoge"));
 
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => list.IndexOf(12));
+        Assert.Throws<ObjectDisposedException>(() => list.IndexOf(12));
 
     }
 
-    [TestMethod]
+    [Fact]
     public void CopyTo_ICollection()
     {
         var array = Enumerable.Range(0, 100).ToArrayPool();
@@ -639,13 +622,13 @@ public class ArrayPoolWrapperTests
 
         var buffer = new int[128];
         collection.CopyTo(buffer, 10);
-        CollectionAssert.AreEqual(Enumerable.Repeat(0, 10).Concat(Enumerable.Range(0, 100)).Concat(Enumerable.Repeat(0, 18)).ToArray(), buffer);
+        Assert.Equal(Enumerable.Repeat(0, 10).Concat(Enumerable.Range(0, 100)).Concat(Enumerable.Repeat(0, 18)).ToArray(), buffer);
 
         var stringBuffer = new string[128];
-        Assert.ThrowsException<ArgumentException>(() => collection.CopyTo(stringBuffer, 0));
+        Assert.Throws<ArgumentException>(() => collection.CopyTo(stringBuffer, 0));
 
         array.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => collection.CopyTo(buffer, 0));
+        Assert.Throws<ObjectDisposedException>(() => collection.CopyTo(buffer, 0));
 
     }
 }

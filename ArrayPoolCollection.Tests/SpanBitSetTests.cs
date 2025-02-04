@@ -1,9 +1,8 @@
 namespace ArrayPoolCollection.Tests;
 
-[TestClass]
 public class SpanBitSetTests
 {
-    [TestMethod]
+    [Fact]
     public void Items()
     {
         var bits = new SpanBitSet(stackalloc nuint[16], 128);
@@ -15,7 +14,7 @@ public class SpanBitSetTests
 
         for (int i = 0; i < 128; i++)
         {
-            Assert.AreEqual(i % 2 == 1, bits[i]);
+            Assert.Equal(i % 2 == 1, bits[i]);
         }
 
         try
@@ -42,18 +41,18 @@ public class SpanBitSetTests
         catch (ObjectDisposedException) { }
     }
 
-    [TestMethod]
+    [Fact]
     public void Count()
     {
         var bits = new SpanBitSet(stackalloc nuint[16], 128);
 
-        Assert.AreEqual(128, bits.Count);
+        Assert.Equal(128, bits.Count);
 
         bits.Add(false);
-        Assert.AreEqual(129, bits.Count);
+        Assert.Equal(129, bits.Count);
 
         bits.RemoveAt(0);
-        Assert.AreEqual(128, bits.Count);
+        Assert.Equal(128, bits.Count);
 
 
         bits.Dispose();
@@ -65,20 +64,20 @@ public class SpanBitSetTests
         catch (ObjectDisposedException) { }
     }
 
-    [TestMethod]
+    [Fact]
     public void Ctor()
     {
         using var fromSpanLength = new SpanBitSet(stackalloc nuint[16], 150);
-        Assert.AreEqual(150, fromSpanLength.Count);
+        Assert.Equal(150, fromSpanLength.Count);
 
         using var fromCapacityLength = new SpanBitSet(1024, 150);
-        Assert.AreEqual(150, fromCapacityLength.Count);
+        Assert.Equal(150, fromCapacityLength.Count);
 
         using var fromSpanOverLength = new SpanBitSet(stackalloc nuint[16], 32 * 16);
-        Assert.AreEqual(32 * 16, fromSpanOverLength.Count);
+        Assert.Equal(32 * 16, fromSpanOverLength.Count);
     }
 
-    [TestMethod]
+    [Fact]
     public void Add()
     {
         var bits = new SpanBitSet(stackalloc nuint[1], 0);
@@ -86,8 +85,8 @@ public class SpanBitSetTests
         for (int i = 0; i < 1024; i++)
         {
             bits.Add(i % 2 == 1);
-            Assert.AreEqual(i % 2 == 1, bits[i]);
-            Assert.AreEqual(i + 1, bits.Count);
+            Assert.Equal(i % 2 == 1, bits[i]);
+            Assert.Equal(i + 1, bits.Count);
         }
 
         var enumerator = bits.GetEnumerator();
@@ -110,12 +109,12 @@ public class SpanBitSetTests
         catch (ObjectDisposedException) { }
     }
 
-    [TestMethod]
+    [Fact]
     public void Clear()
     {
         var bits = new SpanBitSet(stackalloc nuint[16], 64);
         bits.Clear();
-        Assert.AreEqual(0, bits.Count);
+        Assert.Equal(0, bits.Count);
 
 
         var enumerator = bits.GetEnumerator();
@@ -138,17 +137,17 @@ public class SpanBitSetTests
         catch (ObjectDisposedException) { }
     }
 
-    [TestMethod]
+    [Fact]
     public void Contains()
     {
         var bits = new SpanBitSet(stackalloc nuint[16], 64);
-        Assert.IsTrue(bits.Contains(false));
-        Assert.IsFalse(bits.Contains(true));
+        Assert.True(bits.Contains(false));
+        Assert.False(bits.Contains(true));
 
         bits[0] = true;
 
-        Assert.IsTrue(bits.Contains(false));
-        Assert.IsTrue(bits.Contains(true));
+        Assert.True(bits.Contains(false));
+        Assert.True(bits.Contains(true));
 
 
         bits.Dispose();
@@ -160,7 +159,7 @@ public class SpanBitSetTests
         catch (ObjectDisposedException) { }
     }
 
-    [TestMethod]
+    [Fact]
     public void CopyTo()
     {
         var bits = new SpanBitSet(stackalloc nuint[16], 100);
@@ -170,13 +169,13 @@ public class SpanBitSetTests
         var bools = new bool[128];
 
         bits.CopyTo(bools, 0);
-        Assert.IsTrue(bools[0]);
-        Assert.IsTrue(bools[99]);
+        Assert.True(bools[0]);
+        Assert.True(bools[99]);
 
         bits.CopyTo(bools.AsSpan(1..));
-        Assert.IsTrue(bools[1]);
-        Assert.IsFalse(bools[99]);
-        Assert.IsTrue(bools[100]);
+        Assert.True(bools[1]);
+        Assert.False(bools[99]);
+        Assert.True(bools[100]);
 
         try
         {
@@ -202,7 +201,7 @@ public class SpanBitSetTests
         catch (ObjectDisposedException) { }
     }
 
-    [TestMethod]
+    [Fact]
     public void Dispose()
     {
         using var fromSpan = new SpanBitSet(stackalloc nuint[16], 0);
@@ -210,7 +209,7 @@ public class SpanBitSetTests
         using var fromArray = new SpanBitSet(1024, 0);
     }
 
-    [TestMethod]
+    [Fact]
     public void GetEnumerator()
     {
         var bits = new SpanBitSet(stackalloc nuint[16], 64);
@@ -220,7 +219,7 @@ public class SpanBitSetTests
         {
             i++;
         }
-        Assert.AreEqual(64, i);
+        Assert.Equal(64, i);
 
 
         var enumerator = bits.GetEnumerator();
@@ -262,16 +261,16 @@ public class SpanBitSetTests
         catch (ObjectDisposedException) { }
     }
 
-    [TestMethod]
+    [Fact]
     public void IndexOf()
     {
         var bits = new SpanBitSet(stackalloc nuint[16], 100);
 
-        Assert.AreEqual(-1, bits.IndexOf(true));
-        Assert.AreEqual(0, bits.IndexOf(false));
+        Assert.Equal(-1, bits.IndexOf(true));
+        Assert.Equal(0, bits.IndexOf(false));
 
         bits[66] = true;
-        Assert.AreEqual(66, bits.IndexOf(true));
+        Assert.Equal(66, bits.IndexOf(true));
 
 
         bits.Dispose();
@@ -283,19 +282,19 @@ public class SpanBitSetTests
         catch (ObjectDisposedException) { }
     }
 
-    [TestMethod]
+    [Fact]
     public void Insert()
     {
         var bits = new SpanBitSet(stackalloc nuint[16], 100);
 
         bits.Insert(88, true);
-        Assert.IsTrue(bits[88]);
-        Assert.AreEqual(101, bits.Count);
+        Assert.True(bits[88]);
+        Assert.Equal(101, bits.Count);
 
         bits.Insert(33, true);
-        Assert.IsTrue(bits[33]);
-        Assert.IsTrue(bits[89]);
-        Assert.AreEqual(102, bits.Count);
+        Assert.True(bits[33]);
+        Assert.True(bits[89]);
+        Assert.Equal(102, bits.Count);
 
 
         try
@@ -332,16 +331,16 @@ public class SpanBitSetTests
         catch (ObjectDisposedException) { }
     }
 
-    [TestMethod]
+    [Fact]
     public void Remove()
     {
         var bits = new SpanBitSet(stackalloc nuint[16], 100);
 
-        Assert.IsFalse(bits.Remove(true));
-        Assert.AreEqual(100, bits.Count);
+        Assert.False(bits.Remove(true));
+        Assert.Equal(100, bits.Count);
 
-        Assert.IsTrue(bits.Remove(false));
-        Assert.AreEqual(99, bits.Count);
+        Assert.True(bits.Remove(false));
+        Assert.Equal(99, bits.Count);
 
 
         var enumerator = bits.GetEnumerator();
@@ -364,7 +363,7 @@ public class SpanBitSetTests
         catch (ObjectDisposedException) { }
     }
 
-    [TestMethod]
+    [Fact]
     public void RemoveAt()
     {
         var bits = new SpanBitSet(stackalloc nuint[16], 100);
@@ -372,10 +371,10 @@ public class SpanBitSetTests
         bits[33] = true;
         bits[88] = true;
         bits.RemoveAt(33);
-        Assert.IsFalse(bits[33]);
-        Assert.IsFalse(bits[88]);
-        Assert.IsTrue(bits[87]);
-        Assert.AreEqual(99, bits.Count);
+        Assert.False(bits[33]);
+        Assert.False(bits[88]);
+        Assert.True(bits[87]);
+        Assert.Equal(99, bits.Count);
 
 
         try

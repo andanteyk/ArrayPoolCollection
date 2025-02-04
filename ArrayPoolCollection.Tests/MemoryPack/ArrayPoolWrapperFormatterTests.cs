@@ -3,22 +3,15 @@ using MemoryPack;
 
 namespace ArrayPoolCollection.MemoryPack.Tests;
 
-[TestClass]
 public class ArrayPoolWrapperFormatterTests
 {
-    [AssemblyInitialize]
-    public static void GlobalSetup(TestContext context)
-    {
-        ArrayPoolCollectionRegisterer.Register();
-    }
-
-    [TestMethod]
+    [Fact]
     public void SerializeInt()
     {
         var rng = new Random(0);
 
         var bytes = MemoryPackSerializer.Serialize<ArrayPoolWrapper<int>>(null);
-        Assert.IsNull(MemoryPackSerializer.Deserialize<ArrayPoolWrapper<int>>(bytes));
+        Assert.Null(MemoryPackSerializer.Deserialize<ArrayPoolWrapper<int>>(bytes));
 
         for (int i = 0; i <= 1024; i++)
         {
@@ -28,17 +21,17 @@ public class ArrayPoolWrapperFormatterTests
             bytes = MemoryPackSerializer.Serialize(source);
             var dest = MemoryPackSerializer.Deserialize<ArrayPoolWrapper<int>>(bytes);
 
-            CollectionAssert.AreEqual(source, dest);
+            Assert.Equal(source, dest);
         }
     }
 
-    [TestMethod]
+    [Fact]
     public void SerializeString()
     {
         var rng = new Random(0);
 
         var bytes = MemoryPackSerializer.Serialize<ArrayPoolWrapper<string>>(null);
-        Assert.IsNull(MemoryPackSerializer.Deserialize<ArrayPoolWrapper<string>>(bytes));
+        Assert.Null(MemoryPackSerializer.Deserialize<ArrayPoolWrapper<string>>(bytes));
 
         for (int i = 0; i <= 1024; i++)
         {
@@ -51,11 +44,11 @@ public class ArrayPoolWrapperFormatterTests
             bytes = MemoryPackSerializer.Serialize(source);
             var dest = MemoryPackSerializer.Deserialize<ArrayPoolWrapper<string>>(bytes);
 
-            CollectionAssert.AreEqual(source, dest);
+            Assert.Equal(source, dest);
         }
     }
 
-    [TestMethod]
+    [Fact]
     public void SerializeWrappedClass()
     {
         var rng = new Random(0);
@@ -65,7 +58,7 @@ public class ArrayPoolWrapperFormatterTests
         var bytes = MemoryPackSerializer.Serialize(source);
         var dest = MemoryPackSerializer.Deserialize<ArrayWrapper<int>>(bytes)!;
 
-        CollectionAssert.AreEqual(source.Values, dest.Values);
+        Assert.Equal(source.Values, dest.Values);
     }
 }
 

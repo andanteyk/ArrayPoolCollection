@@ -5,10 +5,9 @@ using System.Runtime.CompilerServices;
 
 namespace ArrayPoolCollection.Tests;
 
-[TestClass]
 public class ArrayPoolDictionaryTests
 {
-    [TestMethod]
+    [Fact]
     public void Ctor()
     {
         var source = new Dictionary<int, int>(){
@@ -32,10 +31,10 @@ public class ArrayPoolDictionaryTests
         {
             // should not throw any exceptions
             using var withCapacity = new ArrayPoolDictionary<int, int>(0);
-            Assert.AreEqual(withCapacity.Capacity, 16);
+            Assert.Equal(16, withCapacity.Capacity);
 
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => new ArrayPoolDictionary<int, int>(-1));
-            Assert.ThrowsException<OutOfMemoryException>(() => new ArrayPoolDictionary<int, int>(int.MaxValue));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new ArrayPoolDictionary<int, int>(-1));
+            Assert.Throws<OutOfMemoryException>(() => new ArrayPoolDictionary<int, int>(int.MaxValue));
         }
 
         // should not throw any exceptions
@@ -46,38 +45,38 @@ public class ArrayPoolDictionaryTests
 
         {
             using var withSource = new ArrayPoolDictionary<int, int>(source);
-            CollectionAssert.AreEquivalent(source, withSource);
+            Assert.Equivalent(source, withSource);
 
             using var withSourceAndComparer = new ArrayPoolDictionary<int, int>(source, comparer);
-            CollectionAssert.AreEquivalent(source, withSource);
+            Assert.Equivalent(source, withSource);
         }
 
         {
             using var withSource = new ArrayPoolDictionary<int, int>(source.AsEnumerable());
-            CollectionAssert.AreEquivalent(source, withSource);
+            Assert.Equivalent(source, withSource);
 
             using var withSourceAndComparer = new ArrayPoolDictionary<int, int>(source.AsEnumerable(), comparer);
-            CollectionAssert.AreEquivalent(source, withSource);
+            Assert.Equivalent(source, withSource);
         }
     }
 
-    [TestMethod]
+    [Fact]
     public void Comparer()
     {
         var valueComparer = EqualityComparer<int>.Default;
         var classComparer = StringComparer.OrdinalIgnoreCase;
 
         var valueWithNull = new ArrayPoolDictionary<int, int>();
-        Assert.AreEqual(valueComparer, valueWithNull.Comparer);
+        Assert.Equal(valueComparer, valueWithNull.Comparer);
 
         var valueWithComparer = new ArrayPoolDictionary<int, int>(valueComparer);
-        Assert.AreEqual(valueComparer, valueWithComparer.Comparer);
+        Assert.Equal(valueComparer, valueWithComparer.Comparer);
 
         var classWithNull = new ArrayPoolDictionary<string, string>();
-        Assert.AreEqual(EqualityComparer<string>.Default, classWithNull.Comparer);
+        Assert.Equal(EqualityComparer<string>.Default, classWithNull.Comparer);
 
         var classWithComparer = new ArrayPoolDictionary<string, string>(classComparer);
-        Assert.AreEqual(classComparer, classWithComparer.Comparer);
+        Assert.Equal(classComparer, classWithComparer.Comparer);
 
 
         valueWithNull.Dispose();
@@ -85,238 +84,238 @@ public class ArrayPoolDictionaryTests
         classWithNull.Dispose();
         classWithComparer.Dispose();
 
-        Assert.ThrowsException<ObjectDisposedException>(() => valueWithNull.Comparer);
-        Assert.ThrowsException<ObjectDisposedException>(() => valueWithComparer.Comparer);
-        Assert.ThrowsException<ObjectDisposedException>(() => classWithNull.Comparer);
-        Assert.ThrowsException<ObjectDisposedException>(() => classWithComparer.Comparer);
+        Assert.Throws<ObjectDisposedException>(() => valueWithNull.Comparer);
+        Assert.Throws<ObjectDisposedException>(() => valueWithComparer.Comparer);
+        Assert.Throws<ObjectDisposedException>(() => classWithNull.Comparer);
+        Assert.Throws<ObjectDisposedException>(() => classWithComparer.Comparer);
     }
 
-    [TestMethod]
+    [Fact]
     public void Capacity()
     {
         var dict = new ArrayPoolDictionary<int, int>(48);
-        Assert.AreEqual(64, dict.Capacity);
+        Assert.Equal(64, dict.Capacity);
 
         dict.EnsureCapacity(192);
-        Assert.AreEqual(256, dict.Capacity);
+        Assert.Equal(256, dict.Capacity);
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.Capacity);
+        Assert.Throws<ObjectDisposedException>(() => dict.Capacity);
     }
 
-    [TestMethod]
+    [Fact]
     public void Count()
     {
         var dict = new ArrayPoolDictionary<int, int>(32);
-        Assert.AreEqual(0, dict.Count);
+        Assert.Empty(dict);
 
         dict.Add(1, 2);
-        Assert.AreEqual(1, dict.Count);
+        Assert.Single(dict);
 
         dict.Add(2, 4);
-        Assert.AreEqual(2, dict.Count);
+        Assert.Equal(2, dict.Count);
 
         dict.Remove(1);
-        Assert.AreEqual(1, dict.Count);
+        Assert.Single(dict);
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.Count);
+        Assert.Throws<ObjectDisposedException>(() => dict.Count);
     }
 
-    [TestMethod]
+    [Fact]
     public void Items()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
-        Assert.AreEqual(2, dict[1]);
-        Assert.AreEqual(4, dict[2]);
-        Assert.AreEqual(6, dict[3]);
-        Assert.ThrowsException<KeyNotFoundException>(() => dict[4]);
+        Assert.Equal(2, dict[1]);
+        Assert.Equal(4, dict[2]);
+        Assert.Equal(6, dict[3]);
+        Assert.Throws<KeyNotFoundException>(() => dict[4]);
 
         dict[4] = 8;
-        Assert.AreEqual(8, dict[4]);
+        Assert.Equal(8, dict[4]);
 
         dict[1] = 123;
-        Assert.AreEqual(123, dict[1]);
+        Assert.Equal(123, dict[1]);
 
         var enumerator = dict.GetEnumerator();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
         dict[1] = 1234;
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
 
         using var stringDict = new ArrayPoolDictionary<string, string>() { { "hoge", "fuga" } };
-        Assert.AreEqual("fuga", stringDict["hoge"]);
-        Assert.ThrowsException<ArgumentNullException>(() => stringDict[null!]);
-        Assert.ThrowsException<ArgumentNullException>(() => stringDict[null!] = "piyo");
+        Assert.Equal("fuga", stringDict["hoge"]);
+        Assert.Throws<ArgumentNullException>(() => stringDict[null!]);
+        Assert.Throws<ArgumentNullException>(() => stringDict[null!] = "piyo");
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict[1]);
-        Assert.ThrowsException<ObjectDisposedException>(() => dict[1] = 99);
+        Assert.Throws<ObjectDisposedException>(() => dict[1]);
+        Assert.Throws<ObjectDisposedException>(() => dict[1] = 99);
     }
 
-    [TestMethod]
+    [Fact]
     public void Keys()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
-        CollectionAssert.AreEquivalent(new int[] { 1, 2, 3 }, dict.Keys);
-        Assert.AreEqual(3, dict.Keys.Count);
+        Assert.Equivalent(new int[] { 1, 2, 3 }, dict.Keys);
+        Assert.Equal(3, dict.Keys.Count);
 
-        Assert.IsTrue(dict.Keys.Contains(1));
-        Assert.IsFalse(dict.Keys.Contains(4));
+        Assert.True(dict.Keys.Contains(1));
+        Assert.False(dict.Keys.Contains(4));
 
         var ints = new int[8];
         dict.Keys.CopyTo(ints, 1);
-        CollectionAssert.AreEquivalent(new int[] { 0, 1, 2, 3, 0, 0, 0, 0 }, ints);
+        Assert.Equivalent(new int[] { 0, 1, 2, 3, 0, 0, 0, 0 }, ints);
 
         var keys = dict.Keys;
         dict.Add(4, 8);
-        CollectionAssert.AreEquivalent(new int[] { 1, 2, 3, 4 }, keys);
+        Assert.Equivalent(new int[] { 1, 2, 3, 4 }, keys);
         dict.Remove(1);
-        CollectionAssert.AreEquivalent(new int[] { 2, 3, 4 }, keys);
+        Assert.Equivalent(new int[] { 2, 3, 4 }, keys);
 
 
         var enumerator = keys.GetEnumerator();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current; // should not throw any exceptions. the return value may vary
-        Assert.IsTrue(enumerator.MoveNext());
-        Assert.IsTrue(enumerator.MoveNext());
-        Assert.IsFalse(enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.IsFalse(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
+        Assert.False(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.False(enumerator.MoveNext());
         enumerator.Reset();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current; // should not throw any exceptions. the return value may vary
 
         dict.Add(5, 10);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
         enumerator = keys.GetEnumerator();
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.Keys);
-        Assert.ThrowsException<ObjectDisposedException>(() => keys.Count);
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.Current);
+        Assert.Throws<ObjectDisposedException>(() => dict.Keys);
+        Assert.Throws<ObjectDisposedException>(() => keys.Count);
+        Assert.Throws<ObjectDisposedException>(() => enumerator.Current);
     }
 
-    [TestMethod]
+    [Fact]
     public void Values()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
-        CollectionAssert.AreEquivalent(new int[] { 2, 4, 6 }, dict.Values);
-        Assert.AreEqual(3, dict.Values.Count);
+        Assert.Equivalent(new int[] { 2, 4, 6 }, dict.Values);
+        Assert.Equal(3, dict.Values.Count);
 
-        Assert.IsFalse(dict.Values.Contains(1));
-        Assert.IsTrue(dict.Values.Contains(4));
+        Assert.False(dict.Values.Contains(1));
+        Assert.True(dict.Values.Contains(4));
 
         var ints = new int[8];
         dict.Values.CopyTo(ints, 1);
-        CollectionAssert.AreEquivalent(new int[] { 0, 2, 4, 6, 0, 0, 0, 0 }, ints);
+        Assert.Equivalent(new int[] { 0, 2, 4, 6, 0, 0, 0, 0 }, ints);
 
         var values = dict.Values;
         dict.Add(4, 8);
-        CollectionAssert.AreEquivalent(new int[] { 2, 4, 6, 8 }, values);
+        Assert.Equivalent(new int[] { 2, 4, 6, 8 }, values);
         dict.Remove(1);
-        CollectionAssert.AreEquivalent(new int[] { 4, 6, 8 }, values);
+        Assert.Equivalent(new int[] { 4, 6, 8 }, values);
 
 
         var enumerator = values.GetEnumerator();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current; // should not throw any exceptions. the return value may vary
-        Assert.IsTrue(enumerator.MoveNext());
-        Assert.IsTrue(enumerator.MoveNext());
-        Assert.IsFalse(enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.IsFalse(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
+        Assert.False(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.False(enumerator.MoveNext());
         enumerator.Reset();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current; // should not throw any exceptions. the return value may vary
 
         dict.Add(5, 10);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
         enumerator = values.GetEnumerator();
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.Values);
-        Assert.ThrowsException<ObjectDisposedException>(() => values.Count);
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.Current);
+        Assert.Throws<ObjectDisposedException>(() => dict.Values);
+        Assert.Throws<ObjectDisposedException>(() => values.Count);
+        Assert.Throws<ObjectDisposedException>(() => enumerator.Current);
     }
 
-    [TestMethod]
+    [Fact]
     public void Add()
     {
         var dict = new ArrayPoolDictionary<int, int>();
-        Assert.AreEqual(0, dict.Count);
+        Assert.Empty(dict);
 
         dict.Add(1, 2);
-        Assert.AreEqual(2, dict[1]);
-        Assert.AreEqual(1, dict.Count);
+        Assert.Equal(2, dict[1]);
+        Assert.Single(dict);
 
         dict.Add(new(2, 4));
-        Assert.AreEqual(4, dict[2]);
-        Assert.AreEqual(2, dict.Count);
+        Assert.Equal(4, dict[2]);
+        Assert.Equal(2, dict.Count);
 
-        Assert.ThrowsException<ArgumentException>(() => dict.Add(1, 2));
-        Assert.ThrowsException<ArgumentException>(() => dict.Add(new(2, 4)));
+        Assert.Throws<ArgumentException>(() => dict.Add(1, 2));
+        Assert.Throws<ArgumentException>(() => dict.Add(new(2, 4)));
 
 
         for (int i = 3; i <= 100; i++)
         {
             dict.Add(i, i * 2);
-            CollectionAssert.AreEquivalent(Enumerable.Range(1, i).ToArray(), dict.Keys);
-            CollectionAssert.AreEquivalent(Enumerable.Range(1, i).Select(i => i * 2).ToArray(), dict.Values);
+            Assert.Equivalent(Enumerable.Range(1, i).ToArray(), dict.Keys);
+            Assert.Equivalent(Enumerable.Range(1, i).Select(i => i * 2).ToArray(), dict.Values);
         }
 
 
         var enumerator = dict.GetEnumerator();
         dict.Add(-1, -2);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.Add(3, 6));
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.Add(new(3, 6)));
+        Assert.Throws<ObjectDisposedException>(() => dict.Add(3, 6));
+        Assert.Throws<ObjectDisposedException>(() => dict.Add(new(3, 6)));
     }
 
-    [TestMethod]
+    [Fact]
     public void AsSpan()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
 
         var span = ArrayPoolDictionary<int, int>.AsSpan(dict);
-        CollectionAssert.AreEquivalent(new Dictionary<int, int> { { 1, 2 }, { 2, 4 }, { 3, 6 } }.ToArray(), span.ToArray());
+        Assert.Equivalent(new Dictionary<int, int> { { 1, 2 }, { 2, 4 }, { 3, 6 } }.ToArray(), span.ToArray());
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolDictionary<int, int>.AsSpan(dict));
+        Assert.Throws<ObjectDisposedException>(() => ArrayPoolDictionary<int, int>.AsSpan(dict));
     }
 
-    [TestMethod]
+    [Fact]
     public void Clear()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
 
         dict.Clear();
-        Assert.AreEqual(0, dict.Count);
-        CollectionAssert.AreEqual(new KeyValuePair<int, int>[0], dict);
-        CollectionAssert.AreEqual(new int[0], dict.Keys);
-        CollectionAssert.AreEqual(new int[0], dict.Values);
+        Assert.Empty(dict);
+        Assert.Equal(new KeyValuePair<int, int>[0], dict);
+        Assert.Equal(new int[0], dict.Keys);
+        Assert.Equal(new int[0], dict.Values);
 
 
         // should not throw any exceptions
@@ -326,69 +325,69 @@ public class ArrayPoolDictionaryTests
         dict.Add(1, 2);
         var enumerator = dict.GetEnumerator();
         dict.Clear();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.Clear());
+        Assert.Throws<ObjectDisposedException>(() => dict.Clear());
     }
 
-    [TestMethod]
+    [Fact]
     public void ContainsKey()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
 
-        Assert.IsTrue(dict.ContainsKey(1));
-        Assert.IsTrue(dict.ContainsKey(2));
-        Assert.IsTrue(dict.ContainsKey(3));
-        Assert.IsFalse(dict.ContainsKey(4));
+        Assert.True(dict.ContainsKey(1));
+        Assert.True(dict.ContainsKey(2));
+        Assert.True(dict.ContainsKey(3));
+        Assert.False(dict.ContainsKey(4));
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.ContainsKey(1));
+        Assert.Throws<ObjectDisposedException>(() => dict.ContainsKey(1));
     }
 
-    [TestMethod]
+    [Fact]
     public void ContainsValue()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
 
-        Assert.IsTrue(dict.ContainsValue(2));
-        Assert.IsTrue(dict.ContainsValue(4));
-        Assert.IsTrue(dict.ContainsValue(6));
-        Assert.IsFalse(dict.ContainsValue(1));
+        Assert.True(dict.ContainsValue(2));
+        Assert.True(dict.ContainsValue(4));
+        Assert.True(dict.ContainsValue(6));
+        Assert.False(dict.ContainsValue(1));
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.ContainsValue(1));
+        Assert.Throws<ObjectDisposedException>(() => dict.ContainsValue(1));
     }
 
-    [TestMethod]
+    [Fact]
     public void EnsureCapacity()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
 
         dict.EnsureCapacity(48);
-        Assert.AreEqual(64, dict.Capacity);
+        Assert.Equal(64, dict.Capacity);
 
         dict.EnsureCapacity(16);
-        Assert.AreEqual(64, dict.Capacity);
+        Assert.Equal(64, dict.Capacity);
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => dict.EnsureCapacity(-1));
-        Assert.ThrowsException<OutOfMemoryException>(() => dict.EnsureCapacity(int.MaxValue));
+        Assert.Throws<ArgumentOutOfRangeException>(() => dict.EnsureCapacity(-1));
+        Assert.Throws<OutOfMemoryException>(() => dict.EnsureCapacity(int.MaxValue));
 
 
         var enumerator = dict.GetEnumerator();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
         dict.EnsureCapacity(16);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.EnsureCapacity(16));
+        Assert.Throws<ObjectDisposedException>(() => dict.EnsureCapacity(16));
     }
 
     public readonly struct DoubleIntEqualityComparer : IEqualityComparer<int>, IAlternateEqualityComparer<double, int>
@@ -419,141 +418,141 @@ public class ArrayPoolDictionaryTests
         }
     }
 
-    [TestMethod]
+    [Fact]
     public void GetAlternateLookup()
     {
         var comparer = new DoubleIntEqualityComparer();
         var dict = new ArrayPoolDictionary<int, int>(comparer) { { 1, 2 }, { 2, 4 }, { 3, 6 } };
 
         var lookup = dict.GetAlternateLookup<double>();
-        Assert.ThrowsException<InvalidOperationException>(() => dict.GetAlternateLookup<string>());
+        Assert.Throws<InvalidOperationException>(() => dict.GetAlternateLookup<string>());
 
-        Assert.IsTrue(ReferenceEquals(dict, lookup.Dictionary));
+        Assert.True(ReferenceEquals(dict, lookup.Dictionary));
 
-        Assert.AreEqual(2, lookup[1.0]);
-        Assert.AreEqual(2, lookup[1.5]);
-        Assert.ThrowsException<KeyNotFoundException>(() => lookup[-1.0]);
+        Assert.Equal(2, lookup[1.0]);
+        Assert.Equal(2, lookup[1.5]);
+        Assert.Throws<KeyNotFoundException>(() => lookup[-1.0]);
 
         lookup[1.0] = 123;
-        Assert.AreEqual(123, lookup[1.0]);
-        Assert.AreEqual(123, dict[1]);
+        Assert.Equal(123, lookup[1.0]);
+        Assert.Equal(123, dict[1]);
         lookup[4.0] = 456;
-        Assert.AreEqual(456, lookup[4.0]);
-        Assert.AreEqual(456, dict[4]);
+        Assert.Equal(456, lookup[4.0]);
+        Assert.Equal(456, dict[4]);
 
-        Assert.IsTrue(lookup.ContainsKey(3.0));
-        Assert.IsFalse(lookup.ContainsKey(-1.0));
+        Assert.True(lookup.ContainsKey(3.0));
+        Assert.False(lookup.ContainsKey(-1.0));
 
-        Assert.IsTrue(lookup.Remove(4.0));
-        Assert.IsFalse(lookup.ContainsKey(4.0));
-        Assert.IsFalse(dict.ContainsKey(4));
-        Assert.IsFalse(lookup.Remove(-1.0));
+        Assert.True(lookup.Remove(4.0));
+        Assert.False(lookup.ContainsKey(4.0));
+        Assert.False(dict.ContainsKey(4));
+        Assert.False(lookup.Remove(-1.0));
 
         {
-            Assert.IsTrue(lookup.Remove(3.0, out var prevKey, out var prevValue));
-            Assert.AreEqual(3, prevKey);
-            Assert.AreEqual(6, prevValue);
+            Assert.True(lookup.Remove(3.0, out var prevKey, out var prevValue));
+            Assert.Equal(3, prevKey);
+            Assert.Equal(6, prevValue);
         }
 
-        Assert.IsTrue(lookup.TryAdd(3.0, 6));
-        Assert.AreEqual(6, lookup[3.0]);
-        Assert.AreEqual(6, dict[3]);
-        Assert.IsFalse(lookup.TryAdd(3.0, 8));
-        Assert.AreEqual(6, lookup[3.0]);
-        Assert.AreEqual(6, dict[3]);
+        Assert.True(lookup.TryAdd(3.0, 6));
+        Assert.Equal(6, lookup[3.0]);
+        Assert.Equal(6, dict[3]);
+        Assert.False(lookup.TryAdd(3.0, 8));
+        Assert.Equal(6, lookup[3.0]);
+        Assert.Equal(6, dict[3]);
 
         {
-            Assert.IsTrue(lookup.TryGetValue(3.0, out var value));
-            Assert.AreEqual(6, value);
-            Assert.IsFalse(lookup.TryGetValue(4.0, out value));
+            Assert.True(lookup.TryGetValue(3.0, out var value));
+            Assert.Equal(6, value);
+            Assert.False(lookup.TryGetValue(4.0, out value));
 
-            Assert.IsTrue(lookup.TryGetValue(3.0, out var key, out value));
-            Assert.AreEqual(3, key);
-            Assert.AreEqual(6, value);
-            Assert.IsFalse(lookup.TryGetValue(4.0, out key, out value));
+            Assert.True(lookup.TryGetValue(3.0, out var key, out value));
+            Assert.Equal(3, key);
+            Assert.Equal(6, value);
+            Assert.False(lookup.TryGetValue(4.0, out key, out value));
         }
 
 
         var enumerator = dict.GetEnumerator();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
         lookup[5.0] = 10;
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
         enumerator = dict.GetEnumerator();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
         lookup.Remove(5.0);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
         enumerator = dict.GetEnumerator();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
         {
             lookup.Remove(3.0, out var prevKey, out var prevValue);
         }
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
         enumerator = dict.GetEnumerator();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
         lookup.TryAdd(5.0, 10);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
 
         using var normalDict = new ArrayPoolDictionary<int, int>(dict);
-        Assert.ThrowsException<InvalidOperationException>(() => normalDict.GetAlternateLookup<double>());
+        Assert.Throws<InvalidOperationException>(() => normalDict.GetAlternateLookup<double>());
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.GetAlternateLookup<double>());
+        Assert.Throws<ObjectDisposedException>(() => dict.GetAlternateLookup<double>());
     }
 
-    [TestMethod]
+    [Fact]
     public void GetEnumerator()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
-        CollectionAssert.AreEqual(new KeyValuePair<int, int>[] { new(1, 2), new(2, 4), new(3, 6) }, dict);
+        Assert.Equal(new KeyValuePair<int, int>[] { new(1, 2), new(2, 4), new(3, 6) }, dict);
 
         var enumerator = dict.GetEnumerator();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
-        Assert.IsFalse(enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
+        Assert.False(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
 
         enumerator.Reset();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
 
         dict.Add(4, 8);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
 
         enumerator = dict.GetEnumerator();
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.GetEnumerator());
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.Current);
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.Reset());
+        Assert.Throws<ObjectDisposedException>(() => dict.GetEnumerator());
+        Assert.Throws<ObjectDisposedException>(() => enumerator.Current);
+        Assert.Throws<ObjectDisposedException>(() => enumerator.MoveNext());
+        Assert.Throws<ObjectDisposedException>(() => enumerator.Reset());
     }
 
-    [TestMethod]
+    [Fact]
     public void GetValueRefOrAddDefault()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
@@ -562,21 +561,21 @@ public class ArrayPoolDictionaryTests
         {
             ArrayPoolDictionary<int, int>.GetValueRefOrAddDefault(dict, i, out bool exists) = i * 3;
 
-            Assert.AreEqual(1 <= i && i <= 3, exists);
-            Assert.AreEqual(i * 3, dict[i]);
+            Assert.Equal(1 <= i && i <= 3, exists);
+            Assert.Equal(i * 3, dict[i]);
         }
 
 
         var enumerator = dict.GetEnumerator();
         ArrayPoolDictionary<int, int>.GetValueRefOrAddDefault(dict, 1, out _) = 123;
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolDictionary<int, int>.GetValueRefOrAddDefault(dict, 0, out bool exists) = 0);
+        Assert.Throws<ObjectDisposedException>(() => ArrayPoolDictionary<int, int>.GetValueRefOrAddDefault(dict, 0, out bool exists) = 0);
     }
 
-    [TestMethod]
+    [Fact]
     public void GetValueRefOrNullRef()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
@@ -585,59 +584,59 @@ public class ArrayPoolDictionaryTests
         {
             ref var value = ref ArrayPoolDictionary<int, int>.GetValueRefOrNullRef(dict, i);
 
-            Assert.AreEqual(1 <= i && i <= 3, !Unsafe.IsNullRef(ref value));
+            Assert.Equal(1 <= i && i <= 3, !Unsafe.IsNullRef(ref value));
 
             if (!Unsafe.IsNullRef(ref value))
             {
                 value = i * 3;
-                Assert.AreEqual(i * 3, dict[i]);
+                Assert.Equal(i * 3, dict[i]);
             }
         }
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolDictionary<int, int>.GetValueRefOrAddDefault(dict, 0, out bool exists) = 0);
+        Assert.Throws<ObjectDisposedException>(() => ArrayPoolDictionary<int, int>.GetValueRefOrAddDefault(dict, 0, out bool exists) = 0);
 
     }
 
-    [TestMethod]
+    [Fact]
     public void Remove()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
 
-        Assert.IsTrue(dict.Remove(1));
-        Assert.IsFalse(dict.ContainsKey(1));
-        Assert.IsFalse(dict.Remove(1));
+        Assert.True(dict.Remove(1));
+        Assert.False(dict.ContainsKey(1));
+        Assert.False(dict.Remove(1));
 
-        Assert.IsTrue(dict.Remove(2, out var value));
-        Assert.AreEqual(4, value);
-        Assert.IsFalse(dict.Remove(2, out value));
+        Assert.True(dict.Remove(2, out var value));
+        Assert.Equal(4, value);
+        Assert.False(dict.Remove(2, out value));
 
         var enumerator = dict.GetEnumerator();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
         dict.Remove(3);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.Remove(3));
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.Remove(3, out value));
+        Assert.Throws<ObjectDisposedException>(() => dict.Remove(3));
+        Assert.Throws<ObjectDisposedException>(() => dict.Remove(3, out value));
     }
 
-    [TestMethod]
+    [Fact]
     public void TrimExcess()
     {
         var dict = new ArrayPoolDictionary<int, int>(48);
 
         dict.TrimExcess();
-        Assert.AreEqual(16, dict.Capacity);
+        Assert.Equal(16, dict.Capacity);
 
         dict.TrimExcess(256);
-        Assert.AreEqual(256, dict.Capacity);
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => dict.TrimExcess(-1));
+        Assert.Equal(256, dict.Capacity);
+        Assert.Throws<ArgumentOutOfRangeException>(() => dict.TrimExcess(-1));
 
         for (int i = 0; i < 64; i++)
         {
@@ -645,167 +644,167 @@ public class ArrayPoolDictionaryTests
         }
 
         dict.TrimExcess(dict.Count);
-        Assert.AreEqual(64, dict.Capacity);
+        Assert.Equal(64, dict.Capacity);
 
 
         var enumerator = dict.GetEnumerator();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
         dict.TrimExcess();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.TrimExcess());
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.TrimExcess(1));
+        Assert.Throws<ObjectDisposedException>(() => dict.TrimExcess());
+        Assert.Throws<ObjectDisposedException>(() => dict.TrimExcess(1));
     }
 
-    [TestMethod]
+    [Fact]
     public void TryAdd()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
 
-        Assert.IsTrue(dict.TryAdd(4, 8));
-        Assert.AreEqual(8, dict[4]);
-        Assert.IsFalse(dict.TryAdd(1, 123));
-        Assert.AreEqual(2, dict[1]);
+        Assert.True(dict.TryAdd(4, 8));
+        Assert.Equal(8, dict[4]);
+        Assert.False(dict.TryAdd(1, 123));
+        Assert.Equal(2, dict[1]);
 
 
         var enumerator = dict.GetEnumerator();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
 
         dict.TryAdd(-1, -1);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.TryAdd(5, 10));
+        Assert.Throws<ObjectDisposedException>(() => dict.TryAdd(5, 10));
     }
 
-    [TestMethod]
+    [Fact]
     public void TryGetAlternateLookup()
     {
         var dict = new ArrayPoolDictionary<int, int>(new DoubleIntEqualityComparer()) { { 3, 6 } };
 
-        Assert.IsTrue(dict.TryGetAlternateLookup<double>(out var lookup));
-        Assert.IsTrue(ReferenceEquals(dict, lookup.Dictionary));
-        Assert.AreEqual(6, lookup[3.0]);
+        Assert.True(dict.TryGetAlternateLookup<double>(out var lookup));
+        Assert.True(ReferenceEquals(dict, lookup.Dictionary));
+        Assert.Equal(6, lookup[3.0]);
 
         using var normalDict = new ArrayPoolDictionary<string, string>();
-        Assert.IsFalse(dict.TryGetAlternateLookup<string>(out var stringLookup));
+        Assert.False(dict.TryGetAlternateLookup<string>(out var stringLookup));
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.TryGetAlternateLookup<double>(out lookup));
+        Assert.Throws<ObjectDisposedException>(() => dict.TryGetAlternateLookup<double>(out lookup));
     }
 
-    [TestMethod]
+    [Fact]
     public void TryGetValue()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
 
-        Assert.IsTrue(dict.TryGetValue(1, out var value));
-        Assert.AreEqual(2, value);
+        Assert.True(dict.TryGetValue(1, out var value));
+        Assert.Equal(2, value);
 
-        Assert.IsFalse(dict.TryGetValue(-1, out value));
+        Assert.False(dict.TryGetValue(-1, out value));
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.TryGetValue(1, out value));
+        Assert.Throws<ObjectDisposedException>(() => dict.TryGetValue(1, out value));
     }
 
-    [TestMethod]
+    [Fact]
     public void Add_ICollectionT()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
 
         dict.Add(new(4, 8));
-        Assert.AreEqual(8, dict[4]);
+        Assert.Equal(8, dict[4]);
 
-        Assert.ThrowsException<ArgumentException>(() => dict.Add(1, 123));
-        Assert.AreEqual(2, dict[1]);
+        Assert.Throws<ArgumentException>(() => dict.Add(1, 123));
+        Assert.Equal(2, dict[1]);
 
 
         var enumerator = dict.GetEnumerator();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
 
         dict.Add(new(-1, -1));
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.Add(new(-1, -1)));
+        Assert.Throws<ObjectDisposedException>(() => dict.Add(new(-1, -1)));
     }
 
-    [TestMethod]
+    [Fact]
     public void Contains_ICollectionT()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
 
-        Assert.IsTrue(dict.Contains(new(1, 2)));
-        Assert.IsFalse(dict.Contains(new(2, -1)));
-        Assert.IsFalse(dict.Contains(new(-1, 2)));
+        Assert.True(dict.Contains(new(1, 2)));
+        Assert.False(dict.Contains(new(2, -1)));
+        Assert.False(dict.Contains(new(-1, 2)));
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.Contains(new(-1, -1)));
+        Assert.Throws<ObjectDisposedException>(() => dict.Contains(new(-1, -1)));
     }
 
-    [TestMethod]
+    [Fact]
     public void CopyTo_ICollectionT()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
         var array = new KeyValuePair<int, int>[8];
 
         dict.CopyTo(array, 1);
-        CollectionAssert.AreEquivalent(new KeyValuePair<int, int>[] {
+        Assert.Equivalent(new KeyValuePair<int, int>[] {
             new(), new(1, 2), new(2, 4), new(3, 6), new(), new(), new(), new() }, array);
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => dict.CopyTo(array, -1));
-        Assert.ThrowsException<ArgumentException>(() => dict.CopyTo(array, 99));
-        Assert.ThrowsException<ArgumentException>(() => dict.CopyTo(array, 6));
+        Assert.Throws<ArgumentOutOfRangeException>(() => dict.CopyTo(array, -1));
+        Assert.Throws<ArgumentException>(() => dict.CopyTo(array, 99));
+        Assert.Throws<ArgumentException>(() => dict.CopyTo(array, 6));
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.CopyTo(array, 1));
+        Assert.Throws<ObjectDisposedException>(() => dict.CopyTo(array, 1));
     }
 
-    [TestMethod]
+    [Fact]
     public void Remove_ICollectionT()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
 
-        Assert.IsTrue(dict.Remove(new KeyValuePair<int, int>(1, 2)));
-        Assert.IsFalse(dict.ContainsKey(1));
+        Assert.True(dict.Remove(new KeyValuePair<int, int>(1, 2)));
+        Assert.False(dict.ContainsKey(1));
 
-        Assert.IsFalse(dict.Remove(new KeyValuePair<int, int>(1, 2)));
-        Assert.IsFalse(dict.Remove(new KeyValuePair<int, int>(-1, 2)));
-        Assert.IsFalse(dict.Remove(new KeyValuePair<int, int>(2, -1)));
+        Assert.False(dict.Remove(new KeyValuePair<int, int>(1, 2)));
+        Assert.False(dict.Remove(new KeyValuePair<int, int>(-1, 2)));
+        Assert.False(dict.Remove(new KeyValuePair<int, int>(2, -1)));
 
 
         var enumerator = dict.GetEnumerator();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
 
         dict.Remove(new KeyValuePair<int, int>(2, 4));
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => dict.Remove(new KeyValuePair<int, int>(-1, -1)));
+        Assert.Throws<ObjectDisposedException>(() => dict.Remove(new KeyValuePair<int, int>(-1, -1)));
     }
 
-    [TestMethod]
+    [Fact]
     public void CopyTo_ICollection()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
@@ -813,7 +812,7 @@ public class ArrayPoolDictionaryTests
         ICollection icollection = dict;
 
         icollection.CopyTo(objectArray, 1);
-        CollectionAssert.AreEquivalent(new object?[] {
+        Assert.Equivalent(new object?[] {
             null,
             new KeyValuePair<int, int>(1, 2),
             new KeyValuePair<int, int>(2, 4),
@@ -824,156 +823,156 @@ public class ArrayPoolDictionaryTests
             null
         }, objectArray);
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => icollection.CopyTo(objectArray, -1));
-        Assert.ThrowsException<ArgumentException>(() => icollection.CopyTo(objectArray, 99));
-        Assert.ThrowsException<ArgumentException>(() => icollection.CopyTo(objectArray, 6));
-        Assert.ThrowsException<ArgumentException>(() => icollection.CopyTo(new object[8, 8], 1));
-        Assert.ThrowsException<ArgumentException>(() => icollection.CopyTo(new string[8], 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => icollection.CopyTo(objectArray, -1));
+        Assert.Throws<ArgumentException>(() => icollection.CopyTo(objectArray, 99));
+        Assert.Throws<ArgumentException>(() => icollection.CopyTo(objectArray, 6));
+        Assert.Throws<ArgumentException>(() => icollection.CopyTo(new object[8, 8], 1));
+        Assert.Throws<ArgumentException>(() => icollection.CopyTo(new string[8], 1));
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => icollection.CopyTo(objectArray, 1));
+        Assert.Throws<ObjectDisposedException>(() => icollection.CopyTo(objectArray, 1));
     }
 
-    [TestMethod]
+    [Fact]
     public void Add_IDictionary()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
         IDictionary idict = dict;
 
         idict.Add(4, 8);
-        Assert.AreEqual(8, dict[4]);
+        Assert.Equal(8, dict[4]);
 
-        Assert.ThrowsException<ArgumentNullException>(() => idict.Add(null!, 0));
-        Assert.ThrowsException<ArgumentException>(() => idict.Add("5", 1));
-        Assert.ThrowsException<ArgumentException>(() => idict.Add(5, "10"));
-        Assert.ThrowsException<ArgumentException>(() => idict.Add(4, 8));
+        Assert.Throws<ArgumentNullException>(() => idict.Add(null!, 0));
+        Assert.Throws<ArgumentException>(() => idict.Add("5", 1));
+        Assert.Throws<ArgumentException>(() => idict.Add(5, "10"));
+        Assert.Throws<ArgumentException>(() => idict.Add(4, 8));
 
 
         var enumerator = dict.GetEnumerator();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         _ = enumerator.Current;
 
         idict.Add(5, 10);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => idict.Add(6, 12));
+        Assert.Throws<ObjectDisposedException>(() => idict.Add(6, 12));
     }
 
-    [TestMethod]
+    [Fact]
     public void Contains_IDictionary()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
         IDictionary idict = dict;
 
-        Assert.IsTrue(idict.Contains(1));
-        Assert.IsFalse(idict.Contains(4));
-        Assert.IsFalse(idict.Contains("1"));
+        Assert.True(idict.Contains(1));
+        Assert.False(idict.Contains(4));
+        Assert.False(idict.Contains("1"));
 
-        Assert.ThrowsException<ArgumentNullException>(() => idict.Contains(null!));
+        Assert.Throws<ArgumentNullException>(() => idict.Contains(null!));
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => idict.Contains(1));
+        Assert.Throws<ObjectDisposedException>(() => idict.Contains(1));
     }
 
-    [TestMethod]
+    [Fact]
     public void GetEnumerator_IDictionary()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
         IDictionary idict = dict;
 
-        CollectionAssert.AreEquivalent(new KeyValuePair<int, int>[] { new(1, 2), new(2, 4), new(3, 6) }, idict);
+        Assert.Equivalent(new KeyValuePair<int, int>[] { new(1, 2), new(2, 4), new(3, 6) }, idict);
 
         var enumerator = idict.GetEnumerator();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Entry);
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Entry);
+        Assert.True(enumerator.MoveNext());
         // should not throw any exceptions
         _ = enumerator.Entry;
         _ = enumerator.Key;
         _ = enumerator.Value;
-        Assert.IsTrue(enumerator.MoveNext());
-        Assert.IsTrue(enumerator.MoveNext());
-        Assert.IsFalse(enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Entry);
+        Assert.True(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
+        Assert.False(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Entry);
 
         enumerator.Reset();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         idict.Add(4, 8);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Entry);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Reset());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Entry);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
 
         enumerator = idict.GetEnumerator();
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => idict.GetEnumerator());
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.MoveNext());
+        Assert.Throws<ObjectDisposedException>(() => idict.GetEnumerator());
+        Assert.Throws<ObjectDisposedException>(() => enumerator.MoveNext());
     }
 
-    [TestMethod]
+    [Fact]
     public void Items_IDictionary()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
         IDictionary idict = dict;
 
-        Assert.AreEqual(2, idict[1]);
-        Assert.IsNull(idict[-1]);
-        Assert.IsNull(idict["hoge"]);
-        Assert.ThrowsException<ArgumentNullException>(() => idict[null!]);
+        Assert.Equal(2, idict[1]);
+        Assert.Null(idict[-1]);
+        Assert.Null(idict["hoge"]);
+        Assert.Throws<ArgumentNullException>(() => idict[null!]);
 
         idict[1] = 123;
-        Assert.AreEqual(123, dict[1]);
+        Assert.Equal(123, dict[1]);
         idict[4] = 456;
-        Assert.AreEqual(456, dict[4]);
+        Assert.Equal(456, dict[4]);
 
-        Assert.ThrowsException<ArgumentException>(() => idict["hoge"] = 123);
-        Assert.ThrowsException<ArgumentException>(() => idict[123] = "hoge");
-        Assert.ThrowsException<ArgumentNullException>(() => idict[null!] = 123);
+        Assert.Throws<ArgumentException>(() => idict["hoge"] = 123);
+        Assert.Throws<ArgumentException>(() => idict[123] = "hoge");
+        Assert.Throws<ArgumentNullException>(() => idict[null!] = 123);
 
         var enumerator = idict.GetEnumerator();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         idict[1] = 123;
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Entry);
+        Assert.Throws<InvalidOperationException>(() => enumerator.Entry);
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => idict[1]);
-        Assert.ThrowsException<ObjectDisposedException>(() => idict[1] = 123);
+        Assert.Throws<ObjectDisposedException>(() => idict[1]);
+        Assert.Throws<ObjectDisposedException>(() => idict[1] = 123);
     }
 
-    [TestMethod]
+    [Fact]
     public void Remove_IDictionary()
     {
         var dict = new ArrayPoolDictionary<int, int>() { { 1, 2 }, { 2, 4 }, { 3, 6 } };
         IDictionary idict = dict;
 
         idict.Remove(1);
-        Assert.IsFalse(dict.ContainsKey(1));
+        Assert.False(dict.ContainsKey(1));
 
         // should not throw any exceptions
         idict.Remove(-1);
         idict.Remove("hoge");
 
-        Assert.ThrowsException<ArgumentNullException>(() => idict.Remove(null!));
+        Assert.Throws<ArgumentNullException>(() => idict.Remove(null!));
 
 
         var enumerator = idict.GetEnumerator();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
         idict.Remove(2);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Entry);
+        Assert.Throws<InvalidOperationException>(() => enumerator.Entry);
 
 
         dict.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => idict.Remove(3));
+        Assert.Throws<ObjectDisposedException>(() => idict.Remove(3));
     }
 
-    [TestMethod]
+    [Fact]
     public void Monkey()
     {
         var rng = new Random(0);
@@ -987,17 +986,17 @@ public class ArrayPoolDictionaryTests
             {
                 int key = rng.Next(1024);
 
-                Assert.AreEqual(expect.Remove(key), actual.Remove(key));
+                Assert.Equal(expect.Remove(key), actual.Remove(key));
             }
             else
             {
                 int key = rng.Next(1024);
 
-                Assert.AreEqual(expect.TryAdd(key, key), actual.TryAdd(key, key));
+                Assert.Equal(expect.TryAdd(key, key), actual.TryAdd(key, key));
             }
         }
 
-        CollectionAssert.AreEquivalent(expect, actual);
+        Assert.Equivalent(expect, actual);
     }
 
     public record class FixedHashCode(int Value)
@@ -1008,14 +1007,15 @@ public class ArrayPoolDictionaryTests
         }
     }
 
-    [ConditionalTestMethod("HUGE")]
+    // TODO
+    //[ConditionalFact("HUGE")]
     public void Pathological()
     {
         var dict = new ArrayPoolDictionary<FixedHashCode, int>();
 
         for (int i = 0; i < 1 << 24; i++)
         {
-            Assert.IsTrue(dict.TryAdd(new FixedHashCode(i), i));
+            Assert.True(dict.TryAdd(new FixedHashCode(i), i));
 
             if (i % 1000 == 0)
             {
@@ -1025,12 +1025,13 @@ public class ArrayPoolDictionaryTests
 
         for (int i = 0; i < 1 << 24; i++)
         {
-            Assert.IsTrue(dict.TryGetValue(new FixedHashCode(i), out var value));
-            Assert.AreEqual(i, value);
+            Assert.True(dict.TryGetValue(new FixedHashCode(i), out var value));
+            Assert.Equal(i, value);
         }
     }
 
-    [ConditionalTestMethod("HUGE")]
+    // TODO
+    //[ConditionalFact("HUGE")]
     public void Huge()
     {
         var rng = new Random(0);
@@ -1043,64 +1044,64 @@ public class ArrayPoolDictionaryTests
         }
 
         dict[0] = 123;
-        Assert.AreEqual(123, dict[0]);
+        Assert.Equal(123, dict[0]);
         dict[0] = 0;
 
         i = 0;
         foreach (var key in dict.Keys)
         {
-            Assert.AreEqual(i, key);
+            Assert.Equal(i, key);
             i++;
         }
 
         i = 0;
         foreach (var value in dict.Values)
         {
-            Assert.AreEqual(i, value);
+            Assert.Equal(i, value);
             i++;
         }
 
-        Assert.AreEqual(CollectionHelper.ArrayMaxLength, dict.Capacity);
+        Assert.Equal(CollectionHelper.ArrayMaxLength, dict.Capacity);
 
-        Assert.AreEqual(new DoubleIntEqualityComparer(), dict.Comparer);
+        Assert.Equal(new DoubleIntEqualityComparer(), dict.Comparer);
 
-        Assert.AreEqual(CollectionHelper.ArrayMaxLength, dict.Count);
+        Assert.Equal(CollectionHelper.ArrayMaxLength, dict.Count);
 
-        Assert.ThrowsException<OutOfMemoryException>(() => dict.Add(-1, -1));
-        Assert.ThrowsException<OutOfMemoryException>(() => dict.Add(new(-1, -1)));
+        Assert.Throws<OutOfMemoryException>(() => dict.Add(-1, -1));
+        Assert.Throws<OutOfMemoryException>(() => dict.Add(new(-1, -1)));
 
-        Assert.AreEqual(CollectionHelper.ArrayMaxLength, ArrayPoolDictionary<int, int>.AsSpan(dict).Length);
+        Assert.Equal(CollectionHelper.ArrayMaxLength, ArrayPoolDictionary<int, int>.AsSpan(dict).Length);
 
         // dict.Clear();
 
-        Assert.IsTrue(dict.Contains(new(1, 1)));
+        Assert.True(dict.Contains(new(1, 1)));
 
-        Assert.IsTrue(dict.ContainsKey(1));
+        Assert.True(dict.ContainsKey(1));
 
-        Assert.IsTrue(dict.ContainsKey(CollectionHelper.ArrayMaxLength));
+        Assert.True(dict.ContainsKey(CollectionHelper.ArrayMaxLength));
 
-        Assert.ThrowsException<OutOfMemoryException>(() => dict.EnsureCapacity(int.MaxValue));
+        Assert.Throws<OutOfMemoryException>(() => dict.EnsureCapacity(int.MaxValue));
 
         var buffer = new KeyValuePair<int, int>[CollectionHelper.ArrayMaxLength];
         dict.CopyTo(buffer, 0);
 
-        Assert.IsTrue(dict.GetAlternateLookup<double>().ContainsKey(1.0));
-        Assert.IsTrue(dict.GetAlternateLookup<double>().TryGetValue(1.0, out _));
-        Assert.ThrowsException<OutOfMemoryException>(() => dict.GetAlternateLookup<double>().TryAdd(-1.0, 2));
+        Assert.True(dict.GetAlternateLookup<double>().ContainsKey(1.0));
+        Assert.True(dict.GetAlternateLookup<double>().TryGetValue(1.0, out _));
+        Assert.Throws<OutOfMemoryException>(() => dict.GetAlternateLookup<double>().TryAdd(-1.0, 2));
 
         foreach (var pair in dict)
         {
-            Assert.IsTrue(pair.Key == pair.Value);
+            Assert.True(pair.Key == pair.Value);
         }
 
-        Assert.IsFalse(dict.Remove(-1));
+        Assert.False(dict.Remove(-1));
 
         dict.TrimExcess();
 
-        Assert.IsFalse(dict.TryAdd(-1, -1));
+        Assert.False(dict.TryAdd(-1, -1));
 
-        Assert.IsTrue(dict.TryGetAlternateLookup<double>(out _));
+        Assert.True(dict.TryGetAlternateLookup<double>(out _));
 
-        Assert.IsTrue(dict.TryGetValue(1, out _));
+        Assert.True(dict.TryGetValue(1, out _));
     }
 }

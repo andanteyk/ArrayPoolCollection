@@ -1,111 +1,110 @@
 namespace ArrayPoolCollection.Tests;
 
-[TestClass]
 public class ArrayPoolQueueTests
 {
-    [TestMethod]
+    [Fact]
     public void Count()
     {
         var queue = new ArrayPoolQueue<int>();
-        Assert.AreEqual(0, queue.Count);
+        Assert.Empty(queue);
 
         for (int i = 0; i < 100; i++)
         {
             queue.Enqueue(i);
-            Assert.AreEqual(i + 1, queue.Count);
+            Assert.Equal(i + 1, queue.Count);
         }
 
         for (int i = 0; i < 100; i++)
         {
             queue.Dequeue();
-            Assert.AreEqual(99 - i, queue.Count);
+            Assert.Equal(99 - i, queue.Count);
         }
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.Count);
+        Assert.Throws<ObjectDisposedException>(() => queue.Count);
     }
 
-    [TestMethod]
+    [Fact]
     public void Capacity()
     {
         var queue = new ArrayPoolQueue<int>(48);
-        Assert.AreEqual(64, queue.Capacity);
+        Assert.Equal(64, queue.Capacity);
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.Capacity);
+        Assert.Throws<ObjectDisposedException>(() => queue.Capacity);
     }
 
-    [TestMethod]
+    [Fact]
     public void Ctor()
     {
         using var empty = new ArrayPoolQueue<int>();
-        Assert.AreEqual(0, empty.Count);
-        Assert.AreEqual(16, empty.Capacity);
+        Assert.Empty(empty);
+        Assert.Equal(16, empty.Capacity);
 
         using var withCapacity = new ArrayPoolQueue<int>(192);
-        Assert.AreEqual(0, withCapacity.Count);
-        Assert.AreEqual(256, withCapacity.Capacity);
+        Assert.Empty(withCapacity);
+        Assert.Equal(256, withCapacity.Capacity);
 
         using var withSource = new ArrayPoolQueue<int>(Enumerable.Range(0, 100));
-        Assert.AreEqual(100, withSource.Count);
-        Assert.AreEqual(128, withSource.Capacity);
+        Assert.Equal(100, withSource.Count);
+        Assert.Equal(128, withSource.Capacity);
     }
 
-    [TestMethod]
+    [Fact]
     public void AsSpan()
     {
         var queue = new ArrayPoolQueue<int>(Enumerable.Range(1, 3));
         ArrayPoolQueue<int>.AsSpan(queue, out var head, out var tail);
 
-        CollectionAssert.AreEqual(new int[] { 1, 2, 3 }, head.ToArray().Concat(tail.ToArray()).ToArray());
+        Assert.Equal(new int[] { 1, 2, 3 }, head.ToArray().Concat(tail.ToArray()).ToArray());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolQueue<int>.AsSpan(queue, out _, out _));
+        Assert.Throws<ObjectDisposedException>(() => ArrayPoolQueue<int>.AsSpan(queue, out _, out _));
     }
 
-    [TestMethod]
+    [Fact]
     public void Clear()
     {
         var queue = new ArrayPoolQueue<int>(Enumerable.Range(0, 100));
         queue.Clear();
-        Assert.AreEqual(0, queue.Count);
+        Assert.Empty(queue);
 
         // should not throw any exceptions
         queue.Clear();
-        Assert.AreEqual(0, queue.Count);
+        Assert.Empty(queue);
 
 
         queue.Enqueue(1);
         var enumerable = queue.GetEnumerator();
         queue.Clear();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerable.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerable.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.Clear());
+        Assert.Throws<ObjectDisposedException>(() => queue.Clear());
     }
 
-    [TestMethod]
+    [Fact]
     public void Contains()
     {
         var queue = new ArrayPoolQueue<int>(Enumerable.Range(0, 100));
 
         for (int i = 0; i < 100; i++)
         {
-            Assert.IsTrue(queue.Contains(i));
+            Assert.True(queue.Contains(i));
         }
 
-        Assert.IsFalse(queue.Contains(-1));
+        Assert.False(queue.Contains(-1));
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.Contains(1));
+        Assert.Throws<ObjectDisposedException>(() => queue.Contains(1));
     }
 
-    [TestMethod]
+    [Fact]
     public void CopyTo()
     {
         var queue = new ArrayPoolQueue<int>(Enumerable.Range(0, 100));
@@ -114,42 +113,42 @@ public class ArrayPoolQueueTests
         queue.CopyTo(buffer, 1);
         for (int i = 1; i <= 100; i++)
         {
-            Assert.AreEqual(i - 1, buffer[i]);
+            Assert.Equal(i - 1, buffer[i]);
         }
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => queue.CopyTo(buffer, -1));
-        Assert.ThrowsException<ArgumentException>(() => queue.CopyTo(buffer, 122));
+        Assert.Throws<ArgumentOutOfRangeException>(() => queue.CopyTo(buffer, -1));
+        Assert.Throws<ArgumentException>(() => queue.CopyTo(buffer, 122));
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.CopyTo(buffer, 0));
+        Assert.Throws<ObjectDisposedException>(() => queue.CopyTo(buffer, 0));
     }
 
-    [TestMethod]
+    [Fact]
     public void Dequeue()
     {
         var queue = new ArrayPoolQueue<int>(Enumerable.Range(0, 100));
 
         for (int i = 0; i < 100; i++)
         {
-            Assert.AreEqual(i, queue.Dequeue());
-            Assert.AreEqual(99 - i, queue.Count);
+            Assert.Equal(i, queue.Dequeue());
+            Assert.Equal(99 - i, queue.Count);
         }
 
-        Assert.ThrowsException<InvalidOperationException>(() => queue.Dequeue());
+        Assert.Throws<InvalidOperationException>(() => queue.Dequeue());
 
 
         queue.Enqueue(1);
         var enumerator = queue.GetEnumerator();
         queue.Dequeue();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.Dequeue());
+        Assert.Throws<ObjectDisposedException>(() => queue.Dequeue());
     }
 
-    [TestMethod]
+    [Fact]
     public void Enqueue()
     {
         var queue = new ArrayPoolQueue<int>();
@@ -157,20 +156,20 @@ public class ArrayPoolQueueTests
         for (int i = 0; i < 100; i++)
         {
             queue.Enqueue(i);
-            Assert.AreEqual(i + 1, queue.Count);
+            Assert.Equal(i + 1, queue.Count);
         }
 
 
         var enumerator = queue.GetEnumerator();
         queue.Enqueue(100);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.Enqueue(-1));
+        Assert.Throws<ObjectDisposedException>(() => queue.Enqueue(-1));
     }
 
-    [TestMethod]
+    [Fact]
     public void EnqueueRange()
     {
         var queue = new ArrayPoolQueue<int>();
@@ -178,45 +177,45 @@ public class ArrayPoolQueueTests
         for (int i = 0; i < 100; i += 10)
         {
             queue.EnqueueRange(Enumerable.Range(i, 10));
-            Assert.AreEqual(i + 10, queue.Count);
-            CollectionAssert.AreEqual(Enumerable.Range(0, i + 10).ToArray(), queue);
+            Assert.Equal(i + 10, queue.Count);
+            Assert.Equal(Enumerable.Range(0, i + 10).ToArray(), queue);
         }
 
         for (int i = 100; i < 200; i += 10)
         {
             queue.EnqueueRange(Enumerable.Range(i, 10).ToArray().AsSpan());
-            Assert.AreEqual(i + 10, queue.Count);
-            CollectionAssert.AreEqual(Enumerable.Range(0, i + 10).ToArray(), queue);
+            Assert.Equal(i + 10, queue.Count);
+            Assert.Equal(Enumerable.Range(0, i + 10).ToArray(), queue);
         }
 
 
         var enumerator = queue.GetEnumerator();
         queue.EnqueueRange(Enumerable.Range(0, 10).ToArray());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.EnqueueRange(Enumerable.Range(0, 10)));
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.EnqueueRange(Enumerable.Range(0, 10).ToArray()));
+        Assert.Throws<ObjectDisposedException>(() => queue.EnqueueRange(Enumerable.Range(0, 10)));
+        Assert.Throws<ObjectDisposedException>(() => queue.EnqueueRange(Enumerable.Range(0, 10).ToArray()));
     }
 
-    [TestMethod]
+    [Fact]
     public void EnsureCapacity()
     {
         var queue = new ArrayPoolQueue<int>();
-        Assert.AreEqual(64, queue.EnsureCapacity(48));
-        Assert.AreEqual(64, queue.EnsureCapacity(1));
+        Assert.Equal(64, queue.EnsureCapacity(48));
+        Assert.Equal(64, queue.EnsureCapacity(1));
 
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => queue.EnsureCapacity(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => queue.EnsureCapacity(-1));
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.EnsureCapacity(100));
+        Assert.Throws<ObjectDisposedException>(() => queue.EnsureCapacity(100));
 
     }
 
-    [TestMethod]
+    [Fact]
     public void GetEnumerator()
     {
         var queue = new ArrayPoolQueue<int>(Enumerable.Range(0, 100));
@@ -224,79 +223,79 @@ public class ArrayPoolQueueTests
         int i = 0;
         foreach (var element in queue)
         {
-            Assert.AreEqual(i, element);
+            Assert.Equal(i, element);
             i++;
         }
 
         var enumerator = queue.GetEnumerator();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
         for (i = 0; i < 100; i++)
         {
-            Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual(i, enumerator.Current);
+            Assert.True(enumerator.MoveNext());
+            Assert.Equal(i, enumerator.Current);
         }
-        Assert.IsFalse(enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
+        Assert.False(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
 
 
         enumerator.Reset();
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.GetEnumerator());
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.Current);
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.Reset());
+        Assert.Throws<ObjectDisposedException>(() => queue.GetEnumerator());
+        Assert.Throws<ObjectDisposedException>(() => enumerator.Current);
+        Assert.Throws<ObjectDisposedException>(() => enumerator.MoveNext());
+        Assert.Throws<ObjectDisposedException>(() => enumerator.Reset());
     }
 
-    [TestMethod]
+    [Fact]
     public void Peek()
     {
         var queue = new ArrayPoolQueue<int>();
 
-        Assert.ThrowsException<InvalidOperationException>(() => queue.Peek());
+        Assert.Throws<InvalidOperationException>(() => queue.Peek());
 
         for (int i = 0; i < 100; i++)
         {
             queue.Enqueue(i);
-            Assert.AreEqual(0, queue.Peek());
+            Assert.Equal(0, queue.Peek());
         }
 
         for (int i = 0; i < 100; i++)
         {
-            Assert.AreEqual(i, queue.Peek());
+            Assert.Equal(i, queue.Peek());
             queue.Dequeue();
         }
 
-        Assert.ThrowsException<InvalidOperationException>(() => queue.Peek());
+        Assert.Throws<InvalidOperationException>(() => queue.Peek());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.Peek());
+        Assert.Throws<ObjectDisposedException>(() => queue.Peek());
     }
 
-    [TestMethod]
+    [Fact]
     public void SetCount()
     {
         var queue = new ArrayPoolQueue<int>(Enumerable.Range(1, 6));
 
         ArrayPoolQueue<int>.SetCount(queue, 12);
-        Assert.AreEqual(12, queue.Count);
+        Assert.Equal(12, queue.Count);
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => ArrayPoolQueue<int>.SetCount(queue, -1));
-        Assert.ThrowsException<ArgumentException>(() => ArrayPoolQueue<int>.SetCount(queue, 99));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ArrayPoolQueue<int>.SetCount(queue, -1));
+        Assert.Throws<ArgumentException>(() => ArrayPoolQueue<int>.SetCount(queue, 99));
 
 
         var enumerator = queue.GetEnumerator();
         ArrayPoolQueue<int>.SetCount(queue, 13);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolQueue<int>.SetCount(queue, 1));
+        Assert.Throws<ObjectDisposedException>(() => ArrayPoolQueue<int>.SetCount(queue, 1));
     }
 
-    [TestMethod]
+    [Fact]
     public void ToArray()
     {
         var queue = new ArrayPoolQueue<int>(Enumerable.Range(0, 100));
@@ -304,85 +303,85 @@ public class ArrayPoolQueueTests
         var result = queue.ToArray();
         for (int i = 0; i < 100; i++)
         {
-            Assert.AreEqual(i, result[i]);
+            Assert.Equal(i, result[i]);
         }
 
         queue.Clear();
-        Assert.AreEqual(0, queue.ToArray().Length);
+        Assert.Empty(queue.ToArray());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.ToArray());
+        Assert.Throws<ObjectDisposedException>(() => queue.ToArray());
     }
 
-    [TestMethod]
+    [Fact]
     public void TrimExcess()
     {
         var queue = new ArrayPoolQueue<int>(Enumerable.Range(0, 100));
 
         queue.TrimExcess();
-        Assert.AreEqual(128, queue.Capacity);
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => queue.TrimExcess(12));
+        Assert.Equal(128, queue.Capacity);
+        Assert.Throws<ArgumentOutOfRangeException>(() => queue.TrimExcess(12));
 
         queue.Clear();
         queue.TrimExcess();
-        Assert.AreEqual(16, queue.Capacity);
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => queue.TrimExcess(-1));
+        Assert.Equal(16, queue.Capacity);
+        Assert.Throws<ArgumentOutOfRangeException>(() => queue.TrimExcess(-1));
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.TrimExcess());
+        Assert.Throws<ObjectDisposedException>(() => queue.TrimExcess());
     }
 
-    [TestMethod]
+    [Fact]
     public void TryDequeue()
     {
         var queue = new ArrayPoolQueue<int>(Enumerable.Range(0, 100));
 
         for (int i = 0; i < 100; i++)
         {
-            Assert.IsTrue(queue.TryDequeue(out var value));
-            Assert.AreEqual(i, value);
+            Assert.True(queue.TryDequeue(out var value));
+            Assert.Equal(i, value);
         }
 
-        Assert.IsFalse(queue.TryDequeue(out _));
+        Assert.False(queue.TryDequeue(out _));
 
 
         queue.Enqueue(1);
         var enumerator = queue.GetEnumerator();
         queue.TryDequeue(out _);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.TryDequeue(out _));
+        Assert.Throws<ObjectDisposedException>(() => queue.TryDequeue(out _));
     }
 
-    [TestMethod]
+    [Fact]
     public void TryPeek()
     {
         var queue = new ArrayPoolQueue<int>();
 
-        Assert.IsFalse(queue.TryPeek(out _));
+        Assert.False(queue.TryPeek(out _));
 
         for (int i = 0; i < 100; i++)
         {
             queue.Enqueue(i);
-            Assert.IsTrue(queue.TryPeek(out var value));
-            Assert.AreEqual(0, value);
+            Assert.True(queue.TryPeek(out var value));
+            Assert.Equal(0, value);
         }
 
         for (int i = 0; i < 100; i++)
         {
-            Assert.IsTrue(queue.TryPeek(out var value));
-            Assert.AreEqual(i, value);
+            Assert.True(queue.TryPeek(out var value));
+            Assert.Equal(i, value);
             queue.Dequeue();
         }
 
-        Assert.ThrowsException<InvalidOperationException>(() => queue.Peek());
+        Assert.Throws<InvalidOperationException>(() => queue.Peek());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.TryPeek(out _));
+        Assert.Throws<ObjectDisposedException>(() => queue.TryPeek(out _));
     }
 }

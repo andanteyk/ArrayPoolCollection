@@ -1,45 +1,42 @@
 using System.Collections;
-using System.Reflection;
-using System.Reflection.Metadata;
 
 namespace ArrayPoolCollection.Tests;
 
-[TestClass]
 public class ArrayPoolPriorityQueueTests
 {
-    [TestMethod]
+    [Fact]
     public void Comparer()
     {
         var emptyValue = new ArrayPoolPriorityQueue<int, int>();
-        Assert.AreEqual(Comparer<int>.Default, emptyValue.Comparer);
+        Assert.Equal(Comparer<int>.Default, emptyValue.Comparer);
 
         var emptyClass = new ArrayPoolPriorityQueue<string, string>();
-        Assert.AreEqual(Comparer<string>.Default, emptyClass.Comparer);
+        Assert.Equal(Comparer<string>.Default, emptyClass.Comparer);
 
         var specified = new ArrayPoolPriorityQueue<string, string>(StringComparer.OrdinalIgnoreCase);
-        Assert.AreEqual(StringComparer.OrdinalIgnoreCase, specified.Comparer);
+        Assert.Equal(StringComparer.OrdinalIgnoreCase, specified.Comparer);
 
 
         emptyValue.Dispose();
         emptyClass.Dispose();
         specified.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => emptyValue.Comparer);
-        Assert.ThrowsException<ObjectDisposedException>(() => emptyClass.Comparer);
-        Assert.ThrowsException<ObjectDisposedException>(() => specified.Comparer);
+        Assert.Throws<ObjectDisposedException>(() => emptyValue.Comparer);
+        Assert.Throws<ObjectDisposedException>(() => emptyClass.Comparer);
+        Assert.Throws<ObjectDisposedException>(() => specified.Comparer);
     }
 
-    [TestMethod]
+    [Fact]
     public void Capacity()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>(Enumerable.Range(0, 100).Select(i => (i, i)));
-        Assert.AreEqual(128, queue.Capacity);
+        Assert.Equal(128, queue.Capacity);
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.Capacity);
+        Assert.Throws<ObjectDisposedException>(() => queue.Capacity);
     }
 
-    [TestMethod]
+    [Fact]
     public void Count()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>();
@@ -47,21 +44,21 @@ public class ArrayPoolPriorityQueueTests
         for (int i = 0; i < 100; i++)
         {
             queue.Enqueue(i, i);
-            Assert.AreEqual(i + 1, queue.Count);
+            Assert.Equal(i + 1, queue.Count);
         }
 
         for (int i = 0; i < 100; i++)
         {
             queue.Dequeue();
-            Assert.AreEqual(99 - i, queue.Count);
+            Assert.Equal(99 - i, queue.Count);
         }
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.Count);
+        Assert.Throws<ObjectDisposedException>(() => queue.Count);
     }
 
-    [TestMethod]
+    [Fact]
     public void UnorderedItems()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>();
@@ -72,145 +69,145 @@ public class ArrayPoolPriorityQueueTests
             queue.Enqueue(i, i);
         }
 
-        Assert.AreEqual(100, unorderedItems.Count);
+        Assert.Equal(100, unorderedItems.Count);
         var elementSet = new HashSet<int>();
         foreach (var (element, priority) in unorderedItems)
         {
-            Assert.IsTrue(element == priority);
+            Assert.True(element == priority);
             elementSet.Add(element);
         }
 
-        CollectionAssert.AreEquivalent(elementSet.ToArray(), Enumerable.Range(0, 100).ToArray());
+        Assert.Equivalent(elementSet.ToArray(), Enumerable.Range(0, 100).ToArray());
 
 
         var buffer = new (int element, int priority)[128];
         ((ICollection)unorderedItems).CopyTo(buffer, 1);
-        CollectionAssert.AreEquivalent(elementSet.ToArray(), buffer.Skip(1).Take(100).Select(pair => pair.element).ToArray());
-        CollectionAssert.AreEquivalent(elementSet.ToArray(), buffer.Skip(1).Take(100).Select(pair => pair.priority).ToArray());
+        Assert.Equivalent(elementSet.ToArray(), buffer.Skip(1).Take(100).Select(pair => pair.element).ToArray());
+        Assert.Equivalent(elementSet.ToArray(), buffer.Skip(1).Take(100).Select(pair => pair.priority).ToArray());
 
 
         var enumerator = unorderedItems.GetEnumerator();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
         for (int i = 0; i < 100; i++)
         {
-            Assert.IsTrue(enumerator.MoveNext());
+            Assert.True(enumerator.MoveNext());
             _ = enumerator.Current;
         }
-        Assert.IsFalse(enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
+        Assert.False(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
 
         enumerator.Reset();
-        Assert.IsTrue(enumerator.MoveNext());
+        Assert.True(enumerator.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.UnorderedItems);
-        Assert.ThrowsException<ObjectDisposedException>(() => unorderedItems.GetEnumerator());
-        Assert.ThrowsException<ObjectDisposedException>(() => unorderedItems.Count);
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.MoveNext());
+        Assert.Throws<ObjectDisposedException>(() => queue.UnorderedItems);
+        Assert.Throws<ObjectDisposedException>(() => unorderedItems.GetEnumerator());
+        Assert.Throws<ObjectDisposedException>(() => unorderedItems.Count);
+        Assert.Throws<ObjectDisposedException>(() => enumerator.MoveNext());
     }
 
-    [TestMethod]
+    [Fact]
     public void Ctor()
     {
         using var empty = new ArrayPoolPriorityQueue<int, int>();
-        Assert.AreEqual(16, empty.Capacity);
+        Assert.Equal(16, empty.Capacity);
 
         using var withCapacity = new ArrayPoolPriorityQueue<int, int>(256);
-        Assert.AreEqual(256, withCapacity.Capacity);
+        Assert.Equal(256, withCapacity.Capacity);
 
         using var withComparer = new ArrayPoolPriorityQueue<string, string>(StringComparer.OrdinalIgnoreCase);
-        Assert.AreEqual(StringComparer.OrdinalIgnoreCase, withComparer.Comparer);
+        Assert.Equal(StringComparer.OrdinalIgnoreCase, withComparer.Comparer);
 
         using var withCapacityAndComparer = new ArrayPoolPriorityQueue<string, string>(256, StringComparer.OrdinalIgnoreCase);
-        Assert.AreEqual(256, withCapacityAndComparer.Capacity);
-        Assert.AreEqual(StringComparer.OrdinalIgnoreCase, withCapacityAndComparer.Comparer);
+        Assert.Equal(256, withCapacityAndComparer.Capacity);
+        Assert.Equal(StringComparer.OrdinalIgnoreCase, withCapacityAndComparer.Comparer);
 
         using var withSource = new ArrayPoolPriorityQueue<int, int>(Enumerable.Range(0, 100).Select(i => (i, i)));
-        Assert.AreEqual(100, withSource.Count);
+        Assert.Equal(100, withSource.Count);
 
         using var withSourceAndComparer = new ArrayPoolPriorityQueue<string, int>(Enumerable.Range(0, 100).Select(i => (i.ToString(), i)), Comparer<int>.Default);
-        Assert.AreEqual(100, withSourceAndComparer.Count);
-        Assert.AreEqual(Comparer<int>.Default, withSourceAndComparer.Comparer);
+        Assert.Equal(100, withSourceAndComparer.Count);
+        Assert.Equal(Comparer<int>.Default, withSourceAndComparer.Comparer);
     }
 
-    [TestMethod]
+    [Fact]
     public void AsSpan()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>(Enumerable.Range(1, 15).Select(i => (i, i)));
         var span = ArrayPoolPriorityQueue<int, int>.AsSpan(queue);
 
-        CollectionAssert.AreEquivalent(Enumerable.Range(1, 15).Select(i => (i, i)).ToArray(), span.ToArray());
+        Assert.Equivalent(Enumerable.Range(1, 15).Select(i => (i, i)).ToArray(), span.ToArray());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolPriorityQueue<int, int>.AsSpan(queue));
+        Assert.Throws<ObjectDisposedException>(() => ArrayPoolPriorityQueue<int, int>.AsSpan(queue));
     }
 
-    [TestMethod]
+    [Fact]
     public void Clear()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>(Enumerable.Range(0, 100).Select(i => (i, i)));
-        Assert.AreEqual(100, queue.Count);
+        Assert.Equal(100, queue.Count);
 
         queue.Clear();
-        Assert.AreEqual(0, queue.Count);
+        Assert.Equal(0, queue.Count);
 
 
         queue.Enqueue(0, 0);
         var enumerator = queue.UnorderedItems.GetEnumerator();
         queue.Clear();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.Clear());
+        Assert.Throws<ObjectDisposedException>(() => queue.Clear());
     }
 
-    [TestMethod]
+    [Fact]
     public void Dequeue()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>(Enumerable.Range(0, 100).Select(i => (i, i)));
 
         for (int i = 0; i < 100; i++)
         {
-            Assert.AreEqual(99 - i, queue.Dequeue());
+            Assert.Equal(99 - i, queue.Dequeue());
         }
 
-        Assert.ThrowsException<InvalidOperationException>(() => queue.Dequeue());
+        Assert.Throws<InvalidOperationException>(() => queue.Dequeue());
 
 
         queue.Enqueue(1, 1);
         var enumerator = queue.UnorderedItems.GetEnumerator();
         queue.Dequeue();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.Dequeue());
+        Assert.Throws<ObjectDisposedException>(() => queue.Dequeue());
     }
 
-    [TestMethod]
+    [Fact]
     public void DequeueEnqueue()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>();
-        Assert.ThrowsException<InvalidOperationException>(() => queue.DequeueEnqueue(1, 1));
+        Assert.Throws<InvalidOperationException>(() => queue.DequeueEnqueue(1, 1));
 
         queue.Enqueue(1, 1);
-        Assert.AreEqual(1, queue.DequeueEnqueue(2, 2));
-        Assert.AreEqual(2, queue.DequeueEnqueue(3, 3));
+        Assert.Equal(1, queue.DequeueEnqueue(2, 2));
+        Assert.Equal(2, queue.DequeueEnqueue(3, 3));
 
 
         var enumerator = queue.UnorderedItems.GetEnumerator();
         queue.DequeueEnqueue(4, 4);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.DequeueEnqueue(1, 1));
+        Assert.Throws<ObjectDisposedException>(() => queue.DequeueEnqueue(1, 1));
     }
 
-    [TestMethod]
+    [Fact]
     public void Enqueue()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>();
@@ -218,41 +215,41 @@ public class ArrayPoolPriorityQueueTests
         for (int i = 0; i < 100; i++)
         {
             queue.Enqueue(i, i);
-            Assert.AreEqual(i + 1, queue.Count);
-            Assert.AreEqual(i, queue.Peek());
+            Assert.Equal(i + 1, queue.Count);
+            Assert.Equal(i, queue.Peek());
         }
 
 
         var enumerator = queue.UnorderedItems.GetEnumerator();
         queue.Enqueue(4, 4);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.Enqueue(1, 1));
+        Assert.Throws<ObjectDisposedException>(() => queue.Enqueue(1, 1));
     }
 
-    [TestMethod]
+    [Fact]
     public void EnqueueDequeue()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>();
 
-        Assert.AreEqual(0, queue.EnqueueDequeue(0, 0));
+        Assert.Equal(0, queue.EnqueueDequeue(0, 0));
 
         queue.Enqueue(1, 1);
-        Assert.AreEqual(1, queue.EnqueueDequeue(0, 0));
+        Assert.Equal(1, queue.EnqueueDequeue(0, 0));
 
 
         var enumerator = queue.UnorderedItems.GetEnumerator();
         queue.EnqueueDequeue(4, 4);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.EnqueueDequeue(1, 1));
+        Assert.Throws<ObjectDisposedException>(() => queue.EnqueueDequeue(1, 1));
     }
 
-    [TestMethod]
+    [Fact]
     public void EnqueueRange()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>();
@@ -261,137 +258,137 @@ public class ArrayPoolPriorityQueueTests
 
         for (int i = 0; i < 100; i++)
         {
-            Assert.AreEqual(99 - i, queue.Dequeue());
+            Assert.Equal(99 - i, queue.Dequeue());
         }
 
 
         var enumerator = queue.UnorderedItems.GetEnumerator();
         queue.EnqueueRange(Enumerable.Range(0, 100), 0);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.EnqueueRange(Enumerable.Range(0, 100), 0));
+        Assert.Throws<ObjectDisposedException>(() => queue.EnqueueRange(Enumerable.Range(0, 100), 0));
     }
 
-    [TestMethod]
+    [Fact]
     public void EnsureCapacity()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>();
-        Assert.AreEqual(256, queue.EnsureCapacity(192));
-        Assert.AreEqual(256, queue.Capacity);
-        Assert.AreEqual(256, queue.EnsureCapacity(1));
+        Assert.Equal(256, queue.EnsureCapacity(192));
+        Assert.Equal(256, queue.Capacity);
+        Assert.Equal(256, queue.EnsureCapacity(1));
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => queue.EnsureCapacity(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => queue.EnsureCapacity(-1));
 
 
         var enumerator = queue.UnorderedItems.GetEnumerator();
         queue.EnsureCapacity(512);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.EnsureCapacity(1));
+        Assert.Throws<ObjectDisposedException>(() => queue.EnsureCapacity(1));
     }
 
-    [TestMethod]
+    [Fact]
     public void Peek()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>();
 
-        Assert.ThrowsException<InvalidOperationException>(() => queue.Peek());
+        Assert.Throws<InvalidOperationException>(() => queue.Peek());
 
         for (int i = 0; i < 100; i++)
         {
             queue.Enqueue(i, i);
-            Assert.AreEqual(i, queue.Peek());
+            Assert.Equal(i, queue.Peek());
         }
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.Peek());
+        Assert.Throws<ObjectDisposedException>(() => queue.Peek());
     }
 
-    [TestMethod]
+    [Fact]
     public void SetCount()
     {
         var stack = new ArrayPoolPriorityQueue<int, int>(Enumerable.Range(1, 6).Select(i => (i, i)));
 
         ArrayPoolPriorityQueue<int, int>.SetCount(stack, 12);
-        Assert.AreEqual(12, stack.Count);
+        Assert.Equal(12, stack.Count);
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => ArrayPoolPriorityQueue<int, int>.SetCount(stack, -1));
-        Assert.ThrowsException<ArgumentException>(() => ArrayPoolPriorityQueue<int, int>.SetCount(stack, 99));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ArrayPoolPriorityQueue<int, int>.SetCount(stack, -1));
+        Assert.Throws<ArgumentException>(() => ArrayPoolPriorityQueue<int, int>.SetCount(stack, 99));
 
 
         var enumerator = stack.UnorderedItems.GetEnumerator();
         ArrayPoolPriorityQueue<int, int>.SetCount(stack, 13);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         stack.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolPriorityQueue<int, int>.SetCount(stack, 1));
+        Assert.Throws<ObjectDisposedException>(() => ArrayPoolPriorityQueue<int, int>.SetCount(stack, 1));
     }
 
-    [TestMethod]
+    [Fact]
     public void TrimExcess()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>(256);
         queue.TrimExcess();
-        Assert.AreEqual(16, queue.Capacity);
+        Assert.Equal(16, queue.Capacity);
 
 
         queue.EnsureCapacity(100);
         var enumerator = queue.UnorderedItems.GetEnumerator();
         queue.TrimExcess();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.TrimExcess());
+        Assert.Throws<ObjectDisposedException>(() => queue.TrimExcess());
     }
 
-    [TestMethod]
+    [Fact]
     public void TryDequeue()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>();
-        Assert.IsFalse(queue.TryDequeue(out _, out _));
+        Assert.False(queue.TryDequeue(out _, out _));
 
         queue.Enqueue(1, 2);
-        Assert.IsTrue(queue.TryDequeue(out var element, out var priority));
-        Assert.AreEqual(1, element);
-        Assert.AreEqual(2, priority);
-        Assert.IsFalse(queue.TryDequeue(out _, out _));
+        Assert.True(queue.TryDequeue(out var element, out var priority));
+        Assert.Equal(1, element);
+        Assert.Equal(2, priority);
+        Assert.False(queue.TryDequeue(out _, out _));
 
 
         queue.Enqueue(1, 2);
         var enumerator = queue.UnorderedItems.GetEnumerator();
-        Assert.IsTrue(queue.TryDequeue(out _, out _));
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.True(queue.TryDequeue(out _, out _));
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.TryDequeue(out _, out _));
+        Assert.Throws<ObjectDisposedException>(() => queue.TryDequeue(out _, out _));
     }
 
-    [TestMethod]
+    [Fact]
     public void TryPeek()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>();
-        Assert.IsFalse(queue.TryPeek(out _, out _));
+        Assert.False(queue.TryPeek(out _, out _));
 
         queue.Enqueue(1, 2);
-        Assert.IsTrue(queue.TryPeek(out var element, out var priority));
-        Assert.AreEqual(1, element);
-        Assert.AreEqual(2, priority);
-        Assert.IsTrue(queue.TryPeek(out _, out _));
+        Assert.True(queue.TryPeek(out var element, out var priority));
+        Assert.Equal(1, element);
+        Assert.Equal(2, priority);
+        Assert.True(queue.TryPeek(out _, out _));
 
 
         queue.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => queue.TryPeek(out _, out _));
+        Assert.Throws<ObjectDisposedException>(() => queue.TryPeek(out _, out _));
     }
 
-    [TestMethod]
+    [Fact]
     public void Dispose()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>(Enumerable.Range(0, 100).Select(i => (i, i)));

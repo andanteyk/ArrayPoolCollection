@@ -1,12 +1,10 @@
-using System.Reflection;
 using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection.Tests
 {
-    [TestClass]
     public class ObjectPoolTests()
     {
-        [TestMethod]
+        [Fact]
         public void Shared()
         {
             var random = ObjectPool<Random>.Shared.Rent();
@@ -14,13 +12,13 @@ namespace ArrayPoolCollection.Tests
             ObjectPool<Random>.Shared.Return(random);
         }
 
-        [TestMethod]
+        [Fact]
         public void Ctor()
         {
             using var pool = new ObjectPool<Random>(PooledObjectCallback.Create<Random>(), 256);
         }
 
-        [TestMethod]
+        [Fact]
         public void Rent()
         {
             int instantiateCount = 0;
@@ -38,15 +36,15 @@ namespace ArrayPoolCollection.Tests
                 pool.Return(random);
             }
 
-            Assert.AreEqual(1, instantiateCount);
-            Assert.AreEqual(1024, rentCount);
+            Assert.Equal(1, instantiateCount);
+            Assert.Equal(1024, rentCount);
 
 
             pool.Dispose();
-            Assert.ThrowsException<ObjectDisposedException>(() => pool.Rent());
+            Assert.Throws<ObjectDisposedException>(() => pool.Rent());
         }
 
-        [TestMethod]
+        [Fact]
         public void Return()
         {
             int returnCount = 0;
@@ -67,17 +65,17 @@ namespace ArrayPoolCollection.Tests
             {
                 pool.Return(stack.Pop());
             }
-            Assert.AreEqual(1024, returnCount);
+            Assert.Equal(1024, returnCount);
 
 
-            Assert.ThrowsException<ArgumentNullException>(() => pool.Return(default!));
+            Assert.Throws<ArgumentNullException>(() => pool.Return(default!));
 
 
             pool.Dispose();
-            Assert.ThrowsException<ObjectDisposedException>(() => pool.Return(default!));
+            Assert.Throws<ObjectDisposedException>(() => pool.Return(default!));
         }
 
-        [TestMethod]
+        [Fact]
         public void Prewarm()
         {
             int instantiateCount = 0;
@@ -90,25 +88,25 @@ namespace ArrayPoolCollection.Tests
              ), 256);
 
             pool.Prewarm(1024);
-            Assert.AreEqual(1024, instantiateCount);
-            Assert.AreEqual(1024, returnCount);
+            Assert.Equal(1024, instantiateCount);
+            Assert.Equal(1024, returnCount);
 
             instantiateCount = 0;
             for (int i = 0; i < 1024; i++)
             {
                 _ = pool.Rent();
             }
-            Assert.AreEqual(0, instantiateCount);
+            Assert.Equal(0, instantiateCount);
 
 
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => pool.Prewarm(-1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => pool.Prewarm(-1));
 
 
             pool.Dispose();
-            Assert.ThrowsException<ObjectDisposedException>(() => pool.Prewarm(10));
+            Assert.Throws<ObjectDisposedException>(() => pool.Prewarm(10));
         }
 
-        [TestMethod]
+        [Fact]
         public void TrimExcess()
         {
             int instantiateCount = 0;
@@ -124,16 +122,16 @@ namespace ArrayPoolCollection.Tests
             pool.Prewarm(1024);
 
             pool.TrimExcess();
-            Assert.AreEqual(1024 - 256, destroyCount);
+            Assert.Equal(1024 - 256, destroyCount);
 
 
             pool.Dispose();
-            Assert.AreEqual(1024, destroyCount);
+            Assert.Equal(1024, destroyCount);
             // should not throw any exceptions
             pool.TrimExcess();
         }
 
-        [TestMethod]
+        [Fact]
         public void Dispose()
         {
             var pool = new ObjectPool<Random>(PooledObjectCallback.Create<Random>());
@@ -141,10 +139,10 @@ namespace ArrayPoolCollection.Tests
             pool.Dispose();
             pool.Dispose();
 
-            Assert.ThrowsException<InvalidOperationException>(() => ObjectPool<Random>.Shared.Dispose());
+            Assert.Throws<InvalidOperationException>(() => ObjectPool<Random>.Shared.Dispose());
         }
 
-        [TestMethod]
+        [Fact]
         public void GcTest()
         {
             int instantiateCount = 0;
@@ -164,7 +162,7 @@ namespace ArrayPoolCollection.Tests
             GC.Collect(2);
             Thread.Sleep(10);
 
-            Assert.AreEqual(1024 - 256, destroyCount);
+            Assert.Equal(1024 - 256, destroyCount);
         }
     }
 }

@@ -2,17 +2,16 @@ using System.Buffers;
 
 namespace ArrayPoolCollection.Tests;
 
-[TestClass]
 public class SegmentedArrayTests
 {
-    [TestMethod]
+    [Fact]
     public void Ctor()
     {
         // should not throw any exceptions
         using var segmentedArray = new SegmentedArray<int>(Span<int>.Empty);
     }
 
-    [TestMethod]
+    [Fact]
     public void Add()
     {
         var segmentStack = new SegmentedArray<int>.Stack16();
@@ -23,10 +22,10 @@ public class SegmentedArrayTests
         segmentedArray.Add(3);
 
         var result = segmentedArray.ToArray();
-        CollectionAssert.AreEqual(new int[] { 1, 2, 3 }, result);
+        Assert.Equal(new int[] { 1, 2, 3 }, result);
     }
 
-    [TestMethod]
+    [Fact]
     public void AddRange_Enumerable()
     {
         var segmentStack = new SegmentedArray<int>.Stack16();
@@ -34,14 +33,14 @@ public class SegmentedArrayTests
 
         segmentedArray.AddRange(Enumerable.Range(0, 49));
         var result = segmentedArray.ToArray();
-        CollectionAssert.AreEqual(Enumerable.Range(0, 49).ToArray(), result);
+        Assert.Equal(Enumerable.Range(0, 49).ToArray(), result);
 
         segmentedArray.AddRange(Enumerable.Range(0, 49));
         result = segmentedArray.ToArray();
-        CollectionAssert.AreEqual(Enumerable.Range(0, 49).Concat(Enumerable.Range(0, 49)).ToArray(), result);
+        Assert.Equal(Enumerable.Range(0, 49).Concat(Enumerable.Range(0, 49)).ToArray(), result);
     }
 
-    [TestMethod]
+    [Fact]
     public void AddRange_Span()
     {
         var segmentStack = new SegmentedArray<int>.Stack16();
@@ -51,10 +50,10 @@ public class SegmentedArrayTests
         segmentedArray.AddRange(argument.AsSpan());
 
         var result = segmentedArray.ToArray();
-        CollectionAssert.AreEqual(argument, result);
+        Assert.Equal(argument, result);
     }
 
-    [TestMethod]
+    [Fact]
     public void WriteToSpan()
     {
         var segmentStack = new SegmentedArray<int>.Stack16();
@@ -64,8 +63,8 @@ public class SegmentedArrayTests
 
         var result = new int[64];
         segmentedArray.CopyTo(result);
-        CollectionAssert.AreEqual(Enumerable.Range(0, 49).ToArray(), result[..49]);
-        Assert.AreEqual(0, result[49]);
+        Assert.Equal(Enumerable.Range(0, 49).ToArray(), result[..49]);
+        Assert.Equal(0, result[49]);
 
         result = new int[64];
         try
@@ -76,7 +75,7 @@ public class SegmentedArrayTests
         catch (ArgumentException) { }
     }
 
-    [TestMethod]
+    [Fact]
     public void ToArrayPool()
     {
         var segmentStack = new SegmentedArray<int>.Stack16();
@@ -85,12 +84,12 @@ public class SegmentedArrayTests
         segmentedArray.AddRange(Enumerable.Range(0, 49));
 
         var array = segmentedArray.ToArrayPool(out var span);
-        CollectionAssert.AreEqual(Enumerable.Range(0, 49).ToArray(), span.ToArray());
+        Assert.Equal(Enumerable.Range(0, 49).ToArray(), span.ToArray());
 
         ArrayPool<int>.Shared.Return(array);
     }
 
-    [TestMethod]
+    [Fact]
     public void ToArray()
     {
         var segmentStack = new SegmentedArray<int>.Stack16();
@@ -99,11 +98,11 @@ public class SegmentedArrayTests
         segmentedArray.AddRange(Enumerable.Range(0, 49));
 
         var array = segmentedArray.ToArray();
-        CollectionAssert.AreEqual(Enumerable.Range(0, 49).ToArray(), array);
+        Assert.Equal(Enumerable.Range(0, 49).ToArray(), array);
     }
 
 
-    [TestMethod]
+    [Fact]
     public void ToList()
     {
         var segmentStack = new SegmentedArray<int>.Stack16();
@@ -112,10 +111,10 @@ public class SegmentedArrayTests
         segmentedArray.AddRange(Enumerable.Range(0, 49));
 
         var list = segmentedArray.ToList();
-        CollectionAssert.AreEqual(Enumerable.Range(0, 49).ToList(), list);
+        Assert.Equal(Enumerable.Range(0, 49).ToList(), list);
     }
 
-    [TestMethod]
+    [Fact]
     public void GetTotalLength()
     {
         var segmentStack = new SegmentedArray<int>.Stack16();
@@ -125,7 +124,7 @@ public class SegmentedArrayTests
         {
             segmentedArray.Add(i);
 
-            Assert.AreEqual(i + 1, segmentedArray.GetTotalLength());
+            Assert.Equal(i + 1, segmentedArray.GetTotalLength());
         }
     }
 }

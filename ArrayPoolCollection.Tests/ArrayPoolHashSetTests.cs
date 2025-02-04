@@ -1,67 +1,63 @@
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Reflection;
 
 namespace ArrayPoolCollection.Tests;
 
-[TestClass]
 public class ArrayPoolHashSetTests
 {
-    [TestMethod]
+    [Fact]
     public void Count()
     {
         var set = new ArrayPoolHashSet<int>();
 
-        Assert.AreEqual(0, set.Count);
+        Assert.Empty(set);
 
         for (int i = 0; i < 100; i++)
         {
             set.Add(i);
-            Assert.AreEqual(i + 1, set.Count);
+            Assert.Equal(i + 1, set.Count);
         }
 
         for (int i = 0; i < 100; i++)
         {
             set.Remove(i);
-            Assert.AreEqual(99 - i, set.Count);
+            Assert.Equal(99 - i, set.Count);
         }
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.Count);
+        Assert.Throws<ObjectDisposedException>(() => set.Count);
     }
 
-    [TestMethod]
+    [Fact]
     public void Capacity()
     {
         var set = new ArrayPoolHashSet<int>(100);
-        Assert.AreEqual(128, set.Capacity);
+        Assert.Equal(128, set.Capacity);
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.Capacity);
+        Assert.Throws<ObjectDisposedException>(() => set.Capacity);
     }
 
-    [TestMethod]
+    [Fact]
     public void Comparer()
     {
         var set = new ArrayPoolHashSet<string>();
-        Assert.AreEqual(EqualityComparer<string>.Default, set.Comparer);
+        Assert.Equal(EqualityComparer<string>.Default, set.Comparer);
 
         using var caseInsensitiveSet = new ArrayPoolHashSet<string>(StringComparer.OrdinalIgnoreCase);
-        Assert.AreEqual(StringComparer.OrdinalIgnoreCase, caseInsensitiveSet.Comparer);
+        Assert.Equal(StringComparer.OrdinalIgnoreCase, caseInsensitiveSet.Comparer);
 
         caseInsensitiveSet.Add("alice");
-        Assert.IsTrue(caseInsensitiveSet.TryGetValue("Alice", out _));
-        Assert.IsTrue(caseInsensitiveSet.TryGetValue("ALICE", out _));
+        Assert.True(caseInsensitiveSet.TryGetValue("Alice", out _));
+        Assert.True(caseInsensitiveSet.TryGetValue("ALICE", out _));
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.Comparer);
+        Assert.Throws<ObjectDisposedException>(() => set.Comparer);
     }
 
-    [TestMethod]
+    [Fact]
     public void Ctor()
     {
         var source = new string[] { "ALICE", "Alice", "Barbara", "Charlotte" };
@@ -70,155 +66,155 @@ public class ArrayPoolHashSetTests
         using var noParam = new ArrayPoolHashSet<string>();
 
         using var withCompaerer = new ArrayPoolHashSet<string>(StringComparer.OrdinalIgnoreCase);
-        Assert.AreEqual(StringComparer.OrdinalIgnoreCase, withCompaerer.Comparer);
+        Assert.Equal(StringComparer.OrdinalIgnoreCase, withCompaerer.Comparer);
 
         using var withCapacity = new ArrayPoolHashSet<string>(100);
-        Assert.AreEqual(128, withCapacity.Capacity);
+        Assert.Equal(128, withCapacity.Capacity);
 
         using var withCapacityAndCompaerer = new ArrayPoolHashSet<string>(12, StringComparer.OrdinalIgnoreCase);
-        Assert.AreEqual(16, withCapacityAndCompaerer.Capacity);
-        Assert.AreEqual(StringComparer.OrdinalIgnoreCase, withCapacityAndCompaerer.Comparer);
+        Assert.Equal(16, withCapacityAndCompaerer.Capacity);
+        Assert.Equal(StringComparer.OrdinalIgnoreCase, withCapacityAndCompaerer.Comparer);
 
         using var withSource = new ArrayPoolHashSet<string>(source);
         foreach (var name in source)
         {
-            Assert.IsTrue(withSource.Contains(name));
+            Assert.True(withSource.Contains(name));
         }
-        Assert.AreEqual(4, withSource.Count);
+        Assert.Equal(4, withSource.Count);
 
         using var withSourceAndComparer = new ArrayPoolHashSet<string>(source, StringComparer.OrdinalIgnoreCase);
         foreach (var name in source)
         {
-            Assert.IsTrue(withSourceAndComparer.Contains(name));
+            Assert.True(withSourceAndComparer.Contains(name));
         }
-        Assert.AreEqual(3, withSourceAndComparer.Count);
+        Assert.Equal(3, withSourceAndComparer.Count);
 
         using var copy = new ArrayPoolHashSet<string>(withSourceAndComparer, StringComparer.OrdinalIgnoreCase);
         foreach (var name in source)
         {
-            Assert.IsTrue(copy.Contains(name));
+            Assert.True(copy.Contains(name));
         }
-        Assert.AreEqual(3, copy.Count);
+        Assert.Equal(3, copy.Count);
     }
 
-    [TestMethod]
+    [Fact]
     public void Add()
     {
         var set = new ArrayPoolHashSet<int>();
 
         for (int i = 0; i < 100; i++)
         {
-            Assert.IsTrue(set.Add(i));
-            Assert.IsTrue(set.Contains(i));
-            Assert.AreEqual(i + 1, set.Count);
+            Assert.True(set.Add(i));
+            Assert.True(set.Contains(i));
+            Assert.Equal(i + 1, set.Count);
         }
 
         for (int i = 0; i < 100; i++)
         {
-            Assert.IsFalse(set.Add(i));
-            Assert.IsTrue(set.Contains(i));
-            Assert.AreEqual(100, set.Count);
+            Assert.False(set.Add(i));
+            Assert.True(set.Contains(i));
+            Assert.Equal(100, set.Count);
         }
 
 
         var enumerator = set.GetEnumerator();
         enumerator.MoveNext();
         set.Add(-1);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.Add(-1));
+        Assert.Throws<ObjectDisposedException>(() => set.Add(-1));
     }
 
-    [TestMethod]
+    [Fact]
     public void AsSpan()
     {
         var set = new ArrayPoolHashSet<int>() { 1, 2, 3 };
 
         var span = ArrayPoolHashSet<int>.AsSpan(set);
-        CollectionAssert.AreEquivalent(new int[] { 1, 2, 3 }, span.ToArray());
+        Assert.Equivalent(new int[] { 1, 2, 3 }, span.ToArray());
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => ArrayPoolHashSet<int>.AsSpan(set));
+        Assert.Throws<ObjectDisposedException>(() => ArrayPoolHashSet<int>.AsSpan(set));
     }
 
-    [TestMethod]
+    [Fact]
     public void Clear()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100));
-        Assert.AreEqual(100, set.Count);
+        Assert.Equal(100, set.Count);
 
         set.Clear();
-        Assert.AreEqual(0, set.Count);
+        Assert.Empty(set);
 
 
         set.Add(1);
         var enumerator = set.GetEnumerator();
         enumerator.MoveNext();
         set.Clear();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.Clear());
+        Assert.Throws<ObjectDisposedException>(() => set.Clear());
     }
 
-    [TestMethod]
+    [Fact]
     public void Contains()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100));
 
         for (int i = 0; i < 100; i++)
         {
-            Assert.IsTrue(set.Contains(i));
+            Assert.True(set.Contains(i));
         }
 
-        Assert.IsFalse(set.Contains(-1));
+        Assert.False(set.Contains(-1));
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.Contains(-1));
+        Assert.Throws<ObjectDisposedException>(() => set.Contains(-1));
     }
 
-    [TestMethod]
+    [Fact]
     public void CopyTo()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100));
         var buffer = new int[128];
 
         set.CopyTo(buffer, 1);
-        Assert.AreEqual(0, buffer[0]);
+        Assert.Equal(0, buffer[0]);
 
         var official = new HashSet<int>();
         for (int i = 1; i <= 100; i++)
         {
             official.Add(buffer[i]);
         }
-        Assert.AreEqual(100, official.Count);
+        Assert.Equal(100, official.Count);
 
         // should not throw any exceptions
         set.CopyTo(buffer, 127, 1);
 
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => set.CopyTo(buffer, -1));
-        Assert.ThrowsException<ArgumentException>(() => set.CopyTo(buffer, 128));
+        Assert.Throws<ArgumentOutOfRangeException>(() => set.CopyTo(buffer, -1));
+        Assert.Throws<ArgumentException>(() => set.CopyTo(buffer, 128));
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => set.CopyTo(buffer, -1, 64));
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => set.CopyTo(buffer, 64, -1));
-        Assert.ThrowsException<ArgumentException>(() => set.CopyTo(buffer, 127, 127));
+        Assert.Throws<ArgumentOutOfRangeException>(() => set.CopyTo(buffer, -1, 64));
+        Assert.Throws<ArgumentOutOfRangeException>(() => set.CopyTo(buffer, 64, -1));
+        Assert.Throws<ArgumentException>(() => set.CopyTo(buffer, 127, 127));
 
-        Assert.ThrowsException<ArgumentException>(() => set.CopyTo(buffer.AsSpan(1..2)));
+        Assert.Throws<ArgumentException>(() => set.CopyTo(buffer.AsSpan(1..2)));
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.CopyTo(buffer));
+        Assert.Throws<ObjectDisposedException>(() => set.CopyTo(buffer));
     }
 
-    [TestMethod]
+    [Fact]
     public void CreateSetComparer()
     {
         var comparer = ArrayPoolHashSet<string>.CreateSetComparer();
@@ -226,82 +222,82 @@ public class ArrayPoolHashSetTests
         using var a = new ArrayPoolHashSet<string>(Enumerable.Range(0, 100).Select(i => i.ToString()));
         using var b = new ArrayPoolHashSet<string>(Enumerable.Range(0, 100).Select(i => i.ToString()));
 
-        Assert.IsTrue(comparer.Equals(a, b));
-        Assert.IsTrue(comparer.GetHashCode(a) == comparer.GetHashCode(b));
-        Assert.IsFalse(comparer.Equals(a, null));
-        Assert.IsFalse(comparer.Equals(b, null));
-        Assert.IsTrue(comparer.Equals(null, null));
+        Assert.True(comparer.Equals(a, b));
+        Assert.True(comparer.GetHashCode(a) == comparer.GetHashCode(b));
+        Assert.False(comparer.Equals(a, null));
+        Assert.False(comparer.Equals(b, null));
+        Assert.True(comparer.Equals(null, null));
 
         a.Add("101");
 
-        Assert.IsFalse(comparer.Equals(a, b));
-        Assert.IsFalse(comparer.GetHashCode(a) == comparer.GetHashCode(b));
+        Assert.False(comparer.Equals(a, b));
+        Assert.False(comparer.GetHashCode(a) == comparer.GetHashCode(b));
 
         b.Add("101");
 
-        Assert.IsTrue(comparer.Equals(a, b));
-        Assert.IsTrue(comparer.GetHashCode(a) == comparer.GetHashCode(b));
+        Assert.True(comparer.Equals(a, b));
+        Assert.True(comparer.GetHashCode(a) == comparer.GetHashCode(b));
     }
 
-    [TestMethod]
+    [Fact]
     public void EnsureCapacity()
     {
         var set = new ArrayPoolHashSet<int>();
 
-        Assert.AreEqual(256, set.EnsureCapacity(192));
-        Assert.AreEqual(256, set.EnsureCapacity(1));
+        Assert.Equal(256, set.EnsureCapacity(192));
+        Assert.Equal(256, set.EnsureCapacity(1));
 
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => set.EnsureCapacity(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => set.EnsureCapacity(-1));
 
 
         var enumerator = set.GetEnumerator();
         enumerator.MoveNext();
         set.EnsureCapacity(256);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.EnsureCapacity(1));
+        Assert.Throws<ObjectDisposedException>(() => set.EnsureCapacity(1));
     }
 
-    [TestMethod]
+    [Fact]
     public void ExceptWith()
     {
         var set = new ArrayPoolHashSet<int>();
 
         set.ExceptWith(Enumerable.Range(0, 100));
-        Assert.AreEqual(0, set.Count);
+        Assert.Empty(set);
 
         set.UnionWith(Enumerable.Range(0, 100));
-        Assert.AreEqual(100, set.Count);
+        Assert.Equal(100, set.Count);
         set.ExceptWith(set);
-        Assert.AreEqual(0, set.Count);
+        Assert.Empty(set);
 
         set.UnionWith(Enumerable.Range(0, 100));
-        Assert.AreEqual(100, set.Count);
+        Assert.Equal(100, set.Count);
         set.ExceptWith(Enumerable.Range(0, 50));
-        Assert.AreEqual(50, set.Count);
+        Assert.Equal(50, set.Count);
 
         set.ExceptWith(Enumerable.Range(-50, 50));
-        Assert.AreEqual(50, set.Count);
+        Assert.Equal(50, set.Count);
 
         set.ExceptWith([]);
-        Assert.AreEqual(50, set.Count);
+        Assert.Equal(50, set.Count);
 
 
         var enumerator = set.GetEnumerator();
         enumerator.MoveNext();
         set.ExceptWith(Enumerable.Range(0, 100));
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.ExceptWith(Enumerable.Range(0, 50)));
+        Assert.Throws<ObjectDisposedException>(() => set.ExceptWith(Enumerable.Range(0, 50)));
     }
 
-    [TestMethod]
+    [Fact]
     public void GetAlternateLookup()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100), new ArrayPoolDictionaryTests.DoubleIntEqualityComparer());
@@ -310,50 +306,50 @@ public class ArrayPoolHashSetTests
 
         for (double i = 0; i < 100; i++)
         {
-            Assert.IsTrue(lookup.Contains(i));
-            Assert.IsTrue(lookup.Contains(i + 0.5));
+            Assert.True(lookup.Contains(i));
+            Assert.True(lookup.Contains(i + 0.5));
 
-            Assert.IsTrue(lookup.TryGetValue(i, out var actual));
-            Assert.AreEqual((int)i, actual);
+            Assert.True(lookup.TryGetValue(i, out var actual));
+            Assert.Equal((int)i, actual);
         }
 
         for (double i = 50; i < 150; i++)
         {
-            Assert.AreEqual(i >= 100, lookup.Add(i));
+            Assert.Equal(i >= 100, lookup.Add(i));
         }
 
         for (double i = 100; i < 200; i++)
         {
-            Assert.AreEqual(i < 150, lookup.Remove(i));
+            Assert.Equal(i < 150, lookup.Remove(i));
         }
 
 
         var emptySet = new ArrayPoolHashSet<int>();
-        Assert.ThrowsException<InvalidOperationException>(() => emptySet.GetAlternateLookup<double>());
+        Assert.Throws<InvalidOperationException>(() => emptySet.GetAlternateLookup<double>());
 
 
         var enumerator = set.GetEnumerator();
         enumerator.MoveNext();
         lookup.Add(-1.0);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
         enumerator = set.GetEnumerator();
         enumerator.MoveNext();
         lookup.Remove(-1.0);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.GetAlternateLookup<double>());
-        Assert.ThrowsException<ObjectDisposedException>(() => lookup.Add(1.0));
-        Assert.ThrowsException<ObjectDisposedException>(() => lookup.Contains(1.0));
-        Assert.ThrowsException<ObjectDisposedException>(() => lookup.TryGetValue(1.0, out _));
-        Assert.ThrowsException<ObjectDisposedException>(() => lookup.Remove(1.0));
+        Assert.Throws<ObjectDisposedException>(() => set.GetAlternateLookup<double>());
+        Assert.Throws<ObjectDisposedException>(() => lookup.Add(1.0));
+        Assert.Throws<ObjectDisposedException>(() => lookup.Contains(1.0));
+        Assert.Throws<ObjectDisposedException>(() => lookup.TryGetValue(1.0, out _));
+        Assert.Throws<ObjectDisposedException>(() => lookup.Remove(1.0));
     }
 
-    [TestMethod]
+    [Fact]
     public void GetEnumerator()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100), new ArrayPoolDictionaryTests.DoubleIntEqualityComparer());
@@ -362,169 +358,169 @@ public class ArrayPoolHashSetTests
 
         foreach (var element in set)
         {
-            Assert.IsTrue(official.Add(element));
+            Assert.True(official.Add(element));
         }
-        Assert.AreEqual(100, official.Count);
+        Assert.Equal(100, official.Count);
 
 
         var enumerator = set.GetEnumerator();
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
         for (int i = 0; i < 100; i++)
         {
-            Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual(i, enumerator.Current);
+            Assert.True(enumerator.MoveNext());
+            Assert.Equal(i, enumerator.Current);
         }
-        Assert.IsFalse(enumerator.MoveNext());
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
+        Assert.False(enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
 
 
         enumerator.Reset();
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.GetEnumerator());
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.Current);
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.MoveNext());
-        Assert.ThrowsException<ObjectDisposedException>(() => enumerator.Reset());
+        Assert.Throws<ObjectDisposedException>(() => set.GetEnumerator());
+        Assert.Throws<ObjectDisposedException>(() => enumerator.Current);
+        Assert.Throws<ObjectDisposedException>(() => enumerator.MoveNext());
+        Assert.Throws<ObjectDisposedException>(() => enumerator.Reset());
     }
 
-    [TestMethod]
+    [Fact]
     public void IntersectWith()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100));
-        Assert.AreEqual(100, set.Count);
+        Assert.Equal(100, set.Count);
 
         set.IntersectWith(set);
-        Assert.AreEqual(100, set.Count);
+        Assert.Equal(100, set.Count);
 
 
         using var emptySet = new ArrayPoolHashSet<int>();
         emptySet.IntersectWith(set);
-        Assert.AreEqual(0, emptySet.Count);
+        Assert.Empty(emptySet);
 
         set.IntersectWith(emptySet);
-        Assert.AreEqual(100, set.Count);
+        Assert.Equal(100, set.Count);
 
 
         set.IntersectWith(Enumerable.Range(0, 25));
         for (int i = 0; i < 100; i++)
         {
-            Assert.AreEqual(i < 25, set.Contains(i));
+            Assert.Equal(i < 25, set.Contains(i));
         }
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.IntersectWith(Enumerable.Range(0, 10)));
+        Assert.Throws<ObjectDisposedException>(() => set.IntersectWith(Enumerable.Range(0, 10)));
     }
 
-    [TestMethod]
+    [Fact]
     public void IsProperSubsetOf()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100));
 
-        Assert.IsFalse(set.IsProperSubsetOf(Enumerable.Range(0, 100)));
-        Assert.IsTrue(set.IsProperSubsetOf(Enumerable.Range(0, 101)));
+        Assert.False(set.IsProperSubsetOf(Enumerable.Range(0, 100)));
+        Assert.True(set.IsProperSubsetOf(Enumerable.Range(0, 101)));
 
 
         var emptySet = new ArrayPoolHashSet<int>();
-        Assert.IsFalse(set.IsProperSubsetOf(set));
-        Assert.IsFalse(set.IsProperSubsetOf(emptySet));
-        Assert.IsTrue(emptySet.IsProperSubsetOf(set));
+        Assert.False(set.IsProperSubsetOf(set));
+        Assert.False(set.IsProperSubsetOf(emptySet));
+        Assert.True(emptySet.IsProperSubsetOf(set));
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.IsProperSubsetOf(Enumerable.Range(0, 10)));
+        Assert.Throws<ObjectDisposedException>(() => set.IsProperSubsetOf(Enumerable.Range(0, 10)));
     }
 
-    [TestMethod]
+    [Fact]
     public void IsProperSupersetOf()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100));
 
-        Assert.IsFalse(set.IsProperSupersetOf(Enumerable.Range(0, 100)));
-        Assert.IsTrue(set.IsProperSupersetOf(Enumerable.Range(0, 99)));
+        Assert.False(set.IsProperSupersetOf(Enumerable.Range(0, 100)));
+        Assert.True(set.IsProperSupersetOf(Enumerable.Range(0, 99)));
 
 
         var emptySet = new ArrayPoolHashSet<int>();
-        Assert.IsFalse(set.IsProperSupersetOf(set));
-        Assert.IsTrue(set.IsProperSupersetOf(emptySet));
-        Assert.IsFalse(emptySet.IsProperSupersetOf(set));
+        Assert.False(set.IsProperSupersetOf(set));
+        Assert.True(set.IsProperSupersetOf(emptySet));
+        Assert.False(emptySet.IsProperSupersetOf(set));
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.IsProperSupersetOf(Enumerable.Range(0, 10)));
+        Assert.Throws<ObjectDisposedException>(() => set.IsProperSupersetOf(Enumerable.Range(0, 10)));
     }
 
-    [TestMethod]
+    [Fact]
     public void IsSubsetOf()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100));
 
-        Assert.IsTrue(set.IsSubsetOf(Enumerable.Range(0, 100)));
-        Assert.IsTrue(set.IsSubsetOf(Enumerable.Range(0, 101)));
+        Assert.True(set.IsSubsetOf(Enumerable.Range(0, 100)));
+        Assert.True(set.IsSubsetOf(Enumerable.Range(0, 101)));
 
 
         var emptySet = new ArrayPoolHashSet<int>();
-        Assert.IsTrue(set.IsSubsetOf(set));
-        Assert.IsFalse(set.IsSubsetOf(emptySet));
-        Assert.IsTrue(emptySet.IsSubsetOf(set));
+        Assert.True(set.IsSubsetOf(set));
+        Assert.False(set.IsSubsetOf(emptySet));
+        Assert.True(emptySet.IsSubsetOf(set));
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.IsSubsetOf(Enumerable.Range(0, 10)));
+        Assert.Throws<ObjectDisposedException>(() => set.IsSubsetOf(Enumerable.Range(0, 10)));
     }
 
-    [TestMethod]
+    [Fact]
     public void IsSupersetOf()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100));
 
-        Assert.IsTrue(set.IsSupersetOf(Enumerable.Range(0, 100)));
-        Assert.IsTrue(set.IsSupersetOf(Enumerable.Range(0, 99)));
+        Assert.True(set.IsSupersetOf(Enumerable.Range(0, 100)));
+        Assert.True(set.IsSupersetOf(Enumerable.Range(0, 99)));
 
 
         var emptySet = new ArrayPoolHashSet<int>();
-        Assert.IsTrue(set.IsSupersetOf(set));
-        Assert.IsTrue(set.IsSupersetOf(emptySet));
-        Assert.IsFalse(emptySet.IsSupersetOf(set));
+        Assert.True(set.IsSupersetOf(set));
+        Assert.True(set.IsSupersetOf(emptySet));
+        Assert.False(emptySet.IsSupersetOf(set));
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.IsSupersetOf(Enumerable.Range(0, 10)));
+        Assert.Throws<ObjectDisposedException>(() => set.IsSupersetOf(Enumerable.Range(0, 10)));
     }
 
-    [TestMethod]
+    [Fact]
     public void Overlaps()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100));
 
-        Assert.IsTrue(set.Overlaps(Enumerable.Range(0, 100)));
-        Assert.IsTrue(set.Overlaps([0]));
+        Assert.True(set.Overlaps(Enumerable.Range(0, 100)));
+        Assert.True(set.Overlaps([0]));
 
 
         var emptySet = new ArrayPoolHashSet<int>();
-        Assert.IsTrue(set.Overlaps(set));
-        Assert.IsFalse(set.Overlaps(emptySet));
-        Assert.IsFalse(emptySet.Overlaps(set));
-        Assert.IsFalse(emptySet.Overlaps(set));
+        Assert.True(set.Overlaps(set));
+        Assert.False(set.Overlaps(emptySet));
+        Assert.False(emptySet.Overlaps(set));
+        Assert.False(emptySet.Overlaps(set));
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.Overlaps(Enumerable.Range(0, 10)));
+        Assert.Throws<ObjectDisposedException>(() => set.Overlaps(Enumerable.Range(0, 10)));
     }
 
-    [TestMethod]
+    [Fact]
     public void Remove()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100));
 
-        Assert.IsFalse(set.Remove(-1));
-        Assert.AreEqual(100, set.Count);
+        Assert.False(set.Remove(-1));
+        Assert.Equal(100, set.Count);
 
         for (int i = 0; i < 100; i++)
         {
-            Assert.IsTrue(set.Remove(i));
-            Assert.AreEqual(99 - i, set.Count);
+            Assert.True(set.Remove(i));
+            Assert.Equal(99 - i, set.Count);
         }
 
 
@@ -532,150 +528,150 @@ public class ArrayPoolHashSetTests
         var enumerator = set.GetEnumerator();
         enumerator.MoveNext();
         set.Remove(1);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.Remove(-1));
+        Assert.Throws<ObjectDisposedException>(() => set.Remove(-1));
     }
 
-    [TestMethod]
+    [Fact]
     public void RemoveWhere()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100));
 
-        Assert.AreEqual(50, set.RemoveWhere(i => i % 2 == 0));
+        Assert.Equal(50, set.RemoveWhere(i => i % 2 == 0));
         for (int i = 0; i < 100; i++)
         {
-            Assert.AreEqual(i % 2 != 0, set.Contains(i));
+            Assert.Equal(i % 2 != 0, set.Contains(i));
         }
 
-        Assert.AreEqual(0, set.RemoveWhere(i => false));
+        Assert.Equal(0, set.RemoveWhere(i => false));
 
 
         var enumerator = set.GetEnumerator();
         enumerator.MoveNext();
         set.RemoveWhere(i => i < 10);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.Current);
-        Assert.ThrowsException<InvalidOperationException>(() => enumerator.MoveNext());
+        Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.RemoveWhere(i => true));
+        Assert.Throws<ObjectDisposedException>(() => set.RemoveWhere(i => true));
     }
 
-    [TestMethod]
+    [Fact]
     public void SetEquals()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100));
-        Assert.IsTrue(set.SetEquals(set));
+        Assert.True(set.SetEquals(set));
 
-        Assert.IsFalse(set.SetEquals(Enumerable.Range(0, 99)));
-        Assert.IsTrue(set.SetEquals(Enumerable.Range(0, 100)));
-        Assert.IsFalse(set.SetEquals(Enumerable.Range(0, 101)));
+        Assert.False(set.SetEquals(Enumerable.Range(0, 99)));
+        Assert.True(set.SetEquals(Enumerable.Range(0, 100)));
+        Assert.False(set.SetEquals(Enumerable.Range(0, 101)));
 
         var emptySet = new ArrayPoolHashSet<int>();
-        Assert.IsFalse(set.SetEquals(emptySet));
-        Assert.IsFalse(emptySet.SetEquals(set));
-        Assert.IsTrue(emptySet.SetEquals([]));
+        Assert.False(set.SetEquals(emptySet));
+        Assert.False(emptySet.SetEquals(set));
+        Assert.True(emptySet.SetEquals([]));
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.SetEquals(set));
+        Assert.Throws<ObjectDisposedException>(() => set.SetEquals(set));
     }
 
-    [TestMethod]
+    [Fact]
     public void SymmetricExceptWith()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100));
         set.SymmetricExceptWith(set);
-        Assert.AreEqual(0, set.Count);
+        Assert.Empty(set);
 
         set.UnionWith(Enumerable.Range(0, 100));
         set.SymmetricExceptWith([]);
-        Assert.AreEqual(100, set.Count);
+        Assert.Equal(100, set.Count);
 
 
         set.SymmetricExceptWith(Enumerable.Range(50, 100));
         for (int i = 0; i < 150; i++)
         {
-            Assert.AreEqual(i < 50 || 100 <= i, set.Contains(i));
+            Assert.Equal(i < 50 || 100 <= i, set.Contains(i));
         }
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.SymmetricExceptWith(set));
+        Assert.Throws<ObjectDisposedException>(() => set.SymmetricExceptWith(set));
     }
 
-    [TestMethod]
+    [Fact]
     public void TrimExcess()
     {
         var set = new ArrayPoolHashSet<int>(100);
         set.TrimExcess();
-        Assert.AreEqual(16, set.Capacity);
+        Assert.Equal(16, set.Capacity);
 
         set.TrimExcess(96);
-        Assert.AreEqual(128, set.Capacity);
+        Assert.Equal(128, set.Capacity);
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.TrimExcess());
+        Assert.Throws<ObjectDisposedException>(() => set.TrimExcess());
 
     }
 
-    [TestMethod]
+    [Fact]
     public void TryGetAlternateLookup()
     {
         var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, 100), new ArrayPoolDictionaryTests.DoubleIntEqualityComparer());
-        Assert.IsTrue(set.TryGetAlternateLookup<double>(out var lookup));
+        Assert.True(set.TryGetAlternateLookup<double>(out var lookup));
 
         using var emptySet = new ArrayPoolHashSet<int>();
-        Assert.IsFalse(emptySet.TryGetAlternateLookup<double>(out _));
+        Assert.False(emptySet.TryGetAlternateLookup<double>(out _));
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.TryGetAlternateLookup<double>(out _));
+        Assert.Throws<ObjectDisposedException>(() => set.TryGetAlternateLookup<double>(out _));
     }
 
-    [TestMethod]
+    [Fact]
     public void TryGetValue()
     {
         var set = new ArrayPoolHashSet<string>(["Alice", "Barbara", "Charlotte"], StringComparer.OrdinalIgnoreCase);
 
-        Assert.IsTrue(set.TryGetValue("ALICE", out var actualValue));
-        Assert.AreEqual("Alice", actualValue);
+        Assert.True(set.TryGetValue("ALICE", out var actualValue));
+        Assert.Equal("Alice", actualValue);
 
-        Assert.IsFalse(set.TryGetValue("Diona", out _));
+        Assert.False(set.TryGetValue("Diona", out _));
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.TryGetValue("alice", out _));
+        Assert.Throws<ObjectDisposedException>(() => set.TryGetValue("alice", out _));
     }
 
-    [TestMethod]
+    [Fact]
     public void UnionWith()
     {
         var set = new ArrayPoolHashSet<int>();
 
         set.UnionWith(Enumerable.Range(0, 100));
-        Assert.AreEqual(100, set.Count);
+        Assert.Equal(100, set.Count);
 
         set.UnionWith(set);
-        Assert.AreEqual(100, set.Count);
+        Assert.Equal(100, set.Count);
 
         set.UnionWith(Enumerable.Range(0, 100));
-        Assert.AreEqual(100, set.Count);
+        Assert.Equal(100, set.Count);
 
         set.UnionWith([]);
-        Assert.AreEqual(100, set.Count);
+        Assert.Equal(100, set.Count);
 
 
         set.Dispose();
-        Assert.ThrowsException<ObjectDisposedException>(() => set.UnionWith([]));
+        Assert.Throws<ObjectDisposedException>(() => set.UnionWith([]));
     }
 
-    [TestMethod]
+    [Fact]
     public void Monkey()
     {
         var rng = new Random(0);
@@ -689,27 +685,28 @@ public class ArrayPoolHashSetTests
             {
                 int key = rng.Next(1024);
 
-                Assert.AreEqual(expect.Remove(key), actual.Remove(key));
+                Assert.Equal(expect.Remove(key), actual.Remove(key));
             }
             else
             {
                 int key = rng.Next(1024);
 
-                Assert.AreEqual(expect.Add(key), actual.Add(key));
+                Assert.Equal(expect.Add(key), actual.Add(key));
             }
         }
 
-        CollectionAssert.AreEquivalent(expect.ToArray(), actual.ToArray());
+        Assert.Equivalent(expect.ToArray(), actual.ToArray());
     }
 
-    [ConditionalTestMethod("HUGE")]
+    // TODO
+    //[ConditionalFact("HUGE")]
     public void Pathological()
     {
         var set = new ArrayPoolHashSet<ArrayPoolDictionaryTests.FixedHashCode>();
 
         for (int i = 0; i < 1 << 24; i++)
         {
-            Assert.IsTrue(set.Add(new ArrayPoolDictionaryTests.FixedHashCode(i)));
+            Assert.True(set.Add(new ArrayPoolDictionaryTests.FixedHashCode(i)));
 
             if (i % 1000 == 0)
             {
@@ -719,69 +716,70 @@ public class ArrayPoolHashSetTests
 
         for (int i = 0; i < 1 << 24; i++)
         {
-            Assert.IsTrue(set.TryGetValue(new ArrayPoolDictionaryTests.FixedHashCode(i), out var value));
-            Assert.AreEqual(i, value.Value);
+            Assert.True(set.TryGetValue(new ArrayPoolDictionaryTests.FixedHashCode(i), out var value));
+            Assert.Equal(i, value.Value);
         }
     }
 
-    [ConditionalTestMethod("HUGE")]
+    // TODO
+    //[ConditionalFact("HUGE")]
     public void Huge()
     {
         using var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, CollectionHelper.ArrayMaxLength), new ArrayPoolDictionaryTests.DoubleIntEqualityComparer());
-        Assert.AreEqual(CollectionHelper.ArrayMaxLength, set.Count);
-        Assert.AreEqual(CollectionHelper.ArrayMaxLength, set.Capacity);
+        Assert.Equal(CollectionHelper.ArrayMaxLength, set.Count);
+        Assert.Equal(CollectionHelper.ArrayMaxLength, set.Capacity);
 
-        Assert.ThrowsException<OutOfMemoryException>(() => set.Add(-1));
+        Assert.Throws<OutOfMemoryException>(() => set.Add(-1));
 
-        Assert.AreEqual(CollectionHelper.ArrayMaxLength, ArrayPoolHashSet<int>.AsSpan(set).Length);
+        Assert.Equal(CollectionHelper.ArrayMaxLength, ArrayPoolHashSet<int>.AsSpan(set).Length);
 
         var buffer = new int[CollectionHelper.ArrayMaxLength];
         set.CopyTo(buffer);
-        CollectionAssert.AreEquivalent(set.ToArray(), buffer);
+        Assert.Equivalent(set.ToArray(), buffer);
 
         using var copy = new ArrayPoolHashSet<int>(set);
         var setComparer = ArrayPoolHashSet<int>.CreateSetComparer();
-        Assert.IsTrue(setComparer.Equals(set, copy));
+        Assert.True(setComparer.Equals(set, copy));
 
-        Assert.AreEqual(CollectionHelper.ArrayMaxLength, set.EnsureCapacity(1));
+        Assert.Equal(CollectionHelper.ArrayMaxLength, set.EnsureCapacity(1));
 
         copy.ExceptWith(buffer);
-        Assert.AreEqual(0, copy.Count);
+        Assert.Empty(copy);
 
         _ = set.GetAlternateLookup<double>();
 
         foreach (var element in set)
         {
-            Assert.IsTrue(set.Contains(element));
+            Assert.True(set.Contains(element));
         }
 
         copy.UnionWith(set);
-        Assert.AreEqual(CollectionHelper.ArrayMaxLength, copy.Count);
+        Assert.Equal(CollectionHelper.ArrayMaxLength, copy.Count);
 
         copy.IntersectWith(set);
-        Assert.AreEqual(CollectionHelper.ArrayMaxLength, copy.Count);
+        Assert.Equal(CollectionHelper.ArrayMaxLength, copy.Count);
 
-        Assert.IsFalse(set.IsProperSubsetOf(copy));
-        Assert.IsFalse(set.IsProperSupersetOf(copy));
-        Assert.IsTrue(set.IsSubsetOf(copy));
-        Assert.IsTrue(set.IsSupersetOf(copy));
-        Assert.IsTrue(set.Overlaps(copy));
-        Assert.IsTrue(set.SetEquals(copy));
+        Assert.False(set.IsProperSubsetOf(copy));
+        Assert.False(set.IsProperSupersetOf(copy));
+        Assert.True(set.IsSubsetOf(copy));
+        Assert.True(set.IsSupersetOf(copy));
+        Assert.True(set.Overlaps(copy));
+        Assert.True(set.SetEquals(copy));
 
         copy.Remove(0);
-        Assert.AreEqual(CollectionHelper.ArrayMaxLength - 1, copy.Count);
+        Assert.Equal(CollectionHelper.ArrayMaxLength - 1, copy.Count);
 
         copy.RemoveWhere(i => i % 2 == 0);
-        Assert.AreEqual(CollectionHelper.ArrayMaxLength / 2, copy.Count);
+        Assert.Equal(CollectionHelper.ArrayMaxLength / 2, copy.Count);
 
         copy.SymmetricExceptWith(set);
-        Assert.AreEqual(0, copy.Count);
+        Assert.Empty(copy);
 
         set.TrimExcess();
 
-        Assert.IsTrue(set.TryGetAlternateLookup<double>(out _));
+        Assert.True(set.TryGetAlternateLookup<double>(out _));
 
-        Assert.IsTrue(set.TryGetValue(0, out _));
+        Assert.True(set.TryGetValue(0, out _));
 
         set.Clear();
     }
