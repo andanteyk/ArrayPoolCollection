@@ -182,6 +182,11 @@ namespace ArrayPoolCollection
             public T Value15;
 #pragma warning restore
 
+            public static Stack16 Create()
+            {
+                Unsafe.SkipInit<Stack16>(out var result);
+                return result;
+            }
             public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Value0, 16);
         }
 

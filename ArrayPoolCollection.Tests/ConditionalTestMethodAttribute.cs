@@ -1,10 +1,10 @@
 namespace ArrayPoolCollection.Tests;
 
-public class ContidionalTestMethodAttribute : TestMethodAttribute
+public class ConditionalTestMethodAttribute : TestMethodAttribute
 {
     public string Key { get; init; }
 
-    public ContidionalTestMethodAttribute(string key)
+    public ConditionalTestMethodAttribute(string key)
     {
         Key = key;
     }

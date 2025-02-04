@@ -1,3 +1,8 @@
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Reflection;
+
 namespace ArrayPoolCollection.Tests;
 
 [TestClass]
@@ -668,5 +673,116 @@ public class ArrayPoolHashSetTests
 
         set.Dispose();
         Assert.ThrowsException<ObjectDisposedException>(() => set.UnionWith([]));
+    }
+
+    [TestMethod]
+    public void Monkey()
+    {
+        var rng = new Random(0);
+
+        var expect = new HashSet<int>();
+        using var actual = new ArrayPoolHashSet<int>();
+
+        for (int i = 0; i < 1024 * 1024; i++)
+        {
+            if (rng.NextDouble() < 0.25)
+            {
+                int key = rng.Next(1024);
+
+                Assert.AreEqual(expect.Remove(key), actual.Remove(key));
+            }
+            else
+            {
+                int key = rng.Next(1024);
+
+                Assert.AreEqual(expect.Add(key), actual.Add(key));
+            }
+        }
+
+        CollectionAssert.AreEquivalent(expect.ToArray(), actual.ToArray());
+    }
+
+    [ConditionalTestMethod("HUGE")]
+    public void Pathological()
+    {
+        var set = new ArrayPoolHashSet<ArrayPoolDictionaryTests.FixedHashCode>();
+
+        for (int i = 0; i < 1 << 24; i++)
+        {
+            Assert.IsTrue(set.Add(new ArrayPoolDictionaryTests.FixedHashCode(i)));
+
+            if (i % 1000 == 0)
+            {
+                Debug.WriteLine($"{i}");
+            }
+        }
+
+        for (int i = 0; i < 1 << 24; i++)
+        {
+            Assert.IsTrue(set.TryGetValue(new ArrayPoolDictionaryTests.FixedHashCode(i), out var value));
+            Assert.AreEqual(i, value.Value);
+        }
+    }
+
+    [ConditionalTestMethod("HUGE")]
+    public void Huge()
+    {
+        using var set = new ArrayPoolHashSet<int>(Enumerable.Range(0, CollectionHelper.ArrayMaxLength), new ArrayPoolDictionaryTests.DoubleIntEqualityComparer());
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, set.Count);
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, set.Capacity);
+
+        Assert.ThrowsException<OutOfMemoryException>(() => set.Add(-1));
+
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, ArrayPoolHashSet<int>.AsSpan(set).Length);
+
+        var buffer = new int[CollectionHelper.ArrayMaxLength];
+        set.CopyTo(buffer);
+        CollectionAssert.AreEquivalent(set.ToArray(), buffer);
+
+        using var copy = new ArrayPoolHashSet<int>(set);
+        var setComparer = ArrayPoolHashSet<int>.CreateSetComparer();
+        Assert.IsTrue(setComparer.Equals(set, copy));
+
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, set.EnsureCapacity(1));
+
+        copy.ExceptWith(buffer);
+        Assert.AreEqual(0, copy.Count);
+
+        _ = set.GetAlternateLookup<double>();
+
+        foreach (var element in set)
+        {
+            Assert.IsTrue(set.Contains(element));
+        }
+
+        copy.UnionWith(set);
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, copy.Count);
+
+        copy.IntersectWith(set);
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, copy.Count);
+
+        Assert.IsFalse(set.IsProperSubsetOf(copy));
+        Assert.IsFalse(set.IsProperSupersetOf(copy));
+        Assert.IsTrue(set.IsSubsetOf(copy));
+        Assert.IsTrue(set.IsSupersetOf(copy));
+        Assert.IsTrue(set.Overlaps(copy));
+        Assert.IsTrue(set.SetEquals(copy));
+
+        copy.Remove(0);
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength - 1, copy.Count);
+
+        copy.RemoveWhere(i => i % 2 == 0);
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength / 2, copy.Count);
+
+        copy.SymmetricExceptWith(set);
+        Assert.AreEqual(0, copy.Count);
+
+        set.TrimExcess();
+
+        Assert.IsTrue(set.TryGetAlternateLookup<double>(out _));
+
+        Assert.IsTrue(set.TryGetValue(0, out _));
+
+        set.Clear();
     }
 }

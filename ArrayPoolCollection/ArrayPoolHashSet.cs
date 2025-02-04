@@ -43,9 +43,27 @@ namespace ArrayPoolCollection
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int HashCodeToMetadataIndex(int hashCode, int shift)
+        private static int HashCodeToMetadataIndex(int hashCode, int length)
         {
-            return (int)((uint)hashCode >> shift);
+            if (length <= (1 << 30))
+            {
+                return (int)((uint)hashCode >> GetShifts(length));
+            }
+            else
+            {
+                if ((uint)hashCode < (uint)length)
+                {
+                    return hashCode;
+                }
+                else if ((uint)hashCode < (uint)length * 2)
+                {
+                    return hashCode - length;
+                }
+                else
+                {
+                    return hashCode - length * 2;
+                }
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -115,7 +133,7 @@ namespace ArrayPoolCollection
 
             int hashCode = GetHashCode(key, comparer);
             uint fingerprint = HashCodeToFingerprint(hashCode);
-            int metadataIndex = HashCodeToMetadataIndex(hashCode, GetShifts(m_Values.Length));
+            int metadataIndex = HashCodeToMetadataIndex(hashCode, m_Values.Length);
 
             var current = metadata[metadataIndex];
 
@@ -195,7 +213,7 @@ namespace ArrayPoolCollection
 
             int hashCode = GetHashCode(key, comparer);
             uint fingerprint = HashCodeToFingerprint(hashCode);
-            int metadataIndex = HashCodeToMetadataIndex(hashCode, GetShifts(m_Values.Length));
+            int metadataIndex = HashCodeToMetadataIndex(hashCode, m_Values.Length);
 
 
             var current = metadata[metadataIndex];
@@ -238,20 +256,21 @@ namespace ArrayPoolCollection
 
         private void Resize(int newCapacity)
         {
-            if (m_Metadata is null)
+            newCapacity = CollectionHelper.RoundUpToPowerOf2(newCapacity);
+            if (newCapacity <= 0)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(m_Metadata));
+                newCapacity = CollectionHelper.ArrayMaxLength;
             }
-            if (m_Values is null)
+            if (newCapacity == m_Values?.Length)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(m_Values));
+                return;
             }
 
             var oldValues = m_Values;
             var oldMetadata = m_Metadata;
 
             m_Values = ArrayPool<T>.Shared.Rent(newCapacity);
-            oldValues.AsSpan(..m_Size).CopyTo(m_Values.AsSpan());
+            oldValues?.AsSpan(..m_Size).CopyTo(m_Values.AsSpan());
             m_Metadata = ArrayPool<Metadata>.Shared.Rent(newCapacity);
             m_Metadata.AsSpan().Clear();
 
@@ -261,8 +280,14 @@ namespace ArrayPoolCollection
                 PlaceAndShiftUp(new Metadata(fingerprint, i), metadataIndex);
             }
 
-            ArrayPool<T>.Shared.Return(oldValues, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-            ArrayPool<Metadata>.Shared.Return(oldMetadata);
+            if (oldValues != null)
+            {
+                ArrayPool<T>.Shared.Return(oldValues, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+            }
+            if (oldMetadata != null)
+            {
+                ArrayPool<Metadata>.Shared.Return(oldMetadata);
+            }
 
             m_Version++;
         }
@@ -282,7 +307,7 @@ namespace ArrayPoolCollection
 
             int hashCode = GetHashCode(key, m_Comparer);
             uint fingerprint = HashCodeToFingerprint(hashCode);
-            int metadataIndex = HashCodeToMetadataIndex(hashCode, GetShifts(m_Values.Length));
+            int metadataIndex = HashCodeToMetadataIndex(hashCode, m_Values.Length);
 
             while (fingerprint < metadata[metadataIndex].Fingerprint)
             {
@@ -357,7 +382,6 @@ namespace ArrayPoolCollection
 
             var metadata = m_Metadata;
             var values = m_Values;
-            int shifts = GetShifts(m_Values.Length);
 
             int valueIndex = metadata[metadataIndex].ValueIndex;
 
@@ -376,7 +400,7 @@ namespace ArrayPoolCollection
                 values[valueIndex] = values[m_Size - 1];
 
                 int movingHashCode = GetHashCode(values[valueIndex], m_Comparer);
-                int movingMetadataIndex = HashCodeToMetadataIndex(movingHashCode, shifts);
+                int movingMetadataIndex = HashCodeToMetadataIndex(movingHashCode, values.Length);
 
                 int valueIndexBack = m_Size - 1;
                 while (valueIndexBack != metadata[movingMetadataIndex].ValueIndex)
@@ -520,7 +544,7 @@ namespace ArrayPoolCollection
 
                 int hashCode = comparer.GetHashCode(key) * HashMixer;
                 uint fingerprint = HashCodeToFingerprint(hashCode);
-                int metadataIndex = HashCodeToMetadataIndex(hashCode, GetShifts(m_Parent.m_Values.Length));
+                int metadataIndex = HashCodeToMetadataIndex(hashCode, m_Parent.m_Values.Length);
 
                 var current = metadata[metadataIndex];
 
@@ -645,7 +669,7 @@ namespace ArrayPoolCollection
 
                 int hashCode = comparer.GetHashCode(key) * HashMixer;
                 uint fingerprint = HashCodeToFingerprint(hashCode);
-                int metadataIndex = HashCodeToMetadataIndex(hashCode, GetShifts(m_Parent.m_Values.Length));
+                int metadataIndex = HashCodeToMetadataIndex(hashCode, m_Parent.m_Values.Length);
 
                 while (fingerprint < metadata[metadataIndex].Fingerprint)
                 {
@@ -781,18 +805,21 @@ namespace ArrayPoolCollection
             {
                 ThrowHelper.ThrowArgumentOutOfRange(nameof(capacity), 0, int.MaxValue, capacity);
             }
-
-            m_Values = ArrayPool<T>.Shared.Rent(capacity);
-            m_Metadata = ArrayPool<Metadata>.Shared.Rent(capacity);
-            m_Metadata.AsSpan().Clear();
+            if (capacity > CollectionHelper.ArrayMaxLength)
+            {
+                ThrowHelper.ThrowOutOfMemory();
+            }
 
             m_Size = 0;
+            m_Version = 0;
 
             if (!typeof(T).IsValueType)
             {
                 comparer ??= EqualityComparer<T>.Default;
             }
             m_Comparer = comparer;
+
+            Resize(Math.Max(capacity, 16));
         }
 
         public ArrayPoolHashSet(IEnumerable<T> source) : this(source, typeof(T).IsValueType ? null : EqualityComparer<T>.Default) { }
@@ -820,21 +847,22 @@ namespace ArrayPoolCollection
                 return;
             }
 
-            int capacity =
-                CollectionHelper.TryGetNonEnumeratedCount(source, out int count) ?
-                (int)(count * MaxLoadFactorDen / MaxLoadFactorNum) :
-                16;
-            m_Values = ArrayPool<T>.Shared.Rent(capacity);
-            m_Metadata = ArrayPool<Metadata>.Shared.Rent(capacity);
-            m_Metadata.AsSpan().Clear();
-
             m_Size = 0;
+            m_Version = 0;
 
             if (!typeof(T).IsValueType)
             {
                 comparer ??= EqualityComparer<T>.Default;
             }
             m_Comparer = comparer;
+
+
+            if (!CollectionHelper.TryGetNonEnumeratedCount(source, out int count))
+            {
+                // TODO: opt. by segmentedArray?
+                count = 8;
+            }
+            Resize((int)Math.Min(count * MaxLoadFactorDen / MaxLoadFactorNum, CollectionHelper.ArrayMaxLength));
 
             foreach (var pair in source)
             {

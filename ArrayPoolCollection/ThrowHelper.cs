@@ -105,5 +105,11 @@ namespace ArrayPoolCollection
         {
             throw new OutOfMemoryException("Array.Length exceeded supported range.");
         }
+
+        [DoesNotReturn]
+        internal static void ThrowDoesNotImplement<T>(string name)
+        {
+            throw new InvalidOperationException($"{name} does not implement {typeof(T).Name}");
+        }
     }
 }

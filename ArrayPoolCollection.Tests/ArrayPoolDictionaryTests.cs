@@ -1,7 +1,7 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using Microsoft.VisualBasic;
 
 namespace ArrayPoolCollection.Tests;
 
@@ -32,7 +32,10 @@ public class ArrayPoolDictionaryTests
         {
             // should not throw any exceptions
             using var withCapacity = new ArrayPoolDictionary<int, int>(0);
+            Assert.AreEqual(withCapacity.Capacity, 16);
+
             Assert.ThrowsException<ArgumentOutOfRangeException>(() => new ArrayPoolDictionary<int, int>(-1));
+            Assert.ThrowsException<OutOfMemoryException>(() => new ArrayPoolDictionary<int, int>(int.MaxValue));
         }
 
         // should not throw any exceptions
@@ -372,6 +375,7 @@ public class ArrayPoolDictionaryTests
         Assert.AreEqual(64, dict.Capacity);
 
         Assert.ThrowsException<ArgumentOutOfRangeException>(() => dict.EnsureCapacity(-1));
+        Assert.ThrowsException<OutOfMemoryException>(() => dict.EnsureCapacity(int.MaxValue));
 
 
         var enumerator = dict.GetEnumerator();
@@ -967,5 +971,136 @@ public class ArrayPoolDictionaryTests
 
         dict.Dispose();
         Assert.ThrowsException<ObjectDisposedException>(() => idict.Remove(3));
+    }
+
+    [TestMethod]
+    public void Monkey()
+    {
+        var rng = new Random(0);
+
+        var expect = new Dictionary<int, int>();
+        using var actual = new ArrayPoolDictionary<int, int>();
+
+        for (int i = 0; i < 1024 * 1024; i++)
+        {
+            if (rng.NextDouble() < 0.25)
+            {
+                int key = rng.Next(1024);
+
+                Assert.AreEqual(expect.Remove(key), actual.Remove(key));
+            }
+            else
+            {
+                int key = rng.Next(1024);
+
+                Assert.AreEqual(expect.TryAdd(key, key), actual.TryAdd(key, key));
+            }
+        }
+
+        CollectionAssert.AreEquivalent(expect, actual);
+    }
+
+    public record class FixedHashCode(int Value)
+    {
+        public override int GetHashCode()
+        {
+            return 0;
+        }
+    }
+
+    [ConditionalTestMethod("HUGE")]
+    public void Pathological()
+    {
+        var dict = new ArrayPoolDictionary<FixedHashCode, int>();
+
+        for (int i = 0; i < 1 << 24; i++)
+        {
+            Assert.IsTrue(dict.TryAdd(new FixedHashCode(i), i));
+
+            if (i % 1000 == 0)
+            {
+                Debug.WriteLine($"{i}");
+            }
+        }
+
+        for (int i = 0; i < 1 << 24; i++)
+        {
+            Assert.IsTrue(dict.TryGetValue(new FixedHashCode(i), out var value));
+            Assert.AreEqual(i, value);
+        }
+    }
+
+    [ConditionalTestMethod("HUGE")]
+    public void Huge()
+    {
+        var rng = new Random(0);
+
+        var dict = new ArrayPoolDictionary<int, int>(CollectionHelper.ArrayMaxLength, new DoubleIntEqualityComparer());
+        int i;
+        for (i = 0; i < CollectionHelper.ArrayMaxLength; i++)
+        {
+            dict.Add(i, i);
+        }
+
+        dict[0] = 123;
+        Assert.AreEqual(123, dict[0]);
+        dict[0] = 0;
+
+        i = 0;
+        foreach (var key in dict.Keys)
+        {
+            Assert.AreEqual(i, key);
+            i++;
+        }
+
+        i = 0;
+        foreach (var value in dict.Values)
+        {
+            Assert.AreEqual(i, value);
+            i++;
+        }
+
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, dict.Capacity);
+
+        Assert.AreEqual(new DoubleIntEqualityComparer(), dict.Comparer);
+
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, dict.Count);
+
+        Assert.ThrowsException<OutOfMemoryException>(() => dict.Add(-1, -1));
+        Assert.ThrowsException<OutOfMemoryException>(() => dict.Add(new(-1, -1)));
+
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, ArrayPoolDictionary<int, int>.AsSpan(dict).Length);
+
+        // dict.Clear();
+
+        Assert.IsTrue(dict.Contains(new(1, 1)));
+
+        Assert.IsTrue(dict.ContainsKey(1));
+
+        Assert.IsTrue(dict.ContainsKey(CollectionHelper.ArrayMaxLength));
+
+        Assert.ThrowsException<OutOfMemoryException>(() => dict.EnsureCapacity(int.MaxValue));
+
+        var buffer = new KeyValuePair<int, int>[CollectionHelper.ArrayMaxLength];
+        dict.CopyTo(buffer, 0);
+
+        Assert.IsTrue(dict.GetAlternateLookup<double>().ContainsKey(1.0));
+        Assert.IsTrue(dict.GetAlternateLookup<double>().TryGetValue(1.0, out _));
+        Assert.ThrowsException<OutOfMemoryException>(() => dict.GetAlternateLookup<double>().TryAdd(-1.0, 2));
+
+        foreach (var pair in dict)
+        {
+            Assert.IsTrue(pair.Key == pair.Value);
+        }
+
+        Assert.IsFalse(dict.Remove(-1));
+
+        dict.TrimExcess();
+
+        Assert.IsFalse(dict.TryAdd(-1, -1));
+
+        Assert.IsTrue(dict.TryGetAlternateLookup<double>(out _));
+
+        Assert.IsTrue(dict.TryGetValue(1, out _));
     }
 }

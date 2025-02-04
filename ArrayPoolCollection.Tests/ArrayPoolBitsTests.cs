@@ -573,7 +573,7 @@ public class ArrayPoolBitsTests
         Assert.ThrowsException<ObjectDisposedException>(() => left.Xor(right));
     }
 
-    [ContidionalTestMethod("HUGE")]
+    [ConditionalTestMethod("HUGE")]
     public void Huge()
     {
         using var bits = new ArrayPoolBits(CollectionHelper.ArrayMaxLength);

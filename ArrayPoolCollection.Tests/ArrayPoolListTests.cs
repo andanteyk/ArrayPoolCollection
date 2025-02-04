@@ -992,4 +992,76 @@ public class ArrayPoolListTests
         list.Dispose();
         Assert.ThrowsException<ObjectDisposedException>(() => icollection.CopyTo(target, 1));
     }
+
+    [ConditionalTestMethod("HUGE")]
+    public void Huge()
+    {
+        using var list = new ArrayPoolList<int>(Enumerable.Range(0, CollectionHelper.ArrayMaxLength));
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, list.Capacity);
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, list.Count);
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            Assert.AreEqual(i, list[i]);
+        }
+
+        Assert.ThrowsException<OutOfMemoryException>(() => list.Add(-1));
+        Assert.ThrowsException<OutOfMemoryException>(() => list.AddRange([-1]));
+
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, list.AsReadOnly().Count);
+
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, ArrayPoolList<int>.AsSpan(list).Length);
+
+        Assert.AreEqual(123, list.BinarySearch(123));
+        Assert.IsTrue(list.Contains(123));
+        using var doubleList = list.ConvertAll(i => (double)i);
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, doubleList.Count);
+
+        var buffer = new int[CollectionHelper.ArrayMaxLength];
+        list.CopyTo(buffer);
+
+        Assert.AreEqual(CollectionHelper.ArrayMaxLength, list.EnsureCapacity(1));
+
+        Assert.IsFalse(list.Exists(i => i == -1));
+        Assert.AreEqual(123, list.Find(i => i == 123));
+        using var evens = list.FindAll(i => i % 2 == 0);
+
+        Assert.AreEqual(123, list.FindIndex(i => i == 123));
+        Assert.AreEqual(123, list.FindLast(i => i == 123));
+        Assert.AreEqual(123, list.FindLastIndex(i => i == 123));
+
+        list.ForEach(i => { });
+        foreach (var elem in list) { }
+
+        using var partial = list.GetRange(123, 456);
+        Assert.AreEqual(456, partial.Count);
+
+        Assert.AreEqual(123, list.IndexOf(123));
+
+        Assert.ThrowsException<OutOfMemoryException>(() => list.Insert(1, -1));
+        Assert.ThrowsException<OutOfMemoryException>(() => list.InsertRange(1, [1]));
+        Assert.ThrowsException<OutOfMemoryException>(() => list.InsertRangeFromSpan(1, [1]));
+
+        Assert.AreEqual(123, list.LastIndexOf(123));
+
+        Assert.IsFalse(list.Remove(-1));
+        Assert.AreEqual(0, list.RemoveAll(i => i < 0));
+        list.RemoveAt(1);
+        list.RemoveRange(1, 100);
+        list.Reverse();
+        ArrayPoolList<int>.SetCount(list, CollectionHelper.ArrayMaxLength);
+
+        Assert.AreEqual(333, list[123..456].Count);
+
+        list.Sort();
+
+        var array = list.ToArray();
+        CollectionAssert.AreEqual(list, array);
+
+        list.TrimExcess();
+
+        Assert.IsTrue(list.TrueForAll(i => i >= 0));
+
+        list.Clear();
+    }
 }

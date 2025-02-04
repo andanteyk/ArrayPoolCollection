@@ -28,8 +28,7 @@ namespace ArrayPoolCollection
         public ArrayPoolList(IEnumerable<T> source)
         {
             // TODO: may be able to optimize if source is ICollection(<T>)
-            var segmentedStack = new SegmentedArray<T>.Stack16();
-            var segmentedArray = new SegmentedArray<T>(segmentedStack.AsSpan());
+            var segmentedArray = new SegmentedArray<T>(SegmentedArray<T>.Stack16.Create().AsSpan());
 
             segmentedArray.AddRange(source);
             m_Array = segmentedArray.ToArrayPool(out var span);
@@ -55,10 +54,15 @@ namespace ArrayPoolCollection
                 }
                 if (value < m_Length)
                 {
-                    ThrowHelper.ThrowArgumentOutOfRange(nameof(value), m_Length, 0x7FFFFFC7, value);
+                    ThrowHelper.ThrowArgumentOutOfRange(nameof(value), m_Length, CollectionHelper.ArrayMaxLength, value);
                 }
 
-                int newLength = Math.Max(CollectionHelper.RoundUpToPowerOf2(value), 16);
+                int newLength = CollectionHelper.RoundUpToPowerOf2(Math.Max(value, 16));
+                if (newLength < 0)
+                {
+                    newLength = CollectionHelper.ArrayMaxLength;
+                }
+
                 if (newLength != m_Array.Length)
                 {
                     var newArray = ArrayPool<T>.Shared.Rent(newLength);
@@ -748,8 +752,7 @@ namespace ArrayPoolCollection
             }
             else
             {
-                var segmentedStack = new SegmentedArray<T>.Stack16();
-                using var segmentedArray = new SegmentedArray<T>(segmentedStack.AsSpan());
+                using var segmentedArray = new SegmentedArray<T>(SegmentedArray<T>.Stack16.Create().AsSpan());
 
                 segmentedArray.AddRange(source);
                 count = segmentedArray.GetTotalLength();
