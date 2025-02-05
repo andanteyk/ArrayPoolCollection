@@ -924,6 +924,9 @@ namespace ArrayPoolCollection
 
         public readonly struct AlternateLookup<TAlternateKey>
             where TAlternateKey : notnull
+#if NET9_0_OR_GREATER
+                , allows ref struct
+#endif
         {
             private readonly ArrayPoolDictionary<TKey, TValue> m_Parent;
 
@@ -942,13 +945,18 @@ namespace ArrayPoolCollection
                     {
                         ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Values));
                     }
+                    var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternateKey, TKey>;
+                    if (comparer is null)
+                    {
+                        ThrowHelper.ThrowNotAlternateComparer();
+                    }
 
                     if (GetAlternateEntryIndex(alternateKey) is int index && index >= 0)
                     {
                         return m_Parent.m_Values[index].Value;
                     }
 
-                    ThrowHelper.ThrowKeyNotFound(alternateKey);
+                    ThrowHelper.ThrowKeyNotFound(comparer.Create(alternateKey).ToString());
                     return default;
                 }
                 set
@@ -957,7 +965,6 @@ namespace ArrayPoolCollection
                     {
                         ThrowHelper.ThrowObjectDisposed(nameof(m_Parent.m_Values));
                     }
-
                     var comparer = m_Parent.m_Comparer as IAlternateEqualityComparer<TAlternateKey, TKey>;
                     if (comparer is null)
                     {
@@ -1343,7 +1350,7 @@ namespace ArrayPoolCollection
                     return m_Values[index].Value;
                 }
 
-                ThrowHelper.ThrowKeyNotFound(key);
+                ThrowHelper.ThrowKeyNotFound(key.ToString());
                 return default;
             }
             set
@@ -1504,7 +1511,7 @@ namespace ArrayPoolCollection
             }
             if (!AddEntry(key, value, false))
             {
-                ThrowHelper.ThrowKeyIsAlreadyExists(key);
+                ThrowHelper.ThrowKeyIsAlreadyExists(key.ToString());
             }
         }
 
@@ -1516,7 +1523,7 @@ namespace ArrayPoolCollection
             }
             if (!AddEntry(item.Key, item.Value, false))
             {
-                ThrowHelper.ThrowKeyIsAlreadyExists(item.Key);
+                ThrowHelper.ThrowKeyIsAlreadyExists(item.Key.ToString());
             }
         }
 
@@ -1624,6 +1631,9 @@ namespace ArrayPoolCollection
 
         public AlternateLookup<TAlternateKey> GetAlternateLookup<TAlternateKey>()
             where TAlternateKey : notnull
+#if NET9_0_OR_GREATER
+                , allows ref struct
+#endif
         {
             if (m_Values is null)
             {
@@ -1765,6 +1775,9 @@ namespace ArrayPoolCollection
 
         public bool TryGetAlternateLookup<TAlternateKey>(out AlternateLookup<TAlternateKey> alternateLookup)
             where TAlternateKey : notnull
+#if NET9_0_OR_GREATER
+                , allows ref struct
+#endif
         {
             if (m_Values is null)
             {

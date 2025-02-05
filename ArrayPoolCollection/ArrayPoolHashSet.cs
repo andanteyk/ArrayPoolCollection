@@ -511,6 +511,9 @@ namespace ArrayPoolCollection
         }
 
         public readonly struct AlternateLookup<TAlternate>
+#if NET9_0_OR_GREATER
+            where TAlternate: allows ref struct
+#endif
         {
             private readonly ArrayPoolHashSet<T> m_Parent;
 
@@ -1068,6 +1071,9 @@ namespace ArrayPoolCollection
         }
 
         public AlternateLookup<TAlternate> GetAlternateLookup<TAlternate>()
+#if NET9_0_OR_GREATER
+            where TAlternate: allows ref struct
+#endif
         {
             if (m_Values is null)
             {
@@ -1398,6 +1404,9 @@ namespace ArrayPoolCollection
         }
 
         public bool TryGetAlternateLookup<TAlternate>(out AlternateLookup<TAlternate> lookup)
+#if NET9_0_OR_GREATER
+            where TAlternate: allows ref struct
+#endif
         {
             if (m_Values is null)
             {

@@ -512,6 +512,16 @@ public class ArrayPoolDictionaryTests
         Assert.Throws<InvalidOperationException>(() => normalDict.GetAlternateLookup<double>());
 
 
+#if NET9_0_OR_GREATER
+        {
+            using var stringDict = new ArrayPoolDictionary<string, string>();
+            stringDict.Add("Alice", "Supernova");
+            Assert.True(stringDict.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue("Alice", out var value));
+            Assert.Equal("Supernova", value);
+        }
+#endif
+
+
         dict.Dispose();
         Assert.Throws<ObjectDisposedException>(() => dict.GetAlternateLookup<double>());
     }

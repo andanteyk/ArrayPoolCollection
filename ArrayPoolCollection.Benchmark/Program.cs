@@ -1,6 +1,4 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 using ArrayPoolCollection.Benchmark;
 using BenchmarkDotNet.Running;
 

@@ -249,17 +249,29 @@ public class ArrayPoolPriorityQueueTests
         Assert.Throws<ObjectDisposedException>(() => queue.EnqueueDequeue(1, 1));
     }
 
+    private static IEnumerable<T> HideLength<T>(IEnumerable<T> source)
+    {
+        foreach (var element in source)
+        {
+            yield return element;
+        }
+    }
+
     [Fact]
     public void EnqueueRange()
     {
         var queue = new ArrayPoolPriorityQueue<int, int>();
 
-        queue.EnqueueRange(Enumerable.Range(0, 100).Select(i => (i, i)));
+        queue.EnqueueRange(HideLength(Enumerable.Range(0, 100).Select(i => (i, i))));
 
         for (int i = 0; i < 100; i++)
         {
             Assert.Equal(99 - i, queue.Dequeue());
         }
+
+
+        queue.EnqueueRange(HideLength(Enumerable.Range(0, 100)), 0);
+        Assert.Equivalent(Enumerable.Range(0, 100).Select(i => (i, 0)), queue.UnorderedItems);
 
 
         var enumerator = queue.UnorderedItems.GetEnumerator();

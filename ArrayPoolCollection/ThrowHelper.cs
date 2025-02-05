@@ -59,13 +59,13 @@ namespace ArrayPoolCollection
         }
 
         [DoesNotReturn]
-        internal static void ThrowKeyNotFound<TKey>(TKey key)
+        internal static void ThrowKeyNotFound(string? key)
         {
             throw new KeyNotFoundException($"key {key} not found");
         }
 
         [DoesNotReturn]
-        internal static void ThrowKeyIsAlreadyExists<TKey>(TKey key)
+        internal static void ThrowKeyIsAlreadyExists(string? key)
         {
             throw new ArgumentException($"key {key} is already exists");
         }

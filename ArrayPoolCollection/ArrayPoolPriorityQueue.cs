@@ -224,10 +224,11 @@ namespace ArrayPoolCollection
                 ThrowHelper.ThrowArgumentOutOfRange(nameof(capacity), 0, int.MaxValue, capacity);
             }
 
-            m_Array = ArrayPool<(TElement Element, TPriority Priority)>.Shared.Rent(Math.Max(capacity, 16));
             m_Comparer = comparer;
             m_Length = 0;
             m_Version = 0;
+
+            Resize(Math.Max(capacity, 16));
         }
 
         public ArrayPoolPriorityQueue(IEnumerable<(TElement Element, TPriority Priority)> source) : this(source, typeof(TPriority).IsValueType ? null : Comparer<TPriority>.Default) { }
@@ -238,10 +239,11 @@ namespace ArrayPoolCollection
                 count = 16;
             }
 
-            m_Array = ArrayPool<(TElement Element, TPriority Priority)>.Shared.Rent(Math.Max(count, 16));
             m_Comparer = comparer;
             m_Length = 0;
             m_Version = 0;
+
+            Resize(Math.Max(count, 16));
 
             EnqueueRange(source);
         }
@@ -414,17 +416,26 @@ namespace ArrayPoolCollection
             }
         }
 
-        private void Resize(int size)
+        private void Resize(int newCapacity)
         {
-            if (m_Array is null)
+            newCapacity = CollectionHelper.RoundUpToPowerOf2(newCapacity);
+            if (newCapacity <= 0)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+                newCapacity = CollectionHelper.ArrayMaxLength;
+            }
+            if (newCapacity == m_Array?.Length)
+            {
+                return;
             }
 
             var oldArray = m_Array;
-            m_Array = ArrayPool<(TElement Element, TPriority Priority)>.Shared.Rent(Math.Max(size, 16));
-            oldArray.AsSpan(..m_Length).CopyTo(m_Array);
-            ArrayPool<(TElement Element, TPriority Priority)>.Shared.Return(oldArray, RuntimeHelpers.IsReferenceOrContainsReferences<(TElement Element, TPriority Priority)>());
+            m_Array = ArrayPool<(TElement Element, TPriority Priority)>.Shared.Rent(Math.Max(newCapacity, 16));
+            oldArray?.AsSpan(..m_Length).CopyTo(m_Array);
+
+            if (oldArray is not null)
+            {
+                ArrayPool<(TElement Element, TPriority Priority)>.Shared.Return(oldArray, RuntimeHelpers.IsReferenceOrContainsReferences<(TElement Element, TPriority Priority)>());
+            }
 
             m_Version++;
         }
@@ -456,19 +467,26 @@ namespace ArrayPoolCollection
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            if (CollectionHelper.TryGetNonEnumeratedCount(elements, out int count))
-            {
-                if (m_Length + count > m_Array.Length)
-                {
-                    Resize(m_Length + count);
-                }
-            }
-
             if (m_Length == 0)
             {
+
+                if (CollectionHelper.TryGetNonEnumeratedCount(elements, out int count))
+                {
+                    if (count > m_Array.Length)
+                    {
+                        Resize(count);
+                    }
+                }
+
                 int i = 0;
                 foreach (var element in elements)
                 {
+                    if (i >= m_Array.Length)
+                    {
+                        m_Length = i;
+                        Resize(m_Array.Length << 1);
+                    }
+
                     m_Array[i++] = (element, priority);
                 }
                 m_Length = i;
@@ -477,6 +495,14 @@ namespace ArrayPoolCollection
             }
             else
             {
+                if (CollectionHelper.TryGetNonEnumeratedCount(elements, out int count))
+                {
+                    if (m_Length + count > m_Array.Length)
+                    {
+                        Resize(m_Length + count);
+                    }
+                }
+
                 foreach (var element in elements)
                 {
                     Enqueue(element, priority);
@@ -491,37 +517,57 @@ namespace ArrayPoolCollection
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            if (CollectionHelper.TryGetNonEnumeratedCount(elements, out int count))
-            {
-                if (m_Length + count > m_Array.Length)
-                {
-                    Resize(m_Length + count);
-                }
-            }
-
             if (m_Length == 0)
             {
                 if (elements is ICollection<(TElement, TPriority)> collection)
                 {
+                    if (collection.Count > m_Array.Length)
+                    {
+                        Resize(collection.Count);
+                    }
+
                     collection.CopyTo(m_Array, 0);
                     m_Length = collection.Count;
                 }
                 else
                 {
+                    if (CollectionHelper.TryGetNonEnumeratedCount(elements, out int count))
+                    {
+                        if (count > m_Array.Length)
+                        {
+                            Resize(count);
+                        }
+                    }
+
                     int i = 0;
                     foreach (var element in elements)
                     {
+                        if (i >= m_Array.Length)
+                        {
+                            m_Length = i;
+                            Resize(m_Array.Length << 1);
+                        }
+
                         m_Array[i++] = element;
                     }
                     m_Length = i;
                 }
+
                 Heapify();
             }
             else
             {
-                foreach (var element in elements)
+                if (CollectionHelper.TryGetNonEnumeratedCount(elements, out int count))
                 {
-                    Enqueue(element.Element, element.Priority);
+                    if (m_Length + count > m_Array.Length)
+                    {
+                        Resize(m_Length + count);
+                    }
+                }
+
+                foreach (var (Element, Priority) in elements)
+                {
+                    Enqueue(Element, Priority);
                 }
             }
         }
@@ -551,7 +597,7 @@ namespace ArrayPoolCollection
                 return m_Array.Length;
             }
 
-            Resize(capacity);
+            Resize(Math.Max(capacity, 16));
             return m_Array.Length;
         }
 
@@ -606,7 +652,7 @@ namespace ArrayPoolCollection
 
             if (m_Length < m_Array.Length / 2)
             {
-                Resize(m_Length);
+                Resize(Math.Max(m_Length, 16));
             }
         }
 

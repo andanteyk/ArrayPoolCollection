@@ -341,6 +341,16 @@ public class ArrayPoolHashSetTests
         Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
 
 
+#if NET9_0_OR_GREATER
+        {
+            var stringSet = new ArrayPoolHashSet<string> { "Alice", "Barbara", "Charlotte" };
+            Assert.True(stringSet.TryGetAlternateLookup<ReadOnlySpan<char>>(out var alternate));
+            Assert.True(alternate.TryGetValue("Alice", out var value));
+            Assert.Equal("Alice", value);
+        }
+#endif
+
+
         set.Dispose();
         Assert.Throws<ObjectDisposedException>(() => set.GetAlternateLookup<double>());
         Assert.Throws<ObjectDisposedException>(() => lookup.Add(1.0));
