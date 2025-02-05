@@ -565,6 +565,10 @@ namespace ArrayPoolCollection
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
+            if (m_Length == 0)
+            {
+                return;
+            }
 
             int lastIndex = (m_Length - 1) >> NuintShifts;
             nuint lastMask = ~Zero >> (NuintBits - m_Length);

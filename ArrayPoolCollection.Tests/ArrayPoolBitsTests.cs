@@ -20,9 +20,13 @@ public class ArrayPoolBitsTests
             Assert.Equal(flag, bits[index]);
         }
 
+        Assert.Throws<IndexOutOfRangeException>(() => bits[-1]);
+        Assert.Throws<IndexOutOfRangeException>(() => bits[999] = true);
+
 
         bits.Dispose();
         Assert.Throws<ObjectDisposedException>(() => bits[0]);
+        Assert.Throws<ObjectDisposedException>(() => bits[0] = true);
     }
 
     [Fact]
@@ -34,6 +38,10 @@ public class ArrayPoolBitsTests
             bits.Add(true);
             Assert.Equal(i + 1, bits.Count);
         }
+
+
+        bits.Dispose();
+        Assert.Throws<ObjectDisposedException>(() => bits.Count);
     }
 
     [Fact]
