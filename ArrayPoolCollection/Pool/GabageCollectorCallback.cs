@@ -4,22 +4,24 @@ namespace ArrayPoolCollection.Pool
 {
     internal class GabageCollectorCallback : CriticalFinalizerObject
     {
-        private readonly Action m_Callback;
+        private readonly Func<bool> m_Callback;
 
-        internal static void Register(Action callback)
+        internal static void Register(Func<bool> callback)
         {
             new GabageCollectorCallback(callback);
         }
 
-        private GabageCollectorCallback(Action callback)
+        private GabageCollectorCallback(Func<bool> callback)
         {
             m_Callback = callback;
         }
 
         ~GabageCollectorCallback()
         {
-            m_Callback();
-            GC.ReRegisterForFinalize(this);
+            if (m_Callback())
+            {
+                GC.ReRegisterForFinalize(this);
+            }
         }
     }
 }

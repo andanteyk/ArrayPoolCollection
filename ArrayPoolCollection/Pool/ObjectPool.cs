@@ -26,8 +26,8 @@ namespace ArrayPoolCollection.Pool
                                 disposable.Dispose();
                             }
                         }
-                    ), DefaultTrimThreshold);
-                    GabageCollectorCallback.Register(() => m_Shared?.TrimExcess());
+                    ), DefaultTrimThreshold, true);
+
                     return m_Shared;
                 }
                 else
@@ -39,18 +39,28 @@ namespace ArrayPoolCollection.Pool
         }
 
 
-        private const int DefaultTrimThreshold = 256;
+        private const int DefaultTrimThreshold = 16;
         public int TrimThreshold { get; init; } = DefaultTrimThreshold;
 
         private ArrayPoolQueue<T>? m_Queue;
         private readonly IPooledObjectCallback<T> m_Callback;
 
-        public ObjectPool(IPooledObjectCallback<T> callback) : this(callback, DefaultTrimThreshold) { }
-        public ObjectPool(IPooledObjectCallback<T> callback, int trimThreshold)
+        public ObjectPool(IPooledObjectCallback<T> callback) : this(callback, DefaultTrimThreshold, false) { }
+        public ObjectPool(IPooledObjectCallback<T> callback, int trimThreshold) : this(callback, trimThreshold, false) { }
+        public ObjectPool(IPooledObjectCallback<T> callback, int trimThreshold, bool autoTrimWhenGabageCollected)
         {
             m_Queue = new();
             m_Callback = callback;
             TrimThreshold = trimThreshold;
+
+            if (autoTrimWhenGabageCollected)
+            {
+                GabageCollectorCallback.Register(() =>
+                {
+                    TrimExcess();
+                    return m_Queue is not null;
+                });
+            }
         }
 
         public T Rent()

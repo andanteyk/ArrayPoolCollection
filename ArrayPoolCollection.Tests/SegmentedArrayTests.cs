@@ -22,7 +22,7 @@ public class SegmentedArrayTests
         segmentedArray.Add(3);
 
         var result = segmentedArray.ToArray();
-        Assert.Equal(new int[] { 1, 2, 3 }, result);
+        Assert.Equal([1, 2, 3], result);
     }
 
     [Fact]

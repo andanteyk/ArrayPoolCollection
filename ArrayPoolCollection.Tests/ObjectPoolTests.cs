@@ -131,15 +131,35 @@ namespace ArrayPoolCollection.Tests
             pool.TrimExcess();
         }
 
+        private record class DisposeDetector(Action Callback) : IDisposable
+        {
+            public void Dispose()
+            {
+                Callback();
+            }
+        }
+
         [Fact]
         public void Dispose()
         {
-            var pool = new ObjectPool<Random>(PooledObjectCallback.Create<Random>());
+            int disposed = 0;
 
-            pool.Dispose();
+            var pool = new ObjectPool<DisposeDetector>(PooledObjectCallback<DisposeDetector>.Create(
+                () => new DisposeDetector(() => disposed++),
+                i => { },
+                i => { },
+                i => i.Dispose()
+            ));
+
+            pool.Prewarm(16);
             pool.Dispose();
 
-            Assert.Throws<InvalidOperationException>(() => ObjectPool<Random>.Shared.Dispose());
+            Assert.Equal(16, disposed);
+
+            // should not throw any exceptions
+            pool.Dispose();
+
+            Assert.Throws<InvalidOperationException>(() => ObjectPool<DisposeDetector>.Shared.Dispose());
         }
 
         [Fact]
@@ -153,12 +173,11 @@ namespace ArrayPoolCollection.Tests
                 i => { },
                 i => returnCount++,
                 i => destroyCount++
-             ), 256);
-            GabageCollectorCallback.Register(() =>
-                pool.TrimExcess());
+             ), 256, true);
 
             pool.Prewarm(1024);
 
+            Thread.Sleep(10);
             GC.Collect(2);
             Thread.Sleep(10);
 
