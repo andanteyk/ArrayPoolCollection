@@ -67,11 +67,7 @@ namespace ArrayPoolCollection
             m_Length = 0;
             m_Version = 0;
 
-
-            foreach (var element in source)
-            {
-                Push(element);
-            }
+            PushRange(source);
         }
 
         /// <summary>
@@ -173,27 +169,32 @@ namespace ArrayPoolCollection
                 return m_Array.Length;
             }
 
-            Resize(capacity);
+            Resize(Math.Max(capacity, 16));
             return m_Array.Length;
         }
 
-        private void Resize(int capacity)
+        private void Resize(int newCapacity)
         {
-            if (m_Array is null)
+            newCapacity = CollectionHelper.RoundUpToPowerOf2(newCapacity);
+            if (newCapacity <= 0)
             {
-                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+                newCapacity = CollectionHelper.ArrayMaxLength;
+            }
+            if (newCapacity == m_Array?.Length)
+            {
+                return;
             }
 
-            m_Version++;
+            var oldArray = m_Array;
+            m_Array = ArrayPool<T>.Shared.Rent(newCapacity);
 
-            capacity = Math.Max(capacity, 16);
-            if (CollectionHelper.RoundUpToPowerOf2(capacity) != m_Array.Length)
+            if (oldArray is not null)
             {
-                var oldArray = m_Array;
-                m_Array = ArrayPool<T>.Shared.Rent(capacity);
                 oldArray.AsSpan(..m_Length).CopyTo(m_Array);
                 ArrayPool<T>.Shared.Return(oldArray, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
             }
+
+            m_Version++;
         }
 
         public struct Enumerator : IEnumerator<T>
@@ -206,7 +207,7 @@ namespace ArrayPoolCollection
             {
                 m_Parent = parent;
                 m_Version = parent.m_Version;
-                m_Index = -1;
+                m_Index = parent.m_Length;
             }
 
             public readonly T Current
@@ -232,7 +233,7 @@ namespace ArrayPoolCollection
 
             readonly object? IEnumerator.Current => Current;
 
-            public void Dispose()
+            public readonly void Dispose()
             {
             }
 
@@ -247,12 +248,12 @@ namespace ArrayPoolCollection
                     ThrowHelper.ThrowDifferentVersion();
                 }
 
-                if (m_Index >= m_Parent.m_Length)
+                if (m_Index < 0)
                 {
                     return false;
                 }
 
-                return ++m_Index < m_Parent.m_Length;
+                return --m_Index >= 0;
             }
 
             public void Reset()
@@ -266,7 +267,7 @@ namespace ArrayPoolCollection
                     ThrowHelper.ThrowDifferentVersion();
                 }
 
-                m_Index = -1;
+                m_Index = m_Parent.m_Length;
             }
         }
 
@@ -435,7 +436,8 @@ namespace ArrayPoolCollection
                 ThrowHelper.ThrowArgumentOutOfRange(nameof(capacity), m_Length, int.MaxValue, capacity);
             }
 
-            Resize(capacity);
+            m_Version++;
+            Resize(Math.Max(capacity, 16));
         }
 
         public bool TryPeek(out T result)

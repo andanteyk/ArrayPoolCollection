@@ -384,4 +384,30 @@ public class ArrayPoolQueueTests
         queue.Dispose();
         Assert.Throws<ObjectDisposedException>(() => queue.TryPeek(out _));
     }
+
+    [Fact]
+    public void Monkey()
+    {
+        var rng = new Random(0);
+
+        var expect = new Queue<int>();
+        using var actual = new ArrayPoolQueue<int>();
+
+        for (int i = 0; i < 1024 * 1024; i++)
+        {
+            if (rng.NextDouble() < 0.25)
+            {
+                expect.TryDequeue(out _);
+                actual.TryDequeue(out _);
+            }
+            else
+            {
+                int value = rng.Next();
+                expect.Enqueue(value);
+                actual.Enqueue(value);
+            }
+        }
+
+        Assert.Equal(expect, actual);
+    }
 }

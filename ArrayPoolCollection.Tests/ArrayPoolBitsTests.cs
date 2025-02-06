@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections;
 using System.Runtime.InteropServices;
 
 namespace ArrayPoolCollection.Tests;
@@ -581,6 +582,26 @@ public class ArrayPoolBitsTests
 
         left.Dispose();
         Assert.Throws<ObjectDisposedException>(() => left.Xor(right));
+    }
+
+    [Fact]
+    public void Monkey()
+    {
+        var rng = new Random(0);
+
+        var expect = new BitArray(1024);
+        using var actual = new ArrayPoolBits(1024);
+
+        for (int i = 0; i < 1024 * 1024; i++)
+        {
+            int index = rng.Next(1024);
+            bool flag = rng.NextDouble() < 0.5;
+
+            expect[index] = flag;
+            actual[index] = flag;
+        }
+
+        Assert.Equal(expect.Cast<bool>(), actual);
     }
 
     // TODO

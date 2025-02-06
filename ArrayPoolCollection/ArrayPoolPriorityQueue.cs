@@ -338,9 +338,9 @@ namespace ArrayPoolCollection
 
                 int greaterChild = rightChild >= m_Length ?
                     leftChild :
-                    Compare(m_Array[leftChild].Priority, m_Array[rightChild].Priority) < 0 ? rightChild : leftChild;
+                    Compare(m_Array[leftChild].Priority, m_Array[rightChild].Priority) > 0 ? rightChild : leftChild;
 
-                if (Compare(m_Array[i].Priority, m_Array[greaterChild].Priority) < 0)
+                if (Compare(m_Array[i].Priority, m_Array[greaterChild].Priority) > 0)
                 {
                     (m_Array[i], m_Array[greaterChild]) = (m_Array[greaterChild], m_Array[i]);
                 }
@@ -404,7 +404,7 @@ namespace ArrayPoolCollection
             while (i != 0)
             {
                 int parent = (i - 1) / 2;
-                if (Compare(m_Array[i].Priority, m_Array[parent].Priority) > 0)
+                if (Compare(m_Array[i].Priority, m_Array[parent].Priority) < 0)
                 {
                     (m_Array[i], m_Array[parent]) = (m_Array[parent], m_Array[i]);
                 }

@@ -162,10 +162,10 @@ public class ArrayPoolStackTests
     {
         var stack = new ArrayPoolStack<int>(Enumerable.Range(0, 100));
 
-        int i = 0;
+        int i = 99;
         foreach (var element in stack)
         {
-            Assert.Equal(i++, element);
+            Assert.Equal(i--, element);
         }
 
 
@@ -174,7 +174,7 @@ public class ArrayPoolStackTests
         for (i = 0; i < 100; i++)
         {
             Assert.True(enumerator.MoveNext());
-            Assert.Equal(i, enumerator.Current);
+            Assert.Equal(99 - i, enumerator.Current);
         }
         Assert.False(enumerator.MoveNext());
         Assert.Throws<InvalidOperationException>(() => enumerator.Current);
@@ -394,5 +394,31 @@ public class ArrayPoolStackTests
 
         stack.Dispose();
         Assert.Throws<ObjectDisposedException>(() => stack.TryPop(out _));
+    }
+
+    [Fact]
+    public void Monkey()
+    {
+        var rng = new Random(0);
+
+        var expect = new Stack<int>();
+        using var actual = new ArrayPoolStack<int>();
+
+        for (int i = 0; i < 1024 * 1024; i++)
+        {
+            if (rng.NextDouble() < 0.25)
+            {
+                expect.TryPop(out _);
+                actual.TryPop(out _);
+            }
+            else
+            {
+                int value = rng.Next();
+                expect.Push(value);
+                actual.Push(value);
+            }
+        }
+
+        Assert.Equal(expect, actual);
     }
 }

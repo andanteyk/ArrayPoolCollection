@@ -62,11 +62,7 @@ namespace ArrayPoolCollection
             m_Head = 0;
             m_Length = 0;
 
-            // TODO: opt @ icollection
-            foreach (var element in source)
-            {
-                Enqueue(element);
-            }
+            EnqueueRange(source);
         }
 
 

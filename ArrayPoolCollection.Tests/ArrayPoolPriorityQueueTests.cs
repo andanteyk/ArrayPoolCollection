@@ -169,7 +169,7 @@ public class ArrayPoolPriorityQueueTests
     {
         var queue = new ArrayPoolPriorityQueue<int, int>(Enumerable.Range(0, 100).Select(i => (i, i)));
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 99; i >= 0; i--)
         {
             Assert.Equal(99 - i, queue.Dequeue());
         }
@@ -212,10 +212,10 @@ public class ArrayPoolPriorityQueueTests
     {
         var queue = new ArrayPoolPriorityQueue<int, int>();
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 99; i >= 0; i--)
         {
             queue.Enqueue(i, i);
-            Assert.Equal(i + 1, queue.Count);
+            Assert.Equal(100 - i, queue.Count);
             Assert.Equal(i, queue.Peek());
         }
 
@@ -266,7 +266,7 @@ public class ArrayPoolPriorityQueueTests
 
         for (int i = 0; i < 100; i++)
         {
-            Assert.Equal(99 - i, queue.Dequeue());
+            Assert.Equal(i, queue.Dequeue());
         }
 
 
@@ -310,7 +310,7 @@ public class ArrayPoolPriorityQueueTests
 
         Assert.Throws<InvalidOperationException>(() => queue.Peek());
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 99; i >= 0; i--)
         {
             queue.Enqueue(i, i);
             Assert.Equal(i, queue.Peek());
@@ -409,4 +409,39 @@ public class ArrayPoolPriorityQueueTests
         // should not throw any exceptions
         queue.Dispose();
     }
+
+#if NET6_0_OR_GREATER
+    [Fact]
+    public void Monkey()
+    {
+        var rng = new Random(0);
+
+        var expect = new PriorityQueue<long, long>();
+        using var actual = new ArrayPoolPriorityQueue<long, long>();
+
+        for (int i = 0; i < 1024 * 1024; i++)
+        {
+            if (rng.NextDouble() < 0.25)
+            {
+                expect.TryDequeue(out _, out _);
+                actual.TryDequeue(out _, out _);
+            }
+            else
+            {
+                long element = rng.NextInt64();
+                long priority = rng.NextInt64();
+                expect.Enqueue(element, priority);
+                actual.Enqueue(element, priority);
+            }
+
+            Assert.Equal(expect.Peek(), actual.Peek());
+        }
+
+        while (expect.Count > 0)
+        {
+            Assert.Equal(expect.Dequeue(), actual.Dequeue());
+        }
+        Assert.Equal(0, actual.Count);
+    }
+#endif
 }
