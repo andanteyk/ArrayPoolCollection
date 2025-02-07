@@ -1,9 +1,12 @@
 using System.Collections;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 
 #if NET5_0_OR_GREATER
 using System.Runtime.InteropServices;
+#endif
+
+#if NET6_0_OR_GREATER
+using System.Numerics;
 #endif
 
 namespace ArrayPoolCollection

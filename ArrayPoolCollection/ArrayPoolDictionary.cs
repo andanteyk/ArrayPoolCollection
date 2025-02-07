@@ -1276,7 +1276,7 @@ namespace ArrayPoolCollection
 
                 m_Values = ArrayPool<KeyValuePair<TKey, TValue>>.Shared.Rent(cloneSource.m_Values.Length);
                 m_Metadata = ArrayPool<Metadata>.Shared.Rent(cloneSource.m_Metadata.Length);
-                cloneSource.m_Values.AsSpan().CopyTo(m_Values);
+                cloneSource.m_Values.AsSpan(..cloneSource.m_Size).CopyTo(m_Values);
                 cloneSource.m_Metadata.AsSpan().CopyTo(m_Metadata);
 
                 m_Size = cloneSource.m_Size;

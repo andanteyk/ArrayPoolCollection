@@ -11,4 +11,8 @@
     <PackageReference Include="BenchmarkDotNet" Version="0.14.1-nightly.20250107.205" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ArrayPoolCollection\ArrayPoolCollection.csproj" />
+  </ItemGroup>
+
 </Project>
