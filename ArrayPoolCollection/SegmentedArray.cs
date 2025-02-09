@@ -56,9 +56,6 @@ namespace ArrayPoolCollection
                 return;
             }
 
-            // TODO: optimize for icollection<T> ?
-            // we can use CopyTo(), but it only accepts T[], some tweaks needed
-
             foreach (var item in items)
             {
                 Add(item);

@@ -180,16 +180,6 @@ namespace ArrayPoolCollection
             }
         }
 
-        private void Grow(int leastSize)
-        {
-            var newArray = ArrayPool<T>.Shared.Rent(leastSize);
-            m_Array.AsSpan().CopyTo(newArray);
-            ArrayPool<T>.Shared.Return(m_Array!, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-            m_Array = newArray;
-
-            m_Version++;
-        }
-
         public void Add(T item)
         {
             if (m_Array is null)
@@ -199,7 +189,7 @@ namespace ArrayPoolCollection
 
             if (m_Length + 1 > m_Array.Length)
             {
-                Grow(m_Array.Length + 1);
+                Capacity = m_Array.Length + 1;
             }
             m_Array[m_Length++] = item;
             m_Version++;
@@ -216,7 +206,7 @@ namespace ArrayPoolCollection
             {
                 if (m_Length + count > m_Array.Length)
                 {
-                    Grow(m_Length + count);
+                    Capacity = m_Length + count;
                 }
 
                 if (source is ICollection<T> genericCollection)
@@ -243,7 +233,7 @@ namespace ArrayPoolCollection
                 {
                     if (m_Length + 1 > m_Array.Length)
                     {
-                        Grow(m_Array.Length + 1);
+                        Capacity = m_Array.Length + 1;
                     }
                     m_Array[m_Length++] = element;
                 }
@@ -263,7 +253,7 @@ namespace ArrayPoolCollection
 
             if (m_Length + source.Length > m_Array.Length)
             {
-                Grow(m_Length + source.Length);
+                Capacity = m_Length + source.Length;
             }
             source.CopyTo(m_Array.AsSpan(m_Length..));
             m_Length += source.Length;
@@ -428,10 +418,10 @@ namespace ArrayPoolCollection
 
             if (m_Array.Length < capacity)
             {
-                Grow(capacity);
+                Capacity = capacity;
             }
 
-            return m_Array.Length;
+            return Capacity;
         }
 
         public bool Exists(Predicate<T> predicate)
@@ -736,8 +726,7 @@ namespace ArrayPoolCollection
 
             if (m_Length + 1 > m_Array.Length)
             {
-                // TODO: optimizable(copy)
-                Grow(m_Array.Length + 1);
+                Capacity = m_Array.Length + 1;
             }
 
             m_Array.AsSpan(index..m_Length).CopyTo(m_Array.AsSpan((index + 1)..));
@@ -761,8 +750,7 @@ namespace ArrayPoolCollection
             {
                 if (m_Length + count > m_Array.Length)
                 {
-                    // TODO: optimizable(copy)
-                    Grow(m_Length + count);
+                    Capacity = m_Length + count;
                 }
 
                 m_Array.AsSpan(index..m_Length).CopyTo(m_Array.AsSpan((index + count)..));
@@ -792,8 +780,7 @@ namespace ArrayPoolCollection
                 count = segmentedArray.GetTotalLength();
                 if (m_Length + count > m_Array.Length)
                 {
-                    // TODO: optimizable(copy)
-                    Grow(m_Length + count);
+                    Capacity = m_Length + count;
                 }
 
                 m_Array.AsSpan(index..m_Length).CopyTo(m_Array.AsSpan((index + count)..));
@@ -820,8 +807,7 @@ namespace ArrayPoolCollection
 
             if (m_Length + source.Length > m_Array.Length)
             {
-                // TODO: optimizable(copy)
-                Grow(m_Length + source.Length);
+                Capacity = m_Length + source.Length;
             }
 
             m_Array.AsSpan(index..m_Length).CopyTo(m_Array.AsSpan((index + source.Length)..));
@@ -1075,7 +1061,6 @@ namespace ArrayPoolCollection
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            // TODO: alloc?
             Array.Sort(m_Array, 0, m_Length, Comparer<T>.Create(comparison));
             m_Version++;
         }

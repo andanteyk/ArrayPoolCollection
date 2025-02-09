@@ -291,10 +291,32 @@ namespace ArrayPoolCollection
                 ThrowHelper.ThrowArgumentOverLength(nameof(arrayIndex), 0, m_Length - arrayIndex, arrayIndex);
             }
 
-            // TODO: opt.
-            for (int i = 0; i < m_Length; i++)
+            CopyTo(array.AsSpan(arrayIndex..));
+        }
+
+        public void CopyTo(Span<bool> span)
+        {
+            if (m_Array is null)
             {
-                array[i + arrayIndex] = this[i];
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+            }
+            if (span.Length < m_Length)
+            {
+                ThrowHelper.ThrowDestinationTooShort();
+            }
+
+            var ulongSpan = MemoryMarshal.Cast<bool, ulong>(span);
+            int i;
+            int shift = NuintShifts - 3;
+            for (i = 0; i < m_Length >> shift; i++)
+            {
+                nuint bits = (m_Array[i >> shift] >> (i << shift)) & 0xff;
+                ulongSpan[i] = (bits & 0x7f) * 0x0002040810204081 & 0x0101010101010101 ^ (bits & 0x80) << 56;
+            }
+
+            for (i *= 8; i < m_Length; i++)
+            {
+                span[i] = this[i];
             }
         }
 

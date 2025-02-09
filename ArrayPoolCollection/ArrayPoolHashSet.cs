@@ -512,7 +512,7 @@ namespace ArrayPoolCollection
 
         public readonly struct AlternateLookup<TAlternate>
 #if NET9_0_OR_GREATER
-            where TAlternate: allows ref struct
+            where TAlternate : allows ref struct
 #endif
         {
             private readonly ArrayPoolHashSet<T> m_Parent;
@@ -862,7 +862,6 @@ namespace ArrayPoolCollection
 
             if (!CollectionHelper.TryGetNonEnumeratedCount(source, out int count))
             {
-                // TODO: opt. by segmentedArray?
                 count = 8;
             }
             Resize((int)Math.Min(count * MaxLoadFactorDen / MaxLoadFactorNum, CollectionHelper.ArrayMaxLength));
@@ -990,7 +989,6 @@ namespace ArrayPoolCollection
                     return false;
                 }
 
-                // TODO
                 var (intersectCount, onlyInOtherCount) = x.CountWithOther(y);
                 return x.Count == intersectCount && onlyInOtherCount == 0;
             }
@@ -1072,7 +1070,7 @@ namespace ArrayPoolCollection
 
         public AlternateLookup<TAlternate> GetAlternateLookup<TAlternate>()
 #if NET9_0_OR_GREATER
-            where TAlternate: allows ref struct
+            where TAlternate : allows ref struct
 #endif
         {
             if (m_Values is null)
@@ -1289,7 +1287,6 @@ namespace ArrayPoolCollection
                 }
             }
 
-            // TODO: opt. may not enumerate all of `other`
             var (intersectCount, onlyInOtherCount) = CountWithOther(other);
             return intersectCount > 0;
         }
@@ -1405,7 +1402,7 @@ namespace ArrayPoolCollection
 
         public bool TryGetAlternateLookup<TAlternate>(out AlternateLookup<TAlternate> lookup)
 #if NET9_0_OR_GREATER
-            where TAlternate: allows ref struct
+            where TAlternate : allows ref struct
 #endif
         {
             if (m_Values is null)

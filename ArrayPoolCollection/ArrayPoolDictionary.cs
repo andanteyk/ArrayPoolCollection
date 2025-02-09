@@ -1168,7 +1168,6 @@ namespace ArrayPoolCollection
                     key = m_Parent.m_Values[index].Key;
                     value = m_Parent.m_Values[index].Value;
 
-                    // TODO: opt.
                     RemoveEntry(alternateKey);
                     return true;
                 }
@@ -1308,7 +1307,6 @@ namespace ArrayPoolCollection
         {
             if (!CollectionHelper.TryGetNonEnumeratedCount(source, out int count))
             {
-                // TODO: opt. by segmentedArray?
                 count = 8;
             }
 
