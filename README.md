@@ -2,7 +2,11 @@
 
 A low-allocation collection library using pooled arrays
 
-![](ArrayPoolCollection.png)
+<a href="https://www.nuget.org/packages/AndanteSoft.ArrayPoolCollection">![NuGet Version](https://img.shields.io/nuget/vpre/AndanteSoft.ArrayPoolCollection)</a>
+<a href="LICENSE">![GitHub License](https://img.shields.io/github/license/andanteyk/ArrayPoolCollection)</a>
+<a href="https://www.nuget.org/packages/AndanteSoft.ArrayPoolCollection">![NuGet Downloads](https://img.shields.io/nuget/dt/AndanteSoft.ArrayPoolCollection)</a>
+
+![Logo](ArrayPoolCollection.png)
 
 ## Basic Usage
 
