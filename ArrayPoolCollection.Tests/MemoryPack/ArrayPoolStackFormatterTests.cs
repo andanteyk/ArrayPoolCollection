@@ -66,6 +66,21 @@ public class ArrayPoolStackFormatterTests
 
         Assert.Equal(source.Values, dest.Values);
     }
+
+    [Fact]
+    public void Overwrite()
+    {
+        using var source = new ArrayPoolStack<int>(Enumerable.Range(0, 100));
+
+        var bytes = MemoryPackSerializer.Serialize(source);
+
+        var dest = new ArrayPoolStack<int>();
+        MemoryPackSerializer.Deserialize(bytes, ref dest!);
+
+        Assert.Equal(source, dest);
+
+        dest.Dispose();
+    }
 }
 
 [MemoryPackable]

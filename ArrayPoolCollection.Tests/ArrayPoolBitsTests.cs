@@ -31,6 +31,23 @@ public class ArrayPoolBitsTests
     }
 
     [Fact]
+    public void Capacity()
+    {
+        var bits = new ArrayPoolBits();
+        Assert.Equal(16 * UIntPtr.Size * 8, bits.Capacity);
+
+        bits.AddRange(Enumerable.Range(0, 1000000).Select(i => i % 2 != 0));
+        Assert.Equal(1 << 20, bits.Capacity);
+
+        bits.Clear();
+        Assert.Equal(1 << 20, bits.Capacity);
+
+
+        bits.Dispose();
+        Assert.Throws<ObjectDisposedException>(() => bits.Capacity);
+    }
+
+    [Fact]
     public void Count()
     {
         var bits = new ArrayPoolBits();
@@ -113,6 +130,23 @@ public class ArrayPoolBitsTests
 
         bits.Dispose();
         Assert.Throws<ObjectDisposedException>(() => bits.Add(false));
+    }
+
+    [Fact]
+    public void AddRange()
+    {
+        var bits = new ArrayPoolBits();
+
+        bits.AddRange(Enumerable.Range(0, 1000000).Select(i => i % 2 != 0));
+        Assert.Equal(Enumerable.Range(0, 1000000).Select(i => i % 2 != 0), bits);
+
+        bits.Clear();
+        bits.AddRange(Enumerable.Range(0, 1000000).Select(i => i % 3 != 0).ToArray());
+        Assert.Equal(Enumerable.Range(0, 1000000).Select(i => i % 3 != 0), bits);
+
+
+        bits.Dispose();
+        Assert.Throws<ObjectDisposedException>(() => bits.AddRange([false]));
     }
 
     [Fact]
@@ -226,6 +260,20 @@ public class ArrayPoolBitsTests
 
         bits.Dispose();
         bits.Dispose();
+    }
+
+    [Fact]
+    public void EnsureCapacity()
+    {
+        var bits = new ArrayPoolBits(16);
+        Assert.Equal(16 * UIntPtr.Size * 8, bits.Capacity);
+
+        Assert.Equal(64 * UIntPtr.Size * 8, bits.EnsureCapacity(64 * UIntPtr.Size * 8));
+        Assert.Throws<ArgumentOutOfRangeException>(() => bits.EnsureCapacity(-1));
+
+
+        bits.Dispose();
+        Assert.Throws<ObjectDisposedException>(() => bits.EnsureCapacity(16));
     }
 
     [Fact]
@@ -553,6 +601,25 @@ public class ArrayPoolBitsTests
 
         bits.Dispose();
         Assert.Throws<ObjectDisposedException>(() => ArrayPoolBits.SetCount(bits, 1));
+    }
+
+    [Fact]
+    public void TrimExcess()
+    {
+        var bits = new ArrayPoolBits(Enumerable.Range(0, 1000000).Select(i => i % 2 != 0));
+        bits.Clear();
+
+        bits.TrimExcess();
+        Assert.Equal(16 * UIntPtr.Size * 8, bits.Capacity);
+
+
+        bits.TrimExcess(1000000);
+        Assert.Equal(1 << 20, bits.Capacity);
+        Assert.Throws<ArgumentOutOfRangeException>(() => bits.TrimExcess(-1));
+
+
+        bits.Dispose();
+        Assert.Throws<ObjectDisposedException>(() => bits.TrimExcess());
     }
 
     [Fact]

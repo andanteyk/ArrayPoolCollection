@@ -66,6 +66,21 @@ public class ArrayPoolQueueFormatterTests
 
         Assert.Equal(source.Values, dest.Values);
     }
+
+    [Fact]
+    public void Overwrite()
+    {
+        using var source = new ArrayPoolQueue<int>(Enumerable.Range(0, 100));
+
+        var bytes = MemoryPackSerializer.Serialize(source);
+
+        var dest = new ArrayPoolQueue<int>();
+        MemoryPackSerializer.Deserialize(bytes, ref dest!);
+
+        Assert.Equal(source, dest);
+
+        dest.Dispose();
+    }
 }
 
 [MemoryPackable]

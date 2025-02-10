@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -152,6 +151,15 @@ public class ArrayPoolDictionaryTests
         Assert.Equal("fuga", stringDict["hoge"]);
         Assert.Throws<ArgumentNullException>(() => stringDict[null!]);
         Assert.Throws<ArgumentNullException>(() => stringDict[null!] = "piyo");
+
+
+        using var ignoreCase = new ArrayPoolDictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Alice", 16 }
+        };
+        Assert.Equal(16, ignoreCase["alice"]);
+        ignoreCase["alice"] = 32;
+        Assert.Equal(32, ignoreCase["Alice"]);
 
 
         dict.Dispose();

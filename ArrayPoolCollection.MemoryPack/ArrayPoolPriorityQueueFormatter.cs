@@ -12,7 +12,17 @@ namespace ArrayPoolCollection.MemoryPack
                 return;
             }
 
-            value = new ArrayPoolPriorityQueue<TElement, TPriority>(length);
+            if (value is null)
+            {
+                value = new ArrayPoolPriorityQueue<TElement, TPriority>(length);
+            }
+            else
+            {
+                value.Clear();
+            }
+
+            value.EnsureCapacity(length);
+
             if (length > 0)
             {
                 ArrayPoolPriorityQueue<TElement, TPriority>.SetCount(value, length);

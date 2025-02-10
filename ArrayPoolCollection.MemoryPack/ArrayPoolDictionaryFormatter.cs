@@ -13,7 +13,17 @@ namespace ArrayPoolCollection.MemoryPack
                 return;
             }
 
-            value = new ArrayPoolDictionary<TKey, TValue>(length);
+            if (value is null)
+            {
+                value = new ArrayPoolDictionary<TKey, TValue>(length);
+            }
+            else
+            {
+                value.Clear();
+            }
+
+            value.EnsureCapacity(length);
+
             var pair = new KeyValuePair<TKey, TValue>();
             for (int i = 0; i < length; i++)
             {

@@ -10,10 +10,10 @@
     <Authors>Andante</Authors>
     <Description>A low-allocation collection library using pooled arrays</Description>
     <Copyright>Copyright (c) Andante 2025</Copyright>
-    <PackageProjectUrl></PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/andanteyk/ArrayPoolCollection</PackageProjectUrl>
     <PackageIcon>ArrayPoolCollection.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl></RepositoryUrl>
+    <RepositoryUrl>https://github.com/andanteyk/ArrayPoolCollection</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>C# ArrayPool Collection</PackageTags>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>

@@ -66,6 +66,21 @@ public class ArrayPoolPriorityQueueFormatterTests
 
         Assert.Equal(source.Values.UnorderedItems, dest.Values.UnorderedItems);
     }
+
+    [Fact]
+    public void Overwrite()
+    {
+        using var source = new ArrayPoolPriorityQueue<int, int>(Enumerable.Range(0, 100).Select(i => (i, i)));
+
+        var bytes = MemoryPackSerializer.Serialize(source);
+
+        var dest = new ArrayPoolPriorityQueue<int, int>();
+        MemoryPackSerializer.Deserialize(bytes, ref dest!);
+
+        Assert.Equal(source.UnorderedItems, dest.UnorderedItems);
+
+        dest.Dispose();
+    }
 }
 
 [MemoryPackable]

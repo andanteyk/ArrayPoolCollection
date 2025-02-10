@@ -67,6 +67,20 @@ public class ArrayPoolDictionaryFormatterTests
 
         Assert.Equal(source.Values, dest.Values);
     }
+
+    [Fact]
+    public void Overwrite()
+    {
+        var source = new ArrayPoolDictionary<string, int>(StringComparer.OrdinalIgnoreCase) { { "Alice", 16 } };
+
+        var bytes = MemoryPackSerializer.Serialize(source);
+
+        var dest = new ArrayPoolDictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        MemoryPackSerializer.Deserialize(bytes, ref dest!);
+
+        Assert.Equal(StringComparer.OrdinalIgnoreCase, dest.Comparer);
+        Assert.Equal(16, dest["alice"]);
+    }
 }
 
 [MemoryPackable]

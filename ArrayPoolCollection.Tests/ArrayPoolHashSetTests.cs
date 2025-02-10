@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace ArrayPoolCollection.Tests;
 
 public class ArrayPoolHashSetTests

@@ -17,7 +17,7 @@ public class ArrayPoolBitsFormatterTests
         var dest = MemoryPackSerializer.Deserialize<ArrayPoolBits>(bytes);
         Assert.Equal(source, dest);
 
-        for (int i = 0; i < 1024; i++)
+        for (int i = 0; i < 2048; i++)
         {
             source.Add(rng.NextDouble() < 0.5);
 
@@ -42,6 +42,21 @@ public class ArrayPoolBitsFormatterTests
         var dest = MemoryPackSerializer.Deserialize<BitsWrapper>(bytes)!;
 
         Assert.Equal(source.Values, dest.Values);
+    }
+
+    [Fact]
+    public void Overwrite()
+    {
+        using var source = new ArrayPoolBits(Enumerable.Range(0, 10000).Select(i => i % 2 != 0));
+
+        var bytes = MemoryPackSerializer.Serialize(source);
+
+        var dest = new ArrayPoolBits();
+        MemoryPackSerializer.Deserialize(bytes, ref dest!);
+
+        Assert.Equal(source, dest);
+
+        dest.Dispose();
     }
 }
 

@@ -12,7 +12,16 @@ namespace ArrayPoolCollection.MemoryPack
                 return;
             }
 
-            value = new ArrayPoolWrapper<T>(length);
+            if (value is null)
+            {
+                value = new ArrayPoolWrapper<T>(length);
+            }
+            else if (length != value.Length)
+            {
+                value.Dispose();
+                value = new ArrayPoolWrapper<T>(length);
+            }
+
             if (length > 0)
             {
                 var span = value.AsSpan();

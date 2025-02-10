@@ -12,7 +12,17 @@ namespace ArrayPoolCollection.MemoryPack
                 return;
             }
 
-            value = new ArrayPoolList<T>(length);
+            if (value is null)
+            {
+                value = new ArrayPoolList<T>(length);
+            }
+            else
+            {
+                value.Clear();
+            }
+
+            value.EnsureCapacity(length);
+
             if (length > 0)
             {
                 ArrayPoolList<T>.SetCount(value, length);

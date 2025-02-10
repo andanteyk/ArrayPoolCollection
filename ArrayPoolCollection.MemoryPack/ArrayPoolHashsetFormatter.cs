@@ -12,7 +12,17 @@ namespace ArrayPoolCollection.MemoryPack
                 return;
             }
 
-            value = new ArrayPoolHashSet<T>(length);
+            if (value is null)
+            {
+                value = new ArrayPoolHashSet<T>(length);
+            }
+            else
+            {
+                value.Clear();
+            }
+
+            value.EnsureCapacity(length);
+
             T? key = default;
             for (int i = 0; i < length; i++)
             {

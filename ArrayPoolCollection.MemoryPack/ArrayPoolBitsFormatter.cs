@@ -12,7 +12,18 @@ namespace ArrayPoolCollection.MemoryPack
                 return;
             }
 
-            value = new ArrayPoolBits(length);
+            if (value is null)
+            {
+                value = new ArrayPoolBits(length);
+            }
+            else
+            {
+                value.Clear();
+            }
+
+            value.EnsureCapacity(length);
+            ArrayPoolBits.SetCount(value, length);
+
             if (length > 0)
             {
                 var span = ArrayPoolBits.AsSpan(value);

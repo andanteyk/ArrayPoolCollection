@@ -66,6 +66,20 @@ public class ArrayPoolHashSetFormatterTests
 
         Assert.Equivalent(source.Values.ToArray(), dest.Values.ToArray());
     }
+
+    [Fact]
+    public void Overwrite()
+    {
+        var source = new ArrayPoolHashSet<string>(StringComparer.OrdinalIgnoreCase) { { "Alice" } };
+
+        var bytes = MemoryPackSerializer.Serialize(source);
+
+        var dest = new ArrayPoolHashSet<string>(StringComparer.OrdinalIgnoreCase);
+        MemoryPackSerializer.Deserialize(bytes, ref dest);
+
+        Assert.Equal(StringComparer.OrdinalIgnoreCase, dest!.Comparer);
+        Assert.True(dest.Contains("alice"));
+    }
 }
 
 [MemoryPackable]

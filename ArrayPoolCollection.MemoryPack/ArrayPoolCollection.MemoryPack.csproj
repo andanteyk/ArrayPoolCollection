@@ -1,18 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net9.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>13</LangVersion>
+    <PackageId>AndanteSoft.ArrayPoolCollection.MemoryPack</PackageId>
+    <PackageVersion>0.0.1</PackageVersion>
+    <Authors>Andante</Authors>
+    <Description>A low-allocation collection library using pooled arrays (with MemoryPack)</Description>
+    <Copyright>Copyright (c) Andante 2025</Copyright>
+    <PackageProjectUrl>https://github.com/andanteyk/ArrayPoolCollection</PackageProjectUrl>
+    <PackageIcon>ArrayPoolCollection.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/andanteyk/ArrayPoolCollection</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>C# ArrayPool Collection MemoryPack</PackageTags>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(SolutionDir)LICENSE" Pack="true" PackagePath="" />
+    <None Include="$(SolutionDir)README.md" Pack="true" PackagePath="" />
+    <None Include="$(SolutionDir)ArrayPoolCollection.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\ArrayPoolCollection\ArrayPoolCollection.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MemoryPack" Version="1.21.3" />
+    <PackageReference Include="MemoryPack" Version="[1.21.3,)" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <TargetFrameworks>net9.0;netstandard2.1</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <LangVersion>11</LangVersion>
-  </PropertyGroup>
 
 </Project>

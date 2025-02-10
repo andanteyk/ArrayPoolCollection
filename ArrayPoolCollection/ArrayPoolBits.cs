@@ -54,6 +54,19 @@ namespace ArrayPoolCollection
             }
         }
 
+        public int Capacity
+        {
+            get
+            {
+                if (m_Array is null)
+                {
+                    ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+                }
+
+                return m_Array.Length * NuintBits;
+            }
+        }
+
         public int Count
         {
             get
@@ -197,9 +210,88 @@ namespace ArrayPoolCollection
             }
 
             var oldArray = m_Array;
-            m_Array = ArrayPool<nuint>.Shared.Rent(size >> NuintShifts);
-            oldArray.AsSpan().CopyTo(m_Array);
+            m_Array = ArrayPool<nuint>.Shared.Rent((size + NuintBits - 1) >> NuintShifts);
+            oldArray.AsSpan(..((m_Length + NuintBits - 1) >> NuintShifts)).CopyTo(m_Array);
             ArrayPool<nuint>.Shared.Return(oldArray);
+
+            m_Version++;
+        }
+
+        public void AddRange(IEnumerable<bool> source)
+        {
+            if (m_Array is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+            }
+
+            if (CollectionHelper.TryGetNonEnumeratedCount(source, out int count))
+            {
+                if (m_Length + count > Math.Min((long)m_Array.Length * NuintBits, CollectionHelper.ArrayMaxLength))
+                {
+                    Resize(m_Length + count);
+                }
+
+                foreach (var value in source)
+                {
+                    m_Length++;
+                    this[m_Length - 1] = value;
+                }
+            }
+            else
+            {
+                foreach (var value in source)
+                {
+                    Add(value);
+                }
+            }
+
+            m_Version++;
+        }
+
+        public void AddRange(bool[] source) => AddRange(source.AsSpan());
+
+        public void AddRange(ReadOnlySpan<bool> source)
+        {
+            if (m_Array is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+            }
+
+            if (m_Length + source.Length > Math.Min((long)m_Array.Length * NuintBits, CollectionHelper.ArrayMaxLength))
+            {
+                Resize(m_Length + source.Length);
+            }
+
+            var ulongSpan = MemoryMarshal.Cast<bool, ulong>(source);
+            foreach (ulong ul in ulongSpan)
+            {
+                nuint b = (nuint)((ul * 0x0102040810204080) >> 56);
+
+                if ((m_Length & (NuintBits - 1)) < NuintBits - 8)
+                {
+                    m_Array[m_Length >> NuintShifts] &= ~((nuint)0xff << m_Length);
+                    m_Array[m_Length >> NuintShifts] |= b << m_Length;
+                }
+                else
+                {
+                    m_Array[m_Length >> NuintShifts] &= ~((nuint)0xff << m_Length);
+                    m_Array[m_Length >> NuintShifts] |= b << m_Length;
+                    m_Array[(m_Length >> NuintShifts) + 1] &= ~((nuint)0xff >> (NuintBits - m_Length));
+                    m_Array[(m_Length >> NuintShifts) + 1] |= b >> (NuintBits - m_Length);
+                }
+
+                m_Length += 8;
+            }
+
+            int rest = source.Length - ulongSpan.Length * 8;
+            if (rest > 0)
+            {
+                m_Length += rest;
+                for (int i = 0; i < rest; i++)
+                {
+                    this[m_Length - rest + i] = source[ulongSpan.Length * 8 + i];
+                }
+            }
 
             m_Version++;
         }
@@ -331,6 +423,25 @@ namespace ArrayPoolCollection
             m_Version = int.MinValue;
         }
 
+        public int EnsureCapacity(int capacity)
+        {
+            if (m_Array is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+            }
+            if (capacity < 0)
+            {
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(capacity), 0, int.MaxValue, capacity);
+            }
+
+            if (m_Length < capacity)
+            {
+                Resize(capacity);
+            }
+
+            return Capacity;
+        }
+
         public struct Enumerator : IEnumerator<bool>
         {
             private readonly ArrayPoolBits m_Parent;
@@ -367,7 +478,7 @@ namespace ArrayPoolCollection
 
             readonly object IEnumerator.Current => Current;
 
-            public void Dispose()
+            public readonly void Dispose()
             {
             }
 
@@ -774,6 +885,34 @@ namespace ArrayPoolCollection
 
             source.m_Length = count;
             source.m_Version++;
+        }
+
+        public void TrimExcess()
+        {
+            TrimExcess(m_Length);
+        }
+
+        public void TrimExcess(int capacity)
+        {
+            if (m_Array is null)
+            {
+                ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
+            }
+            if (capacity < m_Length)
+            {
+                ThrowHelper.ThrowArgumentOutOfRange(nameof(capacity), m_Length, CollectionHelper.ArrayMaxLength, capacity);
+            }
+
+            int newLength = CollectionHelper.RoundUpToPowerOf2(Math.Max(capacity, 16 * NuintBits));
+            if (newLength < 0)
+            {
+                newLength = CollectionHelper.ArrayMaxLength;
+            }
+
+            if (newLength != m_Array.Length)
+            {
+                Resize(newLength);
+            }
         }
 
         public void Xor(ArrayPoolBits bits)
