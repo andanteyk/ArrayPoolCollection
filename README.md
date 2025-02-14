@@ -171,6 +171,13 @@ for (int i = 0; i < 64; i++)
 await UniTask.Delay(1000);
 ```
 
+It also includes an efficient implementation of [`IBufferWriter<T>`](https://learn.microsoft.com/en-us/dotnet/api/system.buffers.ibufferwriter-1?view=net-9.0) that utilizes a pool.
+
+* `ArrayPoolBufferWriter<T>` : Suitable for small or fixed size buffers.
+* `ArrayPoolSegmentedBufferWriter<T>` : Suitable for objects of variable length and larger than megabytes.
+
+For usage, see the With MemoryPack section.
+
 ### With MemoryPack
 Collections can be serialized using [MemoryPack](https://github.com/Cysharp/MemoryPack).
 
@@ -183,11 +190,14 @@ using var list = new ArrayPoolList<string>()
     "Alice", "Barbara", "Charlotte",
 };
 
+// Create IBufferWriter<byte>
+using var writer = new ArrayPoolBufferWriter<byte>();
+
 // Serialize the list
-byte[] bytes = MemoryPackSerializer.Serialize(list);
+MemoryPackSerializer.Serialize(writer, list);
 
 // Deserialize the list
-var deserialized = MemoryPackSerializer.Deserialize<ArrayPoolList<string>>(bytes);
+var deserialized = MemoryPackSerializer.Deserialize<ArrayPoolList<string>>(writer.WrittenSpan);
 
 // "Alice, Barbara, Charlotte"
 Debug.Log(string.Join(", ", deserialized));
@@ -195,6 +205,7 @@ Debug.Log(string.Join(", ", deserialized));
 
 Notes:
 
+* `ArrayPoolPriorityQueue` do not implement `IEnumerable<T>`, so serialization requires the `[MemoryPackAllowSerialize]` attribute.
 * `Comparer` of Dictionary/HashSet is not usually serializable, so it is not saved. If you want to save it, you need to overwrite it when serializing.
 
 ```cs
