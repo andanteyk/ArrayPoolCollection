@@ -33,13 +33,23 @@ public class ArrayPoolBitsFormatterTests
     {
         var rng = new Random(0);
         var source = new BitsWrapper();
+
+        var bytes = MemoryPackSerializer.Serialize(source);
+        var dest = MemoryPackSerializer.Deserialize<BitsWrapper>(bytes)!;
+
+        Assert.Null(dest.Values);
+        Assert.Equal(source.Guard, dest.Guard);
+
+
+        source.Values = new();
+
         for (int i = 0; i < 16; i++)
         {
             source.Values.Add(rng.NextDouble() < 0.5);
         }
 
-        var bytes = MemoryPackSerializer.Serialize(source);
-        var dest = MemoryPackSerializer.Deserialize<BitsWrapper>(bytes)!;
+        bytes = MemoryPackSerializer.Serialize(source);
+        dest = MemoryPackSerializer.Deserialize<BitsWrapper>(bytes)!;
 
         Assert.Equal(source.Values, dest.Values);
     }
@@ -63,5 +73,6 @@ public class ArrayPoolBitsFormatterTests
 [MemoryPackable]
 public partial class BitsWrapper
 {
-    public ArrayPoolBits Values = new();
+    public ArrayPoolBits? Values;
+    public int Guard = 123456;
 }

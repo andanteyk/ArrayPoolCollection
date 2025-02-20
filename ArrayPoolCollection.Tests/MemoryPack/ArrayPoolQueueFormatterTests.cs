@@ -56,15 +56,26 @@ public class ArrayPoolQueueFormatterTests
     {
         var rng = new Random(0);
         var source = new QueueWrapper<int>();
+
+        var bytes = MemoryPackSerializer.Serialize(source);
+        var dest = MemoryPackSerializer.Deserialize<QueueWrapper<int>>(bytes)!;
+
+        Assert.Null(dest.Values);
+        Assert.Equal(source.Guard, dest.Guard);
+
+
+        source.Values = new();
+
         for (int i = 0; i < 16; i++)
         {
             source.Values.Enqueue(rng.Next());
         }
 
-        var bytes = MemoryPackSerializer.Serialize(source);
-        var dest = MemoryPackSerializer.Deserialize<QueueWrapper<int>>(bytes)!;
+        bytes = MemoryPackSerializer.Serialize(source);
+        dest = MemoryPackSerializer.Deserialize<QueueWrapper<int>>(bytes)!;
 
         Assert.Equal(source.Values, dest.Values);
+        Assert.Equal(source.Guard, dest.Guard);
     }
 
     [Fact]
@@ -86,6 +97,7 @@ public class ArrayPoolQueueFormatterTests
 [MemoryPackable]
 public partial class QueueWrapper<T>
 {
-    public ArrayPoolQueue<T> Values = new();
+    public ArrayPoolQueue<T>? Values;
+    public int Guard = 123456;
 }
 

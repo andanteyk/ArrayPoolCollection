@@ -57,15 +57,26 @@ public class ArrayPoolDictionaryFormatterTests
     {
         var rng = new Random(0);
         var source = new DictionaryWrapper<int, int>();
+
+        var bytes = MemoryPackSerializer.Serialize(source);
+        var dest = MemoryPackSerializer.Deserialize<DictionaryWrapper<int, int>>(bytes)!;
+
+        Assert.Null(dest.Values);
+        Assert.Equal(source.Guard, dest.Guard);
+
+
+        source.Values = new();
+
         for (int i = 0; i < 16; i++)
         {
             source.Values.Add(rng.Next(), rng.Next());
         }
 
-        var bytes = MemoryPackSerializer.Serialize(source);
-        var dest = MemoryPackSerializer.Deserialize<DictionaryWrapper<int, int>>(bytes)!;
+        bytes = MemoryPackSerializer.Serialize(source);
+        dest = MemoryPackSerializer.Deserialize<DictionaryWrapper<int, int>>(bytes)!;
 
         Assert.Equal(source.Values, dest.Values);
+        Assert.Equal(source.Guard, dest.Guard);
     }
 
     [Fact]
@@ -87,5 +98,6 @@ public class ArrayPoolDictionaryFormatterTests
 public partial class DictionaryWrapper<TKey, TValue>
     where TKey : notnull
 {
-    public ArrayPoolDictionary<TKey, TValue> Values = new();
+    public ArrayPoolDictionary<TKey, TValue>? Values;
+    public int Guard = 123456;
 }

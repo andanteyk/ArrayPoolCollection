@@ -56,15 +56,26 @@ public class ArrayPoolPriorityQueueFormatterTests
     {
         var rng = new Random(0);
         var source = new PriorityQueueWrapper<int, int>();
+
+        var bytes = MemoryPackSerializer.Serialize(source);
+        var dest = MemoryPackSerializer.Deserialize<PriorityQueueWrapper<int, int>>(bytes)!;
+
+        Assert.Null(dest.Values);
+        Assert.Equal(source.Guard, dest.Guard);
+
+
+        source.Values = new();
+
         for (int i = 0; i < 16; i++)
         {
             source.Values.Enqueue(rng.Next(), rng.Next());
         }
 
-        var bytes = MemoryPackSerializer.Serialize(source);
-        var dest = MemoryPackSerializer.Deserialize<PriorityQueueWrapper<int, int>>(bytes)!;
+        bytes = MemoryPackSerializer.Serialize(source);
+        dest = MemoryPackSerializer.Deserialize<PriorityQueueWrapper<int, int>>(bytes)!;
 
-        Assert.Equal(source.Values.UnorderedItems, dest.Values.UnorderedItems);
+        Assert.Equal(source.Values.UnorderedItems, dest.Values!.UnorderedItems);
+        Assert.Equal(source.Guard, dest.Guard);
     }
 
     [Fact]
@@ -87,5 +98,6 @@ public class ArrayPoolPriorityQueueFormatterTests
 public partial class PriorityQueueWrapper<TElement, TPriority>
 {
     [MemoryPackAllowSerialize]
-    public ArrayPoolPriorityQueue<TElement, TPriority> Values = new();
+    public ArrayPoolPriorityQueue<TElement, TPriority>? Values;
+    public int Guard = 123456;
 }

@@ -8,6 +8,7 @@ namespace ArrayPoolCollection.MemoryPack
         {
             if (!reader.TryPeekCollectionHeader(out int length))
             {
+                reader.Advance(4);
                 value = null;
                 return;
             }
