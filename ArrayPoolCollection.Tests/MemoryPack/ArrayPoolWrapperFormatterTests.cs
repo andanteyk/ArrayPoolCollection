@@ -53,12 +53,23 @@ public class ArrayPoolWrapperFormatterTests
     {
         var rng = new Random(0);
         var source = new ArrayWrapper<int>();
-        rng.NextBytes(MemoryMarshal.AsBytes(source.Values.AsSpan()));
 
         var bytes = MemoryPackSerializer.Serialize(source);
         var dest = MemoryPackSerializer.Deserialize<ArrayWrapper<int>>(bytes)!;
 
+        Assert.Null(dest.Values);
+        Assert.Equal(source.Guard, dest.Guard);
+
+
+        source.Values = new(16);
+
+        rng.NextBytes(MemoryMarshal.AsBytes(source.Values.AsSpan()));
+
+        bytes = MemoryPackSerializer.Serialize(source);
+        dest = MemoryPackSerializer.Deserialize<ArrayWrapper<int>>(bytes)!;
+
         Assert.Equal(source.Values, dest.Values);
+        Assert.Equal(source.Guard, dest.Guard);
     }
 
     [Fact]
@@ -80,5 +91,6 @@ public class ArrayPoolWrapperFormatterTests
 [MemoryPackable]
 public partial class ArrayWrapper<T>
 {
-    public ArrayPoolWrapper<T> Values = new(16);
+    public ArrayPoolWrapper<T>? Values;
+    public int Guard = 123456;
 }
