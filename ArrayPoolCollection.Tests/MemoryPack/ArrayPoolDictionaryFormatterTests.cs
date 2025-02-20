@@ -1,4 +1,3 @@
-using System.Runtime;
 using MemoryPack;
 
 namespace ArrayPoolCollection.MemoryPack.Tests;
