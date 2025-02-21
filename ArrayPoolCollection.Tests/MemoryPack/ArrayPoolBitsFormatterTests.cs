@@ -43,8 +43,14 @@ public class ArrayPoolBitsFormatterTests
 
         source.Values = new();
 
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < 2048; i++)
         {
+            bytes = MemoryPackSerializer.Serialize(source);
+            dest = MemoryPackSerializer.Deserialize<BitsWrapper>(bytes)!;
+
+            Assert.Equal(source.Values, dest.Values);
+            Assert.Equal(source.Guard, dest.Guard);
+
             source.Values.Add(rng.NextDouble() < 0.5);
         }
 
@@ -52,6 +58,7 @@ public class ArrayPoolBitsFormatterTests
         dest = MemoryPackSerializer.Deserialize<BitsWrapper>(bytes)!;
 
         Assert.Equal(source.Values, dest.Values);
+        Assert.Equal(source.Guard, dest.Guard);
     }
 
     [Fact]

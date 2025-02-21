@@ -69,6 +69,12 @@ public class ArrayPoolDictionaryFormatterTests
 
         for (int i = 0; i < 16; i++)
         {
+            bytes = MemoryPackSerializer.Serialize(source);
+            dest = MemoryPackSerializer.Deserialize<DictionaryWrapper<int, int>>(bytes)!;
+
+            Assert.Equal(source.Values, dest.Values);
+            Assert.Equal(source.Guard, dest.Guard);
+
             source.Values.Add(rng.Next(), rng.Next());
         }
 

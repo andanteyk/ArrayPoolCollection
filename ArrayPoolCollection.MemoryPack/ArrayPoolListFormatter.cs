@@ -24,12 +24,9 @@ namespace ArrayPoolCollection.MemoryPack
 
             value.EnsureCapacity(length);
 
-            if (length > 0)
-            {
-                ArrayPoolList<T>.SetCount(value, length);
-                var span = ArrayPoolList<T>.AsSpan(value);
-                reader.ReadSpan(ref span!);
-            }
+            ArrayPoolList<T>.SetCount(value, length);
+            var span = ArrayPoolList<T>.AsSpan(value);
+            reader.ReadSpan(ref span!);
         }
 
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ArrayPoolList<T>? value)

@@ -24,12 +24,9 @@ namespace ArrayPoolCollection.MemoryPack
 
             value.EnsureCapacity(length);
 
-            if (length > 0)
-            {
-                ArrayPoolPriorityQueue<TElement, TPriority>.SetCount(value, length);
-                var span = ArrayPoolPriorityQueue<TElement, TPriority>.AsSpan(value);
-                reader.ReadSpan(ref span!);
-            }
+            ArrayPoolPriorityQueue<TElement, TPriority>.SetCount(value, length);
+            var span = ArrayPoolPriorityQueue<TElement, TPriority>.AsSpan(value);
+            reader.ReadSpan(ref span!);
         }
 
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ArrayPoolPriorityQueue<TElement, TPriority>? value)
