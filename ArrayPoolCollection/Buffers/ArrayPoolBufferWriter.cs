@@ -160,7 +160,7 @@ namespace ArrayPoolCollection.Buffers
             if (newSize > m_Array!.Length)
             {
                 var oldArray = m_Array;
-                m_Array = ArrayPool<T>.Shared.Rent(newSize);
+                m_Array = ArrayPool<T>.Shared.Rent(CollectionHelper.RoundUpToPowerOf2(newSize));
                 oldArray.AsSpan(..m_Length).CopyTo(m_Array);
                 ArrayPool<T>.Shared.Return(oldArray, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
             }

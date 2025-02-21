@@ -66,8 +66,14 @@ public class ArrayPoolHashSetFormatterTests
 
         source.Values = new();
 
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < 32; i++)
         {
+            bytes = MemoryPackSerializer.Serialize(source);
+            dest = MemoryPackSerializer.Deserialize<HashSetWrapper<int>>(bytes)!;
+
+            Assert.Equivalent(source.Values.ToArray(), dest.Values!.ToArray());
+            Assert.Equal(source.Guard, dest.Guard);
+
             source.Values.Add(rng.Next());
         }
 

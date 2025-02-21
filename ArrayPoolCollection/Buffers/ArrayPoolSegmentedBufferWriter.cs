@@ -72,7 +72,7 @@ namespace ArrayPoolCollection.Buffers
 
             m_Arrays = ArrayPool<T[]>.Shared.Rent(32);
             m_Arrays.AsSpan().Clear();
-            m_Arrays[0] = ArrayPool<T>.Shared.Rent(capacity);
+            m_Arrays[0] = ArrayPool<T>.Shared.Rent(CollectionHelper.GetInitialPoolingSize(capacity));
 
             m_SegmentLength = ArrayPool<int>.Shared.Rent(32);
             m_SegmentLength.AsSpan().Clear();

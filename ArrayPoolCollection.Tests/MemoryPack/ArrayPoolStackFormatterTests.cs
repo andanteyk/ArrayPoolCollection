@@ -66,8 +66,14 @@ public class ArrayPoolStackFormatterTests
 
         source.Values = new();
 
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < 32; i++)
         {
+            bytes = MemoryPackSerializer.Serialize(source);
+            dest = MemoryPackSerializer.Deserialize<StackWrapper<int>>(bytes)!;
+
+            Assert.Equal(source.Values, dest.Values);
+            Assert.Equal(source.Guard, dest.Guard);
+
             source.Values.Push(rng.Next());
         }
 

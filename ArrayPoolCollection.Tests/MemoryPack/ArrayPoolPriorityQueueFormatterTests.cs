@@ -66,8 +66,14 @@ public class ArrayPoolPriorityQueueFormatterTests
 
         source.Values = new();
 
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < 32; i++)
         {
+            bytes = MemoryPackSerializer.Serialize(source);
+            dest = MemoryPackSerializer.Deserialize<PriorityQueueWrapper<int, int>>(bytes)!;
+
+            Assert.Equal(source.Values.UnorderedItems, dest.Values!.UnorderedItems);
+            Assert.Equal(source.Guard, dest.Guard);
+
             source.Values.Enqueue(rng.Next(), rng.Next());
         }
 
