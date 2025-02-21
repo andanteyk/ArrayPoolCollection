@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>13</LangVersion>
     <PackageId>AndanteSoft.ArrayPoolCollection.MemoryPack</PackageId>
-    <PackageVersion>1.1.0</PackageVersion>
+    <PackageVersion>1.1.1</PackageVersion>
     <Authors>Andante</Authors>
     <Description>A low-allocation collection library using pooled arrays (with MemoryPack)</Description>
     <Copyright>Copyright (c) Andante 2025</Copyright>
