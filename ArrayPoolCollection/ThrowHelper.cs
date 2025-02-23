@@ -111,5 +111,23 @@ namespace ArrayPoolCollection
         {
             throw new InvalidOperationException($"{name} does not implement {typeof(T).Name}");
         }
+
+        [DoesNotReturn]
+        internal static void ThrowAlreadyReturned(string name)
+        {
+            throw new InvalidOperationException($"{name} is already returned");
+        }
+
+        [DoesNotReturn]
+        internal static void ThrowIsNotPooledObject(string name)
+        {
+            throw new InvalidOperationException($"{name} is not pooled object");
+        }
+
+        [DoesNotReturn]
+        internal static void ThrowPooledObjectDisposed(string stackTrace)
+        {
+            throw new InvalidOperationException($"The pooled object has been disposed without being Return()'d. Be sure to return it with Return().\nStackTrace upon allocation: \n{stackTrace}");
+        }
     }
 }

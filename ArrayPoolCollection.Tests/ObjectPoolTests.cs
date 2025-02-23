@@ -1,6 +1,4 @@
-using ArrayPoolCollection.Pool;
-
-namespace ArrayPoolCollection.Tests
+namespace ArrayPoolCollection.Pool.Tests
 {
     public class ObjectPoolTests()
     {

@@ -3,6 +3,9 @@ using ArrayPoolCollection.Benchmark;
 using ArrayPoolCollection.Benchmark.Experiment;
 using BenchmarkDotNet.Running;
 
+BenchmarkRunner.Run<BufferPoolBenchmark>(args: Environment.GetCommandLineArgs());
+return;
+
 BenchmarkRunner.Run<ArrayPoolWrapperBenchmark>(args: Environment.GetCommandLineArgs());
 BenchmarkRunner.Run<ArrayPoolListBenchmark>(args: Environment.GetCommandLineArgs());
 BenchmarkRunner.Run<ArrayPoolDictionaryBenchmark>(args: Environment.GetCommandLineArgs());

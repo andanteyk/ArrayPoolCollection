@@ -125,6 +125,68 @@ namespace ArrayPoolCollection
 #endif
         }
 
+        internal static int Log2(ulong x)
+        {
+#if NETCOREAPP3_0_OR_GREATER
+            return BitOperations.Log2(x);
+#else
+            ulong y;
+            int n = 64;
+
+            y = x >> 32;
+            if (y != 0)
+            {
+                n -= 32;
+                x = y;
+            }
+
+            y = x >> 16;
+            if (y != 0)
+            {
+                n -= 16;
+                x = y;
+            }
+
+            y = x >> 8;
+            if (y != 0)
+            {
+                n -= 8;
+                x = y;
+            }
+
+            y = x >> 4;
+            if (y != 0)
+            {
+                n -= 4;
+                x = y;
+            }
+
+            y = x >> 2;
+            if (y != 0)
+            {
+                n -= 2;
+                x = y;
+            }
+
+            y = x >> 1;
+            if (y != 0)
+            {
+                return 63 - (n - 2);
+            }
+
+            return 63 - (n - (int)x);
+#endif
+        }
+
+        internal static bool IsPow2(int x)
+        {
+#if NET6_0_OR_GREATER
+            return BitOperations.IsPow2(x);
+#else
+            return (x & (x - 1)) == 0;
+#endif
+        }
+
         internal static ref T NullRef<T>()
         {
             return ref Unsafe.NullRef<T>();
