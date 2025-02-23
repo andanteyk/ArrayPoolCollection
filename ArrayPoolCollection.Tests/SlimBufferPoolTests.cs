@@ -247,4 +247,16 @@ public class SlimBufferPoolTests
     {
         _ = pool.Rent(16);
     }
+
+    /*
+    [Fact]
+    public void Huge()
+    {
+        using var pool = new SlimBufferPool<byte[], byte>(new ArrayPoolPolicy<byte>());
+
+        var rented = pool.Rent((1 << 30) + 1);
+        Assert.Equal(CollectionHelper.ArrayMaxLength, rented.Length);
+        pool.Return(rented);
+    }
+    //*/
 }

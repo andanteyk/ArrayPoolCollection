@@ -58,7 +58,12 @@ namespace ArrayPoolCollection.Pool
             {
                 if (m_Stacks[bucketIndex].Array is null || !m_Stacks[bucketIndex].TryPop(out result))
                 {
-                    result = m_Policy.Create(1 << (bucketIndex + SmallestBufferLengthExponent));
+                    int newSize = 1 << (bucketIndex + SmallestBufferLengthExponent);
+                    if (newSize < 0)
+                    {
+                        newSize = CollectionHelper.ArrayMaxLength;
+                    }
+                    result = m_Policy.Create(newSize);
                 }
             }
             else
@@ -245,7 +250,7 @@ namespace ArrayPoolCollection.Pool
 
             ~Tracer()
             {
-                m_Parent.RegisterDisposingTrace(m_StackTrace);
+                m_Parent.RegisterDisposingTrace(m_StackTrace.ToString());
             }
         }
     }
