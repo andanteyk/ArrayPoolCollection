@@ -240,7 +240,7 @@ public class DebugBufferPoolTests
 
 
         RentAndThrowAway(intPool);
-        Assert.Throws<ObjectDisposedException>(() => intPool.DetectLeak());
+        Assert.Throws<ObjectDisposedException>(() => intPool.DetectLeaks());
 
 
         intPool.Dispose();
@@ -256,7 +256,7 @@ public class DebugBufferPoolTests
 
 
         RentAndThrowAway(stringPool);
-        Assert.Throws<ObjectDisposedException>(() => stringPool.DetectLeak());
+        Assert.Throws<ObjectDisposedException>(() => stringPool.DetectLeaks());
 
 
         stringPool.Dispose();

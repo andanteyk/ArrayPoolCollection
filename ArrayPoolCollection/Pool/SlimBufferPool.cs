@@ -125,7 +125,7 @@ namespace ArrayPoolCollection.Pool
 
             foreach (var stacked in m_Stacks)
             {
-                stacked.Trim();
+                stacked.TrimExcess();
             }
             return true;
         }

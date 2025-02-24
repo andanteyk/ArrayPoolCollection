@@ -78,7 +78,7 @@ namespace ArrayPoolCollection.Pool
             }
         }
 
-        public void Trim()
+        public void TrimExcess()
         {
             if (Array is null)
             {
@@ -94,6 +94,11 @@ namespace ArrayPoolCollection.Pool
             }
 
             ReferenceCount = 0;
+        }
+
+        public readonly override string ToString()
+        {
+            return $"{Index + 1}/{Array?.Length} items";
         }
     }
 }

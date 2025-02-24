@@ -169,7 +169,7 @@ namespace ArrayPoolCollection.Pool
 
             foreach (var stacked in m_Stacks)
             {
-                stacked.Trim();
+                stacked.TrimExcess();
             }
             return true;
         }
@@ -187,7 +187,7 @@ namespace ArrayPoolCollection.Pool
         /// <summary>
         /// Detects buffers that have been disposed without being Return()'d and throws an <see cref="ObjectDisposedException"/> if any.
         /// </summary>
-        public void DetectLeak()
+        public void DetectLeaks()
         {
             ObjectDisposedException? ex = null;
 
