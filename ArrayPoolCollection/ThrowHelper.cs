@@ -127,7 +127,7 @@ namespace ArrayPoolCollection
         [DoesNotReturn]
         internal static void ThrowPooledObjectDisposed(string stackTrace)
         {
-            throw new InvalidOperationException($"The pooled object has been disposed without being Return()'d. Be sure to return it with Return().\nStackTrace upon allocation: \n{stackTrace}");
+            throw new ObjectDisposedException("DebugBufferPool", $"The pooled object has been disposed without being Return()'d. Be sure to return it with Return().\nStackTrace upon allocation: \n{stackTrace}");
         }
     }
 }

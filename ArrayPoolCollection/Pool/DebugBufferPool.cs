@@ -9,7 +9,6 @@ namespace ArrayPoolCollection.Pool
         private readonly IBufferPoolPolicy<TBuffer, TElement> m_Policy;
         private BufferPoolStack<TBuffer>[]? m_Stacks;
         private readonly ConditionalWeakTable<TBuffer, Tracer> m_Tracers;
-        private string? m_ExternallyDisposingTrace;
         private readonly TaskScheduler m_Scheduler;
         private readonly TBuffer?[]?[] m_ReservedArray;
 
@@ -32,7 +31,7 @@ namespace ArrayPoolCollection.Pool
 
             if (autoTrimWhenGabageCollected)
             {
-                GabageCollectorCallback.Register(() => Trim());
+                GabageCollectorCallback.Register(() => TrimExcess());
             }
         }
 
@@ -161,25 +160,11 @@ namespace ArrayPoolCollection.Pool
             }
         }
 
-        public bool Trim()
+        public bool TrimExcess()
         {
             if (m_Stacks is null)
             {
                 return false;
-            }
-
-            if (m_ExternallyDisposingTrace is not null)
-            {
-                // https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1065#finalizers
-                string stackTrace = m_ExternallyDisposingTrace;
-                var task = new Task(() =>
-                {
-                    ThrowHelper.ThrowPooledObjectDisposed(stackTrace);
-                });
-                task.Start(m_Scheduler);
-                ((IAsyncResult)task).AsyncWaitHandle.WaitOne(1000);
-
-                m_ExternallyDisposingTrace = null;
             }
 
             foreach (var stacked in m_Stacks)
@@ -193,15 +178,44 @@ namespace ArrayPoolCollection.Pool
         {
             long longLength = (long)Unsafe.SizeOf<TElement>() * span.Length;
             int length = checked((int)longLength);
-            ref var reference = ref Unsafe.As<TElement, byte>(ref MemoryMarshal.GetReference<TElement>(span));
+            ref var reference = ref Unsafe.As<TElement, byte>(ref MemoryMarshal.GetReference(span));
             var bytes = MemoryMarshal.CreateSpan(ref reference, length);
 
             return bytes;
         }
 
-        internal void RegisterDisposingTrace(string stackTrace)
+        /// <summary>
+        /// Detects buffers that have been disposed without being Return()'d and throws an <see cref="ObjectDisposedException"/> if any.
+        /// </summary>
+        public void DetectLeak()
         {
-            m_ExternallyDisposingTrace = stackTrace;
+            ObjectDisposedException? ex = null;
+
+            void detector(object? sender, UnobservedTaskExceptionEventArgs e)
+            {
+                if (e.Exception?.InnerException is ObjectDisposedException odex)
+                {
+                    e.SetObserved();
+                    ex = odex;
+                }
+            }
+
+            TaskScheduler.UnobservedTaskException += detector;
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            // Here, the disposed buffers are collected and the detection task is started.
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            // Here, the detection task is collected and an UnobservedTaskException is fired.
+
+            TaskScheduler.UnobservedTaskException -= detector;
+
+            if (ex is not null)
+            {
+                throw ex;
+            }
         }
 
         public void Dispose()
@@ -250,7 +264,14 @@ namespace ArrayPoolCollection.Pool
 
             ~Tracer()
             {
-                m_Parent.RegisterDisposingTrace(m_StackTrace.ToString());
+                // https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1065#finalizers
+
+                var task = new Task(() =>
+                {
+                    ThrowHelper.ThrowPooledObjectDisposed(m_StackTrace);
+                });
+                task.Start(m_Parent.m_Scheduler);
+                ((IAsyncResult)task).AsyncWaitHandle.WaitOne();
             }
         }
     }

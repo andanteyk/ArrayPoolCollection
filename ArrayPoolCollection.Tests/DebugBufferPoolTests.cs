@@ -1,5 +1,6 @@
 namespace ArrayPoolCollection.Pool.Tests;
 
+[CollectionDefinition(DisableParallelization = true)]
 public class DebugBufferPoolTests
 {
     [Fact]
@@ -233,65 +234,33 @@ public class DebugBufferPoolTests
     [Fact]
     public void Trim_Value()
     {
-        bool exceptionRaised = false;
-        TaskScheduler.UnobservedTaskException += (sender, e) =>
-        {
-            if (e.Exception?.InnerException is InvalidOperationException)
-            {
-                exceptionRaised = true;
-                e.SetObserved();
-            }
-        };
         var intPool = new DebugBufferPool<int[], int>(new ArrayPoolPolicy<int>());
 
-
-        Assert.True(intPool.Trim());
+        Assert.True(intPool.TrimExcess());
 
 
         RentAndThrowAway(intPool);
-        GC.Collect();
-        Thread.Sleep(10);
-        intPool.Trim();
-
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        Assert.True(exceptionRaised);
+        Assert.Throws<ObjectDisposedException>(() => intPool.DetectLeak());
 
 
         intPool.Dispose();
-        Assert.False(intPool.Trim());
+        Assert.False(intPool.TrimExcess());
     }
 
     [Fact]
     public void Trim_Class()
     {
-        bool exceptionRaised = false;
-        TaskScheduler.UnobservedTaskException += (sender, e) =>
-        {
-            if (e.Exception?.InnerException is InvalidOperationException)
-            {
-                exceptionRaised = true;
-                e.SetObserved();
-            }
-        };
         var stringPool = new DebugBufferPool<string[], string>(new ArrayPoolPolicy<string>());
 
-
-        Assert.True(stringPool.Trim());
+        Assert.True(stringPool.TrimExcess());
 
 
         RentAndThrowAway(stringPool);
-        GC.Collect();
-        Thread.Sleep(10);
-        stringPool.Trim();
-
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        Assert.True(exceptionRaised);
+        Assert.Throws<ObjectDisposedException>(() => stringPool.DetectLeak());
 
 
         stringPool.Dispose();
-        Assert.False(stringPool.Trim());
+        Assert.False(stringPool.TrimExcess());
     }
 
     private static void RentAndThrowAway<T>(DebugBufferPool<T[], T> pool)

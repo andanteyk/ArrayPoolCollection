@@ -1,5 +1,6 @@
 namespace ArrayPoolCollection.Pool.Tests;
 
+[CollectionDefinition(DisableParallelization = true)]
 public class SlimBufferPoolTests
 {
     [Fact]
@@ -211,17 +212,17 @@ public class SlimBufferPoolTests
         var intPool = new SlimBufferPool<int[], int>(new ArrayPoolPolicy<int>());
 
 
-        Assert.True(intPool.Trim());
+        Assert.True(intPool.TrimExcess());
 
 
         RentAndThrowAway(intPool);
         GC.Collect();
         Thread.Sleep(10);
-        intPool.Trim();
+        intPool.TrimExcess();
 
 
         intPool.Dispose();
-        Assert.False(intPool.Trim());
+        Assert.False(intPool.TrimExcess());
     }
 
     [Fact]
@@ -230,17 +231,17 @@ public class SlimBufferPoolTests
         var stringPool = new SlimBufferPool<string[], string>(new ArrayPoolPolicy<string>());
 
 
-        Assert.True(stringPool.Trim());
+        Assert.True(stringPool.TrimExcess());
 
 
         RentAndThrowAway(stringPool);
         GC.Collect();
         Thread.Sleep(10);
-        stringPool.Trim();
+        stringPool.TrimExcess();
 
 
         stringPool.Dispose();
-        Assert.False(stringPool.Trim());
+        Assert.False(stringPool.TrimExcess());
     }
 
     private static void RentAndThrowAway<T>(SlimBufferPool<T[], T> pool)

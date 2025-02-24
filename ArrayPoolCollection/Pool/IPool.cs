@@ -10,5 +10,7 @@ namespace ArrayPoolCollection.Pool
         }
 
         public void Return(T value);
+
+        public bool TrimExcess();
     }
 }

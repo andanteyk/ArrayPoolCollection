@@ -26,7 +26,7 @@ namespace ArrayPoolCollection.Pool
 
             if (autoTrimWhenGabageCollected)
             {
-                GabageCollectorCallback.Register(() => Trim());
+                GabageCollectorCallback.Register(() => TrimExcess());
             }
         }
 
@@ -116,7 +116,7 @@ namespace ArrayPoolCollection.Pool
             }
         }
 
-        public bool Trim()
+        public bool TrimExcess()
         {
             if (m_Stacks is null)
             {
