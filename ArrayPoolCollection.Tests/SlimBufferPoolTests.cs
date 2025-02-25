@@ -19,7 +19,7 @@ public class SlimBufferPoolTests
         var intPool = new SlimBufferPool<int[], int>(new ArrayPoolPolicy<int>());
 
         Assert.Throws<ArgumentOutOfRangeException>(() => intPool.Rent(-1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => intPool.Rent(int.MaxValue));
+        Assert.Throws<OutOfMemoryException>(() => intPool.Rent(int.MaxValue));
         Assert.Equal(Array.Empty<int>(), intPool.Rent(0));
 
 
@@ -53,7 +53,7 @@ public class SlimBufferPoolTests
         var stringPool = new SlimBufferPool<string[], string>(new ArrayPoolPolicy<string>());
 
         Assert.Throws<ArgumentOutOfRangeException>(() => stringPool.Rent(-1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => stringPool.Rent(int.MaxValue));
+        Assert.Throws<OutOfMemoryException>(() => stringPool.Rent(int.MaxValue));
         Assert.Equal(Array.Empty<string>(), stringPool.Rent(0));
 
 

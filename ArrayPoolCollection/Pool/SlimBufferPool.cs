@@ -36,9 +36,13 @@ namespace ArrayPoolCollection.Pool
             {
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Stacks));
             }
-            if ((uint)minimumLength > (uint)CollectionHelper.ArrayMaxLength)
+            if (minimumLength < 0)
             {
                 ThrowHelper.ThrowArgumentOutOfRange(nameof(minimumLength), 0, CollectionHelper.ArrayMaxLength, minimumLength);
+            }
+            if (minimumLength > CollectionHelper.ArrayMaxLength)
+            {
+                ThrowHelper.ThrowOutOfMemory();
             }
             if (minimumLength == 0)
             {

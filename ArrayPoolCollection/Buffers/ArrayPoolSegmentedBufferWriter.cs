@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
+using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection.Buffers
 {
@@ -70,11 +71,11 @@ namespace ArrayPoolCollection.Buffers
                 ThrowHelper.ThrowArgumentOutOfRange(nameof(capacity), 0, CollectionHelper.ArrayMaxLength, capacity);
             }
 
-            m_Arrays = ArrayPool<T[]>.Shared.Rent(32);
+            m_Arrays = SlimArrayPool<T[]>.Shared.Rent(32);
             m_Arrays.AsSpan().Clear();
-            m_Arrays[0] = ArrayPool<T>.Shared.Rent(CollectionHelper.GetInitialPoolingSize(capacity));
+            m_Arrays[0] = SlimArrayPool<T>.Shared.Rent(CollectionHelper.GetInitialPoolingSize(capacity));
 
-            m_SegmentLength = ArrayPool<int>.Shared.Rent(32);
+            m_SegmentLength = SlimArrayPool<int>.Shared.Rent(32);
             m_SegmentLength.AsSpan().Clear();
 
             m_Length = 0;
@@ -127,15 +128,15 @@ namespace ArrayPoolCollection.Buffers
                 {
                     if (m_Arrays[i] is not null)
                     {
-                        ArrayPool<T>.Shared.Return(m_Arrays[i], RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                        SlimArrayPool<T>.Shared.Return(m_Arrays[i], RuntimeHelpers.IsReferenceOrContainsReferences<T>());
                     }
                 }
-                ArrayPool<T[]>.Shared.Return(m_Arrays, true);
+                SlimArrayPool<T[]>.Shared.Return(m_Arrays, true);
                 m_Arrays = null;
             }
             if (m_SegmentLength is not null)
             {
-                ArrayPool<int>.Shared.Return(m_SegmentLength);
+                SlimArrayPool<int>.Shared.Return(m_SegmentLength);
                 m_SegmentLength = null;
             }
         }
@@ -193,14 +194,14 @@ namespace ArrayPoolCollection.Buffers
             if (m_Arrays!.Length >= m_SegmentIndex)
             {
                 var oldArrays = m_Arrays;
-                m_Arrays = ArrayPool<T[]>.Shared.Rent(oldArrays.Length << 1);
+                m_Arrays = SlimArrayPool<T[]>.Shared.Rent(oldArrays.Length << 1);
                 oldArrays.AsSpan().CopyTo(m_Arrays);
-                ArrayPool<T[]>.Shared.Return(oldArrays, true);
+                SlimArrayPool<T[]>.Shared.Return(oldArrays, true);
 
                 var oldSegmentedLength = m_SegmentLength;
-                m_SegmentLength = ArrayPool<int>.Shared.Rent(oldSegmentedLength!.Length << 1);
+                m_SegmentLength = SlimArrayPool<int>.Shared.Rent(oldSegmentedLength!.Length << 1);
                 oldSegmentedLength.AsSpan().CopyTo(m_SegmentLength);
-                ArrayPool<int>.Shared.Return(oldSegmentedLength);
+                SlimArrayPool<int>.Shared.Return(oldSegmentedLength);
             }
 
             int nextLength = m_Arrays[m_SegmentIndex - 1].Length << 1;
@@ -211,12 +212,12 @@ namespace ArrayPoolCollection.Buffers
 
             if (m_Arrays[m_SegmentIndex] is null)
             {
-                m_Arrays[m_SegmentIndex] = ArrayPool<T>.Shared.Rent(nextLength);
+                m_Arrays[m_SegmentIndex] = SlimArrayPool<T>.Shared.Rent(nextLength);
             }
             else if (m_Arrays[m_SegmentIndex].Length < nextLength)
             {
-                ArrayPool<T>.Shared.Return(m_Arrays[m_SegmentIndex], RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-                m_Arrays[m_SegmentIndex] = ArrayPool<T>.Shared.Rent(nextLength);
+                SlimArrayPool<T>.Shared.Return(m_Arrays[m_SegmentIndex], RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                m_Arrays[m_SegmentIndex] = SlimArrayPool<T>.Shared.Rent(nextLength);
             }
 
             m_SegmentLength![m_SegmentIndex] = 0;

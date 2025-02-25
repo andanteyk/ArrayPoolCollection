@@ -1,6 +1,6 @@
-using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
@@ -25,7 +25,7 @@ namespace ArrayPoolCollection
             {
                 if (array is not null)
                 {
-                    ArrayPool<T>.Shared.Return(array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                    SlimArrayPool<T>.Shared.Return(array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
                 }
                 else
                 {
@@ -43,7 +43,7 @@ namespace ArrayPoolCollection
             }
 
             SegmentIndex++;
-            CurrentSegment = Arrays.AsSpan()[SegmentIndex] = ArrayPool<T>.Shared.Rent(1 << (SegmentIndex + 4));
+            CurrentSegment = Arrays.AsSpan()[SegmentIndex] = SlimArrayPool<T>.Shared.Rent(1 << (SegmentIndex + 4));
             CurrentSegment[0] = item;
             CurrentSegmentIndex = 1;
         }
@@ -78,7 +78,7 @@ namespace ArrayPoolCollection
                 }
 
                 SegmentIndex++;
-                CurrentSegment = Arrays.AsSpan()[SegmentIndex] = ArrayPool<T>.Shared.Rent(1 << (SegmentIndex + 4));
+                CurrentSegment = Arrays.AsSpan()[SegmentIndex] = SlimArrayPool<T>.Shared.Rent(1 << (SegmentIndex + 4));
                 CurrentSegmentIndex = 0;
             }
         }
@@ -122,7 +122,7 @@ namespace ArrayPoolCollection
         public T[] ToArrayPool(out Span<T> span)
         {
             int totalLength = GetTotalLength();
-            var result = ArrayPool<T>.Shared.Rent(totalLength);
+            var result = SlimArrayPool<T>.Shared.Rent(totalLength);
             CopyTo(result);
             span = result.AsSpan(..totalLength);
             return result;

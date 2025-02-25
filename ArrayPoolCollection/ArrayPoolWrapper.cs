@@ -1,8 +1,8 @@
-using System.Buffers;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
@@ -21,7 +21,7 @@ namespace ArrayPoolCollection
                 ThrowHelper.ThrowArgumentOutOfRange(nameof(length), 0, CollectionHelper.ArrayMaxLength, length);
             }
 
-            m_Array = ArrayPool<T>.Shared.Rent(length);
+            m_Array = SlimArrayPool<T>.Shared.Rent(length);
             m_Length = length;
 
             if (clearArray)
@@ -795,7 +795,7 @@ namespace ArrayPoolCollection
         {
             if (m_Array is not null)
             {
-                ArrayPool<T>.Shared.Return(m_Array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                SlimArrayPool<T>.Shared.Return(m_Array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
                 m_Array = null;
             }
         }

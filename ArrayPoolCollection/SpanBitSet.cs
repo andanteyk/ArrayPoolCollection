@@ -1,5 +1,5 @@
-using System.Buffers;
 using System.Runtime.InteropServices;
+using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
@@ -80,7 +80,7 @@ namespace ArrayPoolCollection
             if (initialLength > span.Length * NuintBits)
             {
                 int arrayCapacity = (initialLength + NuintBits - 1) >> NuintShifts;
-                m_Array = ArrayPool<nuint>.Shared.Rent(arrayCapacity);
+                m_Array = SlimArrayPool<nuint>.Shared.Rent(arrayCapacity);
                 span = m_Array;
             }
 
@@ -106,7 +106,7 @@ namespace ArrayPoolCollection
             }
 
             int arrayCapacity = (capacityBits + NuintBits - 1) >> NuintShifts;
-            m_Array = ArrayPool<nuint>.Shared.Rent(arrayCapacity);
+            m_Array = SlimArrayPool<nuint>.Shared.Rent(arrayCapacity);
 
             m_Span = m_Array;
             m_Span.Clear();
@@ -147,12 +147,12 @@ namespace ArrayPoolCollection
             }
 
             var oldArray = m_Array;
-            m_Array = ArrayPool<nuint>.Shared.Rent(size >> NuintShifts);
+            m_Array = SlimArrayPool<nuint>.Shared.Rent(size >> NuintShifts);
             m_Span.CopyTo(m_Array);
 
             if (oldArray is not null)
             {
-                ArrayPool<nuint>.Shared.Return(oldArray);
+                SlimArrayPool<nuint>.Shared.Return(oldArray);
             }
 
             m_Span = m_Array;
@@ -235,7 +235,7 @@ namespace ArrayPoolCollection
         {
             if (m_Array != null)
             {
-                ArrayPool<nuint>.Shared.Return(m_Array);
+                SlimArrayPool<nuint>.Shared.Return(m_Array);
                 m_Array = null;
             }
             m_Length = 0;

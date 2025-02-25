@@ -1,6 +1,6 @@
-using System.Buffers;
 using System.Collections;
 using System.Runtime.CompilerServices;
+using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
@@ -429,12 +429,12 @@ namespace ArrayPoolCollection
             }
 
             var oldArray = m_Array;
-            m_Array = ArrayPool<(TElement Element, TPriority Priority)>.Shared.Rent(Math.Max(newCapacity, 16));
+            m_Array = SlimArrayPool<(TElement Element, TPriority Priority)>.Shared.Rent(Math.Max(newCapacity, 16));
             oldArray?.AsSpan(..m_Length).CopyTo(m_Array);
 
             if (oldArray is not null)
             {
-                ArrayPool<(TElement Element, TPriority Priority)>.Shared.Return(oldArray, RuntimeHelpers.IsReferenceOrContainsReferences<(TElement Element, TPriority Priority)>());
+                SlimArrayPool<(TElement Element, TPriority Priority)>.Shared.Return(oldArray, RuntimeHelpers.IsReferenceOrContainsReferences<(TElement Element, TPriority Priority)>());
             }
 
             m_Version++;
@@ -700,7 +700,7 @@ namespace ArrayPoolCollection
         {
             if (m_Array is not null)
             {
-                ArrayPool<(TElement, TPriority)>.Shared.Return(m_Array, RuntimeHelpers.IsReferenceOrContainsReferences<(TElement, TPriority)>());
+                SlimArrayPool<(TElement, TPriority)>.Shared.Return(m_Array, RuntimeHelpers.IsReferenceOrContainsReferences<(TElement, TPriority)>());
                 m_Array = null;
             }
 

@@ -1,8 +1,8 @@
-using System.Buffers;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
@@ -271,9 +271,9 @@ namespace ArrayPoolCollection
             var oldValues = m_Values;
             var oldMetadata = m_Metadata;
 
-            m_Values = ArrayPool<KeyValuePair<TKey, TValue>>.Shared.Rent(newCapacity);
+            m_Values = SlimArrayPool<KeyValuePair<TKey, TValue>>.Shared.Rent(newCapacity);
             oldValues?.AsSpan(..m_Size).CopyTo(m_Values.AsSpan());
-            m_Metadata = ArrayPool<Metadata>.Shared.Rent(newCapacity);
+            m_Metadata = SlimArrayPool<Metadata>.Shared.Rent(newCapacity);
             m_Metadata.AsSpan().Clear();
 
             for (int i = 0; i < m_Size; i++)
@@ -284,11 +284,11 @@ namespace ArrayPoolCollection
 
             if (oldValues != null)
             {
-                ArrayPool<KeyValuePair<TKey, TValue>>.Shared.Return(oldValues, RuntimeHelpers.IsReferenceOrContainsReferences<KeyValuePair<TKey, TValue>>());
+                SlimArrayPool<KeyValuePair<TKey, TValue>>.Shared.Return(oldValues, RuntimeHelpers.IsReferenceOrContainsReferences<KeyValuePair<TKey, TValue>>());
             }
             if (oldMetadata != null)
             {
-                ArrayPool<Metadata>.Shared.Return(oldMetadata);
+                SlimArrayPool<Metadata>.Shared.Return(oldMetadata);
             }
 
             m_Version++;
@@ -1273,8 +1273,8 @@ namespace ArrayPoolCollection
                     ThrowHelper.ThrowObjectDisposed(nameof(source));
                 }
 
-                m_Values = ArrayPool<KeyValuePair<TKey, TValue>>.Shared.Rent(cloneSource.m_Values.Length);
-                m_Metadata = ArrayPool<Metadata>.Shared.Rent(cloneSource.m_Metadata.Length);
+                m_Values = SlimArrayPool<KeyValuePair<TKey, TValue>>.Shared.Rent(cloneSource.m_Values.Length);
+                m_Metadata = SlimArrayPool<Metadata>.Shared.Rent(cloneSource.m_Metadata.Length);
                 cloneSource.m_Values.AsSpan(..cloneSource.m_Size).CopyTo(m_Values);
                 cloneSource.m_Metadata.AsSpan().CopyTo(m_Metadata);
 
@@ -1922,12 +1922,12 @@ namespace ArrayPoolCollection
         {
             if (m_Values is not null)
             {
-                ArrayPool<KeyValuePair<TKey, TValue>>.Shared.Return(m_Values, RuntimeHelpers.IsReferenceOrContainsReferences<KeyValuePair<TKey, TValue>>());
+                SlimArrayPool<KeyValuePair<TKey, TValue>>.Shared.Return(m_Values, RuntimeHelpers.IsReferenceOrContainsReferences<KeyValuePair<TKey, TValue>>());
                 m_Values = null;
             }
             if (m_Metadata is not null)
             {
-                ArrayPool<Metadata>.Shared.Return(m_Metadata);
+                SlimArrayPool<Metadata>.Shared.Return(m_Metadata);
                 m_Metadata = null;
             }
             m_Size = 0;
