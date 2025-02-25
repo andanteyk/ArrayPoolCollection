@@ -171,6 +171,78 @@ for (int i = 0; i < 64; i++)
 await UniTask.Delay(1000);
 ```
 
+* `DebugArrayPool` : [ArrayPool](https://learn.microsoft.com/ja-jp/dotnet/api/system.buffers.arraypool-1?view=net-9.0) for debugging
+* `SlimArrayPool` : More robust [ArrayPool](https://learn.microsoft.com/ja-jp/dotnet/api/system.buffers.arraypool-1?view=net-9.0)
+
+The `DebugArrayPool` facilitates debugging in the following situations:
+
+1. Forget to return - `pool.DetectLeaks()` and show stacktrace
+1. Return and continue to use - Initializing/fuzzing when `Return()`
+1. Renter expects pre cleared array - Fuzzing when `Rent()`
+1. Returner does not request a `clearArray` - Automatically detects reference type at `Return()`
+1. Double return - Throws exception
+
+However, since the overhead for obtaining the stacktrace is very large, its use in a production environment is not recommended.
+
+`SlimArrayPool` is a more flexible `ArrayPool`.
+`ArrayPool` has problems such as low performance when lending out multiple arrays of the same size, and the limited number of arrays that can be pooled.
+In addition, in the Unity environment, the implementation is old, so the upper limit of the pooled array size is small (`2^20`).
+It can be used without any problems even in such situations.
+However, to improve performance, there are no debugging functions, just like with `ArrayPool`.
+
+Therefore, it is a good idea to use the following implementation to switch between Debug and Release:
+
+```cs
+using ArrayPoolCollection.Pool;
+using System;
+using UnityEngine;
+
+#nullable enable
+
+public class SwitchArrayPool<T>
+{
+    private static IBufferPool<T[]>? m_Pool;
+
+    public static IBufferPool<T[]> Shared
+    {
+        get
+        {
+            if (m_Pool is null)
+            {
+#if DEBUG
+                var pool = new DebugBufferPool<T[], T>(new ArrayPoolPolicy());
+                Application.wantsToQuit += () =>
+                {
+                    try
+                    {
+                        pool.DetectLeaks();
+                    }
+                    catch (ObjectDisposedException ex)
+                    {
+                        Debug.LogException(ex);
+                    }
+                    return true;
+                };
+#else
+                var pool = new SlimBufferPool<T[], T>(new ArrayPoolPolicy());
+#endif
+                m_Pool = pool;
+            }
+
+            return m_Pool;
+        }
+    }
+
+    private class ArrayPoolPolicy : IBufferPoolPolicy<T[], T>
+    {
+        public Span<T> AsSpan(T[] value) => value.AsSpan();
+        public T[] Create(int length) => new T[length];
+    }
+}
+```
+
+This can also be applied to create pools of NativeArrays or unmanaged resources.
+
 It also includes an efficient implementation of [`IBufferWriter<T>`](https://learn.microsoft.com/en-us/dotnet/api/system.buffers.ibufferwriter-1?view=net-9.0) that utilizes a pool.
 
 * `ArrayPoolBufferWriter<T>` : Suitable for small or fixed size buffers.
