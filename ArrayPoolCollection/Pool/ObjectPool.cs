@@ -1,6 +1,6 @@
 namespace ArrayPoolCollection.Pool
 {
-    public sealed class ObjectPool<T> : IDisposable
+    public sealed class ObjectPool<T> : IPool<T>, IDisposable
     {
         [ThreadStatic]
         private static ObjectPool<T>? m_Shared;
@@ -55,11 +55,7 @@ namespace ArrayPoolCollection.Pool
 
             if (autoTrimWhenGabageCollected)
             {
-                GabageCollectorCallback.Register(() =>
-                {
-                    TrimExcess();
-                    return m_Queue is not null;
-                });
+                GabageCollectorCallback.Register(() => TrimExcess());
             }
         }
 
@@ -117,12 +113,12 @@ namespace ArrayPoolCollection.Pool
             }
         }
 
-        public void TrimExcess()
+        public bool TrimExcess()
         {
             if (m_Queue is null)
             {
                 // this may call from GabageCollectorCallback; should not throw
-                return;
+                return false;
             }
 
             while (m_Queue.Count > TrimThreshold)
@@ -131,6 +127,7 @@ namespace ArrayPoolCollection.Pool
                 m_Callback.OnDestroy(value);
             }
             m_Queue.TrimExcess();
+            return true;
         }
 
         public void Dispose()

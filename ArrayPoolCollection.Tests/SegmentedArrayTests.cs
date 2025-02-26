@@ -1,4 +1,5 @@
 using System.Buffers;
+using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection.Tests;
 
@@ -86,7 +87,7 @@ public class SegmentedArrayTests
         var array = segmentedArray.ToArrayPool(out var span);
         Assert.Equal(Enumerable.Range(0, 49).ToArray(), span.ToArray());
 
-        ArrayPool<int>.Shared.Return(array);
+        SlimArrayPool<int>.Shared.Return(array);
     }
 
     [Fact]

@@ -1,6 +1,6 @@
-using System.Buffers;
 using System.Collections;
 using System.Runtime.CompilerServices;
+using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
@@ -45,7 +45,7 @@ namespace ArrayPoolCollection
         public ArrayPoolQueue() : this(16) { }
         public ArrayPoolQueue(int capacity)
         {
-            m_Array = ArrayPool<T>.Shared.Rent(capacity);
+            m_Array = SlimArrayPool<T>.Shared.Rent(capacity);
             m_Version = 0;
             m_Head = 0;
             m_Length = 0;
@@ -57,7 +57,7 @@ namespace ArrayPoolCollection
                 count = 16;
             }
 
-            m_Array = ArrayPool<T>.Shared.Rent(Math.Max(count, 16));
+            m_Array = SlimArrayPool<T>.Shared.Rent(Math.Max(count, 16));
             m_Version = 0;
             m_Head = 0;
             m_Length = 0;
@@ -303,7 +303,7 @@ namespace ArrayPoolCollection
             }
 
             var oldArray = m_Array;
-            m_Array = ArrayPool<T>.Shared.Rent(Math.Max(size, 16));
+            m_Array = SlimArrayPool<T>.Shared.Rent(Math.Max(size, 16));
 
             if (m_Head + m_Length <= oldArray.Length)
             {
@@ -315,7 +315,7 @@ namespace ArrayPoolCollection
                 oldArray.AsSpan(..(m_Head + m_Length - oldArray.Length)).CopyTo(m_Array.AsSpan((oldArray.Length - m_Head)..));
             }
 
-            ArrayPool<T>.Shared.Return(oldArray, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+            SlimArrayPool<T>.Shared.Return(oldArray, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
             m_Head = 0;
             m_Version++;
         }
@@ -590,7 +590,7 @@ namespace ArrayPoolCollection
         {
             if (m_Array is not null)
             {
-                ArrayPool<T>.Shared.Return(m_Array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                SlimArrayPool<T>.Shared.Return(m_Array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
                 m_Array = null;
             }
             m_Version = int.MinValue;

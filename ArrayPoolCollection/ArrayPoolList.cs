@@ -1,8 +1,8 @@
-using System.Buffers;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
@@ -15,7 +15,7 @@ namespace ArrayPoolCollection
 
         public ArrayPoolList()
         {
-            m_Array = ArrayPool<T>.Shared.Rent(16);
+            m_Array = SlimArrayPool<T>.Shared.Rent(16);
             m_Length = 0;
             m_Version = 0;
         }
@@ -27,7 +27,7 @@ namespace ArrayPoolCollection
                 ThrowHelper.ThrowArgumentOutOfRange(nameof(capacity), 0, CollectionHelper.ArrayMaxLength, capacity);
             }
 
-            m_Array = ArrayPool<T>.Shared.Rent(capacity);
+            m_Array = SlimArrayPool<T>.Shared.Rent(capacity);
             m_Length = 0;
             m_Version = 0;
         }
@@ -36,13 +36,13 @@ namespace ArrayPoolCollection
         {
             if (CollectionHelper.TryGetSpan(source, out var span))
             {
-                m_Array = ArrayPool<T>.Shared.Rent(span.Length);
+                m_Array = SlimArrayPool<T>.Shared.Rent(span.Length);
                 span.CopyTo(m_Array);
                 m_Length = span.Length;
             }
             else if (CollectionHelper.TryGetNonEnumeratedCount(source, out int count))
             {
-                m_Array = ArrayPool<T>.Shared.Rent(count);
+                m_Array = SlimArrayPool<T>.Shared.Rent(count);
                 m_Length = count;
 
                 if (source is ICollection<T> collection)
@@ -99,9 +99,9 @@ namespace ArrayPoolCollection
 
                 if (newLength != m_Array.Length)
                 {
-                    var newArray = ArrayPool<T>.Shared.Rent(newLength);
+                    var newArray = SlimArrayPool<T>.Shared.Rent(newLength);
                     m_Array.AsSpan(..m_Length).CopyTo(newArray);
-                    ArrayPool<T>.Shared.Return(m_Array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                    SlimArrayPool<T>.Shared.Return(m_Array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
                     m_Array = newArray;
                     m_Version++;
                 }
@@ -1151,7 +1151,7 @@ namespace ArrayPoolCollection
         {
             if (m_Array is not null)
             {
-                ArrayPool<T>.Shared.Return(m_Array);
+                SlimArrayPool<T>.Shared.Return(m_Array);
                 m_Array = null;
             }
             m_Length = 0;

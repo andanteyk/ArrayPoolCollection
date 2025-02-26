@@ -8,7 +8,7 @@ namespace ArrayPoolCollection.Pool
 
         internal static void Register(Func<bool> callback)
         {
-            new GabageCollectorCallback(callback);
+            _ = new GabageCollectorCallback(callback);
         }
 
         private GabageCollectorCallback(Func<bool> callback)

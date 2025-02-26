@@ -1,6 +1,6 @@
-using System.Buffers;
 using System.Collections;
 using System.Runtime.CompilerServices;
+using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
@@ -51,7 +51,7 @@ namespace ArrayPoolCollection
                 ThrowHelper.ThrowArgumentOutOfRange(nameof(capacity), 0, int.MaxValue, capacity);
             }
 
-            m_Array = ArrayPool<T>.Shared.Rent(Math.Max(capacity, 16));
+            m_Array = SlimArrayPool<T>.Shared.Rent(Math.Max(capacity, 16));
             m_Length = 0;
             m_Version = 0;
         }
@@ -63,7 +63,7 @@ namespace ArrayPoolCollection
                 count = 16;
             }
 
-            m_Array = ArrayPool<T>.Shared.Rent(Math.Max(count, 16));
+            m_Array = SlimArrayPool<T>.Shared.Rent(Math.Max(count, 16));
             m_Length = 0;
             m_Version = 0;
 
@@ -88,7 +88,7 @@ namespace ArrayPoolCollection
         {
             if (m_Array is not null)
             {
-                ArrayPool<T>.Shared.Return(m_Array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                SlimArrayPool<T>.Shared.Return(m_Array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
                 m_Array = null;
             }
             m_Length = 0;
@@ -186,12 +186,12 @@ namespace ArrayPoolCollection
             }
 
             var oldArray = m_Array;
-            m_Array = ArrayPool<T>.Shared.Rent(newCapacity);
+            m_Array = SlimArrayPool<T>.Shared.Rent(newCapacity);
 
             if (oldArray is not null)
             {
                 oldArray.AsSpan(..m_Length).CopyTo(m_Array);
-                ArrayPool<T>.Shared.Return(oldArray, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+                SlimArrayPool<T>.Shared.Return(oldArray, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
             }
 
             m_Version++;

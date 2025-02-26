@@ -1,6 +1,6 @@
-using System.Buffers;
 using System.Collections;
 using System.Runtime.InteropServices;
+using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
@@ -131,7 +131,7 @@ namespace ArrayPoolCollection
             }
 
             int arrayLength = (int)((bitLength - 1L + NuintBits) >> NuintShifts);
-            m_Array = ArrayPool<nuint>.Shared.Rent(CollectionHelper.GetInitialPoolingSize(arrayLength));
+            m_Array = SlimArrayPool<nuint>.Shared.Rent(CollectionHelper.GetInitialPoolingSize(arrayLength));
             m_Length = bitLength;
 
             m_Array.AsSpan(..arrayLength).Clear();
@@ -145,7 +145,7 @@ namespace ArrayPoolCollection
             }
 
             int arrayLength = (count + NuintBits - 1) >> NuintShifts;
-            m_Array = ArrayPool<nuint>.Shared.Rent(CollectionHelper.GetInitialPoolingSize(arrayLength));
+            m_Array = SlimArrayPool<nuint>.Shared.Rent(CollectionHelper.GetInitialPoolingSize(arrayLength));
 
             foreach (var bit in bools)
             {
@@ -155,7 +155,7 @@ namespace ArrayPoolCollection
         public ArrayPoolBits(ReadOnlySpan<bool> bools)
         {
             int arrayLength = (bools.Length + NuintBits - 1) >> NuintShifts;
-            m_Array = ArrayPool<nuint>.Shared.Rent(CollectionHelper.GetInitialPoolingSize(arrayLength));
+            m_Array = SlimArrayPool<nuint>.Shared.Rent(CollectionHelper.GetInitialPoolingSize(arrayLength));
             m_Length = bools.Length;
 
             for (int i = 0; i < bools.Length; i++)
@@ -167,7 +167,7 @@ namespace ArrayPoolCollection
         public ArrayPoolBits(ReadOnlySpan<byte> bytes)
         {
             int arrayLength = (bytes.Length * 8 + NuintBits - 1) >> NuintShifts;
-            m_Array = ArrayPool<nuint>.Shared.Rent(CollectionHelper.GetInitialPoolingSize(arrayLength));
+            m_Array = SlimArrayPool<nuint>.Shared.Rent(CollectionHelper.GetInitialPoolingSize(arrayLength));
 
             bytes.CopyTo(MemoryMarshal.AsBytes(m_Array.AsSpan()));
             m_Length = bytes.Length * 8;
@@ -179,7 +179,7 @@ namespace ArrayPoolCollection
                 ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
             }
 
-            m_Array = ArrayPool<nuint>.Shared.Rent(source.m_Array.Length);
+            m_Array = SlimArrayPool<nuint>.Shared.Rent(source.m_Array.Length);
             source.m_Array.AsSpan().CopyTo(m_Array);
             m_Length = source.m_Length;
         }
@@ -210,9 +210,9 @@ namespace ArrayPoolCollection
             }
 
             var oldArray = m_Array;
-            m_Array = ArrayPool<nuint>.Shared.Rent((size + NuintBits - 1) >> NuintShifts);
+            m_Array = SlimArrayPool<nuint>.Shared.Rent((size + NuintBits - 1) >> NuintShifts);
             oldArray.AsSpan(..((m_Length + NuintBits - 1) >> NuintShifts)).CopyTo(m_Array);
-            ArrayPool<nuint>.Shared.Return(oldArray);
+            SlimArrayPool<nuint>.Shared.Return(oldArray);
 
             m_Version++;
         }
@@ -416,7 +416,7 @@ namespace ArrayPoolCollection
         {
             if (m_Array != null)
             {
-                ArrayPool<nuint>.Shared.Return(m_Array);
+                SlimArrayPool<nuint>.Shared.Return(m_Array);
                 m_Array = null;
             }
             m_Length = 0;
