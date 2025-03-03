@@ -864,7 +864,7 @@ namespace ArrayPoolCollection
             {
                 count = 8;
             }
-            Resize((int)Math.Min(count * MaxLoadFactorDen / MaxLoadFactorNum, CollectionHelper.ArrayMaxLength));
+            Resize((int)Math.Clamp(count * MaxLoadFactorDen / MaxLoadFactorNum, 16, CollectionHelper.ArrayMaxLength));
 
             foreach (var pair in source)
             {
