@@ -1294,7 +1294,7 @@ namespace ArrayPoolCollection
             m_Comparer = comparer;
 
 
-            Resize((int)Math.Min(source.Count * MaxLoadFactorDen / MaxLoadFactorNum, CollectionHelper.ArrayMaxLength));
+            Resize((int)Math.Clamp(source.Count * MaxLoadFactorDen / MaxLoadFactorNum, 16, CollectionHelper.ArrayMaxLength));
 
             foreach (var pair in source)
             {
@@ -1319,7 +1319,7 @@ namespace ArrayPoolCollection
             }
             m_Comparer = comparer;
 
-            Resize((int)Math.Min(count * MaxLoadFactorDen / MaxLoadFactorNum, CollectionHelper.ArrayMaxLength));
+            Resize((int)Math.Clamp(count * MaxLoadFactorDen / MaxLoadFactorNum, 16, CollectionHelper.ArrayMaxLength));
 
 
             foreach (var pair in source)

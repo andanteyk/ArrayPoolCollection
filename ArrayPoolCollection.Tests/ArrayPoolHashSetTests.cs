@@ -80,6 +80,10 @@ public class ArrayPoolHashSetTests
         }
         Assert.Equal(4, withSource.Count);
 
+        using var withEmptySource = new ArrayPoolHashSet<string>(Enumerable.Empty<string>());
+        Assert.Empty(withEmptySource);
+        Assert.Equal(16, withEmptySource.Capacity);
+
         using var withSourceAndComparer = new ArrayPoolHashSet<string>(source, StringComparer.OrdinalIgnoreCase);
         foreach (var name in source)
         {

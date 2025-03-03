@@ -48,6 +48,10 @@ public class ArrayPoolDictionaryTests
 
             using var withSourceAndComparer = new ArrayPoolDictionary<int, int>(source, comparer);
             Assert.Equivalent(source, withSource);
+
+            using var withEmptySource = new ArrayPoolDictionary<int, int>(Enumerable.Empty<KeyValuePair<int, int>>());
+            Assert.Empty(withEmptySource);
+            Assert.Equal(16, withEmptySource.Capacity);
         }
 
         {
