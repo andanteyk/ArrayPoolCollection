@@ -1,9 +1,12 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
+    [DebuggerDisplay("Count = {Count}")]
+    [DebuggerTypeProxy(typeof(ArrayPoolStackView<>))]
     public sealed class ArrayPoolStack<T> : IReadOnlyCollection<T>, ICollection, IDisposable
     {
         private T[]? m_Array;
@@ -36,8 +39,10 @@ namespace ArrayPoolCollection
             }
         }
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection.IsSynchronized => false;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         object ICollection.SyncRoot => this;
 
 
@@ -222,7 +227,7 @@ namespace ArrayPoolCollection
                     {
                         ThrowHelper.ThrowDifferentVersion();
                     }
-                    if ((uint)m_Index >= m_Parent.m_Length)
+                    if ((uint)m_Index >= (uint)m_Parent.m_Length)
                     {
                         ThrowHelper.ThrowEnumeratorUndefined();
                     }
@@ -497,5 +502,19 @@ namespace ArrayPoolCollection
         {
             return GetEnumerator();
         }
+    }
+
+
+    internal sealed class ArrayPoolStackView<T>
+    {
+        private readonly ArrayPoolStack<T> m_Source;
+
+        public ArrayPoolStackView(ArrayPoolStack<T> source)
+        {
+            m_Source = source;
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public T[] Items => m_Source.ToArray();
     }
 }

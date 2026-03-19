@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -6,6 +7,8 @@ using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
+    [DebuggerDisplay("Count = {Count}")]
+    [DebuggerTypeProxy(typeof(ArrayPoolDictionaryView<,>))]
     public sealed class ArrayPoolDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDictionary, IDisposable
         where TKey : notnull
     {
@@ -496,6 +499,8 @@ namespace ArrayPoolCollection
 
 
 
+        [DebuggerDisplay("Count = {Count}")]
+        [DebuggerTypeProxy(typeof(ArrayPoolDictionaryKeyView<,>))]
         public readonly struct KeyCollection : ICollection<TKey>, ICollection, IReadOnlyCollection<TKey>
         {
             private readonly ArrayPoolDictionary<TKey, TValue> m_Parent;
@@ -507,12 +512,16 @@ namespace ArrayPoolCollection
 
             public int Count => m_Parent.Count;
 
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             public bool IsReadOnly => true;
 
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             int ICollection.Count => m_Parent.Count;
 
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             bool ICollection.IsSynchronized => false;
 
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             object ICollection.SyncRoot => ((ICollection)m_Parent).SyncRoot;
 
             public void Add(TKey item)
@@ -619,7 +628,7 @@ namespace ArrayPoolCollection
                         {
                             ThrowHelper.ThrowDifferentVersion();
                         }
-                        if ((uint)m_Index >= m_Parent.m_Size)
+                        if ((uint)m_Index >= (uint)m_Parent.m_Size)
                         {
                             ThrowHelper.ThrowEnumeratorUndefined();
                         }
@@ -669,6 +678,9 @@ namespace ArrayPoolCollection
             }
         }
 
+
+        [DebuggerDisplay("Count = {Count}")]
+        [DebuggerTypeProxy(typeof(ArrayPoolDictionaryValueView<,>))]
         public readonly struct ValueCollection : ICollection<TValue>, ICollection, IReadOnlyCollection<TValue>
         {
             private readonly ArrayPoolDictionary<TKey, TValue> m_Parent;
@@ -680,12 +692,16 @@ namespace ArrayPoolCollection
 
             public int Count => m_Parent.Count;
 
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             public bool IsReadOnly => true;
 
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             int ICollection.Count => m_Parent.Count;
 
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             bool ICollection.IsSynchronized => false;
 
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             object ICollection.SyncRoot => ((ICollection)m_Parent).SyncRoot;
 
             public void Add(TValue item)
@@ -792,7 +808,7 @@ namespace ArrayPoolCollection
                         {
                             ThrowHelper.ThrowDifferentVersion();
                         }
-                        if ((uint)m_Index >= m_Parent.m_Size)
+                        if ((uint)m_Index >= (uint)m_Parent.m_Size)
                         {
                             ThrowHelper.ThrowEnumeratorUndefined();
                         }
@@ -867,7 +883,7 @@ namespace ArrayPoolCollection
                     {
                         ThrowHelper.ThrowDifferentVersion();
                     }
-                    if ((uint)m_Index >= m_Parent.m_Size)
+                    if ((uint)m_Index >= (uint)m_Parent.m_Size)
                     {
                         ThrowHelper.ThrowEnumeratorUndefined();
                     }
@@ -878,11 +894,11 @@ namespace ArrayPoolCollection
 
             readonly object? IEnumerator.Current => Current;
 
-            DictionaryEntry IDictionaryEnumerator.Entry => new DictionaryEntry(Current.Key, Current.Value);
+            readonly DictionaryEntry IDictionaryEnumerator.Entry => new DictionaryEntry(Current.Key, Current.Value);
 
-            object IDictionaryEnumerator.Key => Current.Key;
+            readonly object IDictionaryEnumerator.Key => Current.Key;
 
-            object? IDictionaryEnumerator.Value => Current.Value;
+            readonly object? IDictionaryEnumerator.Value => Current.Value;
 
             public void Dispose()
             {
@@ -1422,6 +1438,8 @@ namespace ArrayPoolCollection
                 return new KeyCollection(this);
             }
         }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         ICollection<TKey> IDictionary<TKey, TValue>.Keys => Keys;
 
         public ValueCollection Values
@@ -1435,6 +1453,8 @@ namespace ArrayPoolCollection
                 return new ValueCollection(this);
             }
         }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         ICollection<TValue> IDictionary<TKey, TValue>.Values => Values;
 
         public int Capacity
@@ -1481,24 +1501,34 @@ namespace ArrayPoolCollection
             }
         }
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public bool IsReadOnly => false;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => Keys;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         ICollection IDictionary.Keys => Keys;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => Values;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         ICollection IDictionary.Values => Values;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool IDictionary.IsFixedSize => false;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool IDictionary.IsReadOnly => false;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int ICollection.Count => Count;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection.IsSynchronized => false;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         object ICollection.SyncRoot => this;
 
         public void Add(TKey key, TValue value)
@@ -1938,5 +1968,63 @@ namespace ArrayPoolCollection
         {
             return $"{m_Size} items";
         }
+    }
+
+
+    internal sealed class ArrayPoolDictionaryView<TKey, TValue>
+        where TKey : notnull
+    {
+        private readonly ArrayPoolDictionary<TKey, TValue> m_Source;
+
+        public ArrayPoolDictionaryView(ArrayPoolDictionary<TKey, TValue> source)
+        {
+            m_Source = source;
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public Item[] Items => m_Source.Select(pair => new Item(pair.Key, pair.Value)).ToArray();
+
+        [DebuggerDisplay("{Value}", Name = "[{Key}]")]
+        internal readonly struct Item
+        {
+            [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+            public TKey Key { get; }
+            [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+            public TValue Value { get; }
+
+            public Item(TKey key, TValue value)
+            {
+                Key = key;
+                Value = value;
+            }
+        }
+    }
+
+    internal sealed class ArrayPoolDictionaryKeyView<TKey, TValue>
+        where TKey : notnull
+    {
+        private readonly ArrayPoolDictionary<TKey, TValue>.KeyCollection m_Source;
+
+        public ArrayPoolDictionaryKeyView(ArrayPoolDictionary<TKey, TValue>.KeyCollection source)
+        {
+            m_Source = source;
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public TKey[] Items => m_Source.ToArray();
+    }
+
+    internal sealed class ArrayPoolDictionaryValueView<TKey, TValue>
+        where TKey : notnull
+    {
+        private readonly ArrayPoolDictionary<TKey, TValue>.ValueCollection m_Source;
+
+        public ArrayPoolDictionaryValueView(ArrayPoolDictionary<TKey, TValue>.ValueCollection source)
+        {
+            m_Source = source;
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public TValue[] Items => m_Source.ToArray();
     }
 }

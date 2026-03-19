@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
+    [DebuggerDisplay("{System.Linq.Enumerable.ToArray(this)}")]
+    [DebuggerTypeProxy(typeof(ArrayPoolWrapperView<>))]
     [CollectionBuilder(typeof(ArrayPoolWrapperBuilder), nameof(ArrayPoolWrapperBuilder.Create))]
     public sealed class ArrayPoolWrapper<T> : IList<T>, IReadOnlyList<T>, IList, IDisposable
     {
@@ -72,6 +75,7 @@ namespace ArrayPoolCollection
             }
         }
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public long LongLength
         {
             get
@@ -85,21 +89,33 @@ namespace ArrayPoolCollection
             }
         }
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public int Rank => 1;
 
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int ICollection<T>.Count => Length;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int IReadOnlyCollection<T>.Count => Length;
 
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection<T>.IsReadOnly => false;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool IList.IsFixedSize => true;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool IList.IsReadOnly => false;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int ICollection.Count => Length;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection.IsSynchronized => false;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         object ICollection.SyncRoot => this;
 
         object? IList.this[int index]
@@ -964,7 +980,7 @@ namespace ArrayPoolCollection
                     {
                         ThrowHelper.ThrowObjectDisposed(nameof(m_Array));
                     }
-                    if ((uint)m_Index >= m_Parent.m_Length)
+                    if ((uint)m_Index >= (uint)m_Parent.m_Length)
                     {
                         throw new InvalidOperationException();
                     }
@@ -1014,5 +1030,18 @@ namespace ArrayPoolCollection
             source.CopyTo(result);
             return result;
         }
+    }
+
+    internal sealed class ArrayPoolWrapperView<T>
+    {
+        private readonly ArrayPoolWrapper<T> m_Source;
+
+        public ArrayPoolWrapperView(ArrayPoolWrapper<T> source)
+        {
+            m_Source = source;
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public T[] Items => m_Source.ToArray();
     }
 }

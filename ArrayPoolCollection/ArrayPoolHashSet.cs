@@ -1,10 +1,13 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
+    [DebuggerDisplay("Count = {Count}")]
+    [DebuggerTypeProxy(typeof(ArrayPoolHashSetView<>))]
     public sealed class ArrayPoolHashSet<T> : ICollection<T>, IReadOnlyCollection<T>, ISet<T>, IReadOnlySet<T>, IDisposable
     {
         private readonly record struct Metadata(uint Fingerprint, int ValueIndex)
@@ -461,7 +464,7 @@ namespace ArrayPoolCollection
                     {
                         ThrowHelper.ThrowDifferentVersion();
                     }
-                    if ((uint)m_Index >= m_Parent.m_Size)
+                    if ((uint)m_Index >= (uint)m_Parent.m_Size)
                     {
                         ThrowHelper.ThrowEnumeratorUndefined();
                     }
@@ -765,6 +768,7 @@ namespace ArrayPoolCollection
             }
         }
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public bool IsReadOnly => false;
 
         public int Capacity
@@ -1475,5 +1479,19 @@ namespace ArrayPoolCollection
         {
             AddEntry(item, false);
         }
+    }
+
+
+    internal sealed class ArrayPoolHashSetView<T>
+    {
+        private readonly ArrayPoolHashSet<T> m_Source;
+
+        public ArrayPoolHashSetView(ArrayPoolHashSet<T> source)
+        {
+            m_Source = source;
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public T[] Items => m_Source.ToArray();
     }
 }
