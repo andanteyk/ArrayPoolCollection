@@ -1,9 +1,12 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
+    [DebuggerDisplay("Count = {Count}")]
+    [DebuggerTypeProxy(typeof(ArrayPoolPriorityQueueView<,>))]
     public sealed class ArrayPoolPriorityQueue<TElement, TPriority> : IDisposable
     {
         private (TElement Element, TPriority Priority)[]? m_Array;
@@ -57,6 +60,9 @@ namespace ArrayPoolCollection
             }
         }
 
+
+        [DebuggerDisplay("Count = {Count}")]
+        [DebuggerTypeProxy(typeof(ArrayPoolPriorityQueueUnorderedItemsView<,>))]
         public readonly struct UnorderedItemsCollection : IReadOnlyCollection<(TElement Element, TPriority Priority)>, ICollection
         {
             private readonly ArrayPoolPriorityQueue<TElement, TPriority> m_Parent;
@@ -79,8 +85,10 @@ namespace ArrayPoolCollection
                 }
             }
 
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             bool ICollection.IsSynchronized => false;
 
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             object ICollection.SyncRoot => m_Parent;
 
             public struct Enumerator : IEnumerator<(TElement Element, TPriority Priority)>
@@ -108,7 +116,7 @@ namespace ArrayPoolCollection
                         {
                             ThrowHelper.ThrowDifferentVersion();
                         }
-                        if ((uint)m_Index >= m_Parent.m_Length)
+                        if ((uint)m_Index >= (uint)m_Parent.m_Length)
                         {
                             ThrowHelper.ThrowEnumeratorUndefined();
                         }
@@ -707,5 +715,31 @@ namespace ArrayPoolCollection
             m_Length = 0;
             m_Version = int.MinValue;
         }
+    }
+
+    internal sealed class ArrayPoolPriorityQueueView<TElement, TPriority>
+    {
+        private readonly ArrayPoolPriorityQueue<TElement, TPriority> m_Source;
+
+        public ArrayPoolPriorityQueueView(ArrayPoolPriorityQueue<TElement, TPriority> source)
+        {
+            m_Source = source;
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public (TElement Element, TPriority Priority)[] Items => m_Source.UnorderedItems.OrderBy(pair => pair.Priority, m_Source.Comparer).ToArray();
+    }
+
+    internal sealed class ArrayPoolPriorityQueueUnorderedItemsView<TElement, TPriority>
+    {
+        private readonly ArrayPoolPriorityQueue<TElement, TPriority>.UnorderedItemsCollection m_Source;
+
+        public ArrayPoolPriorityQueueUnorderedItemsView(ArrayPoolPriorityQueue<TElement, TPriority>.UnorderedItemsCollection source)
+        {
+            m_Source = source;
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public (TElement Element, TPriority Priority)[] Items => m_Source.ToArray();
     }
 }

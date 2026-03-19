@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
+    [DebuggerDisplay("Count = {Count}")]
+    [DebuggerTypeProxy(typeof(ArrayPoolListView<>))]
     [CollectionBuilder(typeof(ArrayPoolListBuilder), nameof(ArrayPoolListBuilder.Create))]
     public sealed class ArrayPoolList<T> : IList<T>, IReadOnlyList<T>, IList, IDisposable
     {
@@ -151,13 +154,19 @@ namespace ArrayPoolCollection
             }
         }
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection<T>.IsReadOnly => false;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool IList.IsReadOnly => false;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool IList.IsFixedSize => false;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection.IsSynchronized => false;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         object ICollection.SyncRoot => this;
 
         object? IList.this[int index]
@@ -1324,5 +1333,18 @@ namespace ArrayPoolCollection
             result.AddRange(source);
             return result;
         }
+    }
+
+    internal sealed class ArrayPoolListView<T>
+    {
+        private readonly ArrayPoolList<T> m_Source;
+
+        public ArrayPoolListView(ArrayPoolList<T> source)
+        {
+            m_Source = source;
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public T[] Items => m_Source.ToArray();
     }
 }

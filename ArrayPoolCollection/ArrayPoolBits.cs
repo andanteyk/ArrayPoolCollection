@@ -1,9 +1,12 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ArrayPoolCollection.Pool;
 
 namespace ArrayPoolCollection
 {
+    [DebuggerDisplay("Count = {Count}")]
+    [DebuggerTypeProxy(typeof(ArrayPoolBitsView))]
     public sealed class ArrayPoolBits : IList<bool>, IReadOnlyList<bool>, IList, IDisposable
     {
         private nuint[]? m_Array;
@@ -80,12 +83,16 @@ namespace ArrayPoolCollection
             }
         }
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public bool IsReadOnly => false;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool IList.IsFixedSize => false;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection.IsSynchronized => false;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         object ICollection.SyncRoot => this;
 
         object? IList.this[int index]
@@ -467,7 +474,7 @@ namespace ArrayPoolCollection
                     {
                         ThrowHelper.ThrowDifferentVersion();
                     }
-                    if ((uint)m_Index >= m_Parent.m_Length)
+                    if ((uint)m_Index >= (uint)m_Parent.m_Length)
                     {
                         ThrowHelper.ThrowEnumeratorUndefined();
                     }
@@ -1036,6 +1043,23 @@ namespace ArrayPoolCollection
             {
                 ThrowHelper.ThrowArgumentTypeMismatch(nameof(array));
             }
+        }
+    }
+
+
+    internal sealed class ArrayPoolBitsView
+    {
+        private readonly ArrayPoolBits m_Source;
+
+        public ArrayPoolBitsView(ArrayPoolBits bits)
+        {
+            m_Source = bits;
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public bool[] Items
+        {
+            get => m_Source.ToArray();
         }
     }
 }
