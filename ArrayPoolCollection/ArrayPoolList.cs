@@ -1283,7 +1283,7 @@ namespace ArrayPoolCollection
                     {
                         ThrowHelper.ThrowDifferentVersion();
                     }
-                    if ((uint)Index >= Source.m_Length)
+                    if ((uint)Index >= (uint)Source.m_Length)
                     {
                         ThrowHelper.ThrowEnumeratorUndefined();
                     }
