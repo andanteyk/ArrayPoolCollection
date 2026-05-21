@@ -86,6 +86,32 @@ public class ArrayPoolDictionaryFormatterTests
     }
 
     [Fact]
+    public void SerializeWithStruct()
+    {
+        var rng = new Random(0);
+        var source = new ArrayPoolDictionary<Key, Key>();
+
+        var bytes = MemoryPackSerializer.Serialize(source);
+        var dest = MemoryPackSerializer.Deserialize<ArrayPoolDictionary<Key, Key>>(bytes)!;
+
+
+        for (int i = 0; i < 16; i++)
+        {
+            bytes = MemoryPackSerializer.Serialize(source);
+            dest = MemoryPackSerializer.Deserialize<ArrayPoolDictionary<Key, Key>>(bytes)!;
+
+            Assert.Equal(source, dest);
+
+            source.Add(new((DayOfWeek)rng.Next(7), rng.Next()), new((DayOfWeek)rng.Next(7), rng.Next()));
+        }
+
+        bytes = MemoryPackSerializer.Serialize(source);
+        dest = MemoryPackSerializer.Deserialize<ArrayPoolDictionary<Key, Key>>(bytes)!;
+
+        Assert.Equal(source, dest);
+    }
+
+    [Fact]
     public void Overwrite()
     {
         var source = new ArrayPoolDictionary<string, int>(StringComparer.OrdinalIgnoreCase) { { "Alice", 16 } };
@@ -107,3 +133,7 @@ public partial class DictionaryWrapper<TKey, TValue>
     public ArrayPoolDictionary<TKey, TValue>? Values;
     public int Guard = 123456;
 }
+
+[MemoryPackable]
+public readonly partial record struct Key(DayOfWeek Value1, int Value2);
+
