@@ -26,6 +26,34 @@ public class ArrayPoolQueueFormatterTests
 
             Assert.Equal(source, dest);
         }
+
+        for (int i = 0; i < 512; i++)
+        {
+            source.Dequeue();
+
+            bytes = MemoryPackSerializer.Serialize(source);
+            dest = MemoryPackSerializer.Deserialize<ArrayPoolQueue<int>>(bytes);
+
+            Assert.Equal(source, dest);
+        }
+
+        // random write
+        for (int i = 0; i < 1024; i++)
+        {
+            if (rng.NextDouble() < 0.5)
+            {
+                source.Enqueue(rng.Next());
+            }
+            else
+            {
+                source.Dequeue();
+            }
+
+            bytes = MemoryPackSerializer.Serialize(source);
+            dest = MemoryPackSerializer.Deserialize<ArrayPoolQueue<int>>(bytes);
+
+            Assert.Equal(source, dest);
+        }
     }
 
     [Fact]
@@ -44,6 +72,33 @@ public class ArrayPoolQueueFormatterTests
         for (int i = 0; i < 1024; i++)
         {
             source.Enqueue(rng.NextDouble().ToString());
+
+            bytes = MemoryPackSerializer.Serialize(source);
+            dest = MemoryPackSerializer.Deserialize<ArrayPoolQueue<string>>(bytes);
+            Assert.Equal(source, dest);
+        }
+
+        for (int i = 0; i < 512; i++)
+        {
+            source.Dequeue();
+
+            bytes = MemoryPackSerializer.Serialize(source);
+            dest = MemoryPackSerializer.Deserialize<ArrayPoolQueue<string>>(bytes);
+
+            Assert.Equal(source, dest);
+        }
+
+        // random write
+        for (int i = 0; i < 1024; i++)
+        {
+            if (rng.NextDouble() < 0.5)
+            {
+                source.Enqueue(rng.NextDouble().ToString());
+            }
+            else
+            {
+                source.Dequeue();
+            }
 
             bytes = MemoryPackSerializer.Serialize(source);
             dest = MemoryPackSerializer.Deserialize<ArrayPoolQueue<string>>(bytes);

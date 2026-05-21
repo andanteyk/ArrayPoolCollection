@@ -38,7 +38,8 @@ namespace ArrayPoolCollection.MemoryPack
             }
 
             ArrayPoolQueue<T>.AsSpan(value, out var headSide, out var tailSide);
-            writer.WriteSpan(headSide!);
+            writer.WriteCollectionHeader(value.Count);
+            writer.WriteSpanWithoutLengthHeader<T>(headSide!);
             writer.WriteSpanWithoutLengthHeader<T>(tailSide!);
         }
     }
